@@ -217,10 +217,10 @@ func main() {
 				funds.POST("/disbursements/:id/process", fundManagementController.ProcessFundDisbursement)         // Process disbursement
 
 				// Fund usage tracking (FR-047)
-				funds.POST("/usage", fundManagementController.CreateFundUsage)                                    // Create fund usage
-				funds.GET("/usage/:id", fundManagementController.GetFundUsage)                                    // Get fund usage details
-				funds.GET("/disbursements/:disbursement_id/usage", fundManagementController.GetDisbursementUsage) // Get disbursement usage
-				funds.POST("/usage/:id/verify", fundManagementController.VerifyFundUsage)                         // Verify fund usage
+				funds.POST("/usage", fundManagementController.CreateFundUsage)                                   // Create fund usage
+				funds.GET("/usage/:id", fundManagementController.GetFundUsage)                                   // Get fund usage details
+				funds.GET("/disbursement-usage/:disbursement_id", fundManagementController.GetDisbursementUsage) // Get disbursement usage
+				funds.POST("/usage/:id/verify", fundManagementController.VerifyFundUsage)                        // Verify fund usage
 
 				// Fund balance and audit trail (FR-048)
 				funds.GET("/cooperatives/:cooperative_id/balance", fundManagementController.GetCooperativeFundBalance) // Get cooperative balance
@@ -316,9 +316,9 @@ func main() {
 				profitSharing.GET("/projects/:project_id/distributions", profitSharingController.GetProjectProfitDistributions) // Get project distributions
 
 				// Tax documentation (FR-057)
-				profitSharing.POST("/tax-documents", profitSharingController.CreateTaxDocumentation)                                    // Create tax document
-				profitSharing.GET("/tax-documents/:id", profitSharingController.GetTaxDocumentation)                                    // Get tax document
-				profitSharing.GET("/distributions/:distribution_id/tax-documents", profitSharingController.GetDistributionTaxDocuments) // Get distribution tax docs
+				profitSharing.POST("/tax-documents", profitSharingController.CreateTaxDocumentation)                                   // Create tax document
+				profitSharing.GET("/tax-documents/:id", profitSharingController.GetTaxDocumentation)                                   // Get tax document
+				profitSharing.GET("/distribution-tax-documents/:distribution_id", profitSharingController.GetDistributionTaxDocuments) // Get distribution tax docs
 
 				// ComFunds Fee Management
 				profitSharing.POST("/fees", profitSharingController.CreateComFundsFee)              // Create fee structure

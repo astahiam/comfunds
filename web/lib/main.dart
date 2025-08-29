@@ -12,7 +12,6 @@ import 'utils/constants.dart';
 void main() {
   runApp(const ComFundsApp());
 }
-
 class ComFundsApp extends StatelessWidget {
   const ComFundsApp({super.key});
 
