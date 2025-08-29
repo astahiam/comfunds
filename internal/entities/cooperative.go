@@ -15,6 +15,7 @@ type Cooperative struct {
 	Email               string                 `json:"email" db:"email"`
 	BankAccount         string                 `json:"bank_account" db:"bank_account"`
 	ProfitSharingPolicy map[string]interface{} `json:"profit_sharing_policy" db:"profit_sharing_policy"`
+	CooperativeImage    *string                `json:"cooperative_image" db:"cooperative_image"`
 	IsActive            bool                   `json:"is_active" db:"is_active"`
 	CreatedAt           time.Time              `json:"created_at" db:"created_at"`
 	UpdatedAt           time.Time              `json:"updated_at" db:"updated_at"`
@@ -48,6 +49,7 @@ type CreateCooperativeRequest struct {
 	Email               string                 `json:"email" validate:"required,email"`
 	BankAccount         string                 `json:"bank_account" validate:"required,max=100"`
 	ProfitSharingPolicy map[string]interface{} `json:"profit_sharing_policy"`
+	CooperativeImage    *string                `json:"cooperative_image" validate:"omitempty,url,max=500"`
 }
 
 type UpdateCooperativeRequest struct {
@@ -57,4 +59,5 @@ type UpdateCooperativeRequest struct {
 	Email               string                 `json:"email" validate:"email"`
 	BankAccount         string                 `json:"bank_account" validate:"max=100"`
 	ProfitSharingPolicy map[string]interface{} `json:"profit_sharing_policy"`
+	CooperativeImage    *string                `json:"cooperative_image" validate:"omitempty,url,max=500"`
 }

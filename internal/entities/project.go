@@ -26,6 +26,9 @@ type Project struct {
 	ApprovedAt        *time.Time `json:"approved_at" db:"approved_at"`
 	StartDate         *time.Time `json:"start_date" db:"start_date"`
 	EndDate           *time.Time `json:"end_date" db:"end_date"`
+	ProjectImage1     *string    `json:"project_image_1" db:"project_image_1"`
+	ProjectImage2     *string    `json:"project_image_2" db:"project_image_2"`
+	ProjectImage3     *string    `json:"project_image_3" db:"project_image_3"`
 	IsActive          bool       `json:"is_active" db:"is_active"`
 	CreatedAt         time.Time  `json:"created_at" db:"created_at"`
 	UpdatedAt         time.Time  `json:"updated_at" db:"updated_at"`
@@ -41,6 +44,9 @@ type CreateProjectRequest struct {
 	InvestmentPeriod int        `json:"investment_period" validate:"required,min=6,max=120"` // 6 months to 10 years
 	ExpectedReturn   string     `json:"expected_return" validate:"required"`
 	BusinessID       uuid.UUID  `json:"business_id" validate:"required"`
+	ProjectImage1    *string    `json:"project_image_1" validate:"omitempty,url,max=500"`
+	ProjectImage2    *string    `json:"project_image_2" validate:"omitempty,url,max=500"`
+	ProjectImage3    *string    `json:"project_image_3" validate:"omitempty,url,max=500"`
 	StartDate        *time.Time `json:"start_date"`
 	EndDate          *time.Time `json:"end_date"`
 }
@@ -55,6 +61,9 @@ type UpdateProjectRequest struct {
 	InvestmentPeriod int        `json:"investment_period" validate:"min=6,max=120"`
 	ExpectedReturn   string     `json:"expected_return"`
 	Status           string     `json:"status" validate:"oneof=pending_approval approved active completed cancelled"`
+	ProjectImage1    *string    `json:"project_image_1" validate:"omitempty,url,max=500"`
+	ProjectImage2    *string    `json:"project_image_2" validate:"omitempty,url,max=500"`
+	ProjectImage3    *string    `json:"project_image_3" validate:"omitempty,url,max=500"`
 	StartDate        *time.Time `json:"start_date"`
 	EndDate          *time.Time `json:"end_date"`
 }
