@@ -49,25 +49,6 @@ services:
       - comfunds_network
     restart: unless-stopped
 
-  # Flutter Web Frontend
-  frontend:
-    build:
-      context: ./web
-      dockerfile: Dockerfile
-    container_name: comfunds_frontend
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - comfunds_network
-    restart: unless-stopped
-
   # Redis for caching (optional)
   redis:
     image: redis:7-alpine
@@ -97,7 +78,6 @@ services:
       - ./nginx/ssl:/etc/nginx/ssl
     depends_on:
       - backend
-      - frontend
     networks:
       - comfunds_network
     restart: unless-stopped

@@ -32,7 +32,6 @@ dev:
 	docker-compose -f docker-compose.dev.yml up -d
 	@echo "Development environment started!"
 	@echo "Backend API: http://localhost:8081"
-	@echo "Frontend Web: http://localhost:3000"
 	@echo "Database Admin: http://localhost:8082"
 	@echo "Redis: localhost:6380"
 
@@ -54,7 +53,6 @@ run:
 	docker-compose up -d
 	@echo "Production environment started!"
 	@echo "Backend API: http://localhost:8080"
-	@echo "Frontend Web: http://localhost:80"
 
 stop:
 	@echo "Stopping production environment..."
@@ -106,15 +104,12 @@ health:
 	@echo "Checking service health..."
 	@echo "Backend API:"
 	@curl -f http://localhost:8080/health || echo "Backend API is not responding"
-	@echo "Frontend Web:"
-	@curl -f http://localhost:80/health || echo "Frontend Web is not responding"
 
 # Development shortcuts
 backend-logs:
 	docker-compose -f docker-compose.dev.yml logs -f backend-dev
 
-frontend-logs:
-	docker-compose -f docker-compose.dev.yml logs -f frontend-dev
+
 
 db-logs:
 	docker-compose -f docker-compose.dev.yml logs -f postgres-dev

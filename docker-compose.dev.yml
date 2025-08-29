@@ -45,22 +45,7 @@ services:
       - comfunds_dev_network
     command: ["air", "-c", ".air.toml"]
 
-  # Flutter Web Development Server
-  frontend-dev:
-    build:
-      context: ./web
-      dockerfile: Dockerfile.dev
-    container_name: comfunds_frontend_dev
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./web:/app
-      - flutter_cache:/root/.pub-cache
-    environment:
-      - FLUTTER_WEB_PORT=3000
-    networks:
-      - comfunds_dev_network
-    command: ["flutter", "run", "--web-port", "3000", "--web-hostname", "0.0.0.0", "--hot"]
+
 
   # Redis for development
   redis-dev:
@@ -93,8 +78,7 @@ volumes:
     driver: local
   go_cache:
     driver: local
-  flutter_cache:
-    driver: local
+
 
 networks:
   comfunds_dev_network:
