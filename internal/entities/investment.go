@@ -23,6 +23,7 @@ type CreateInvestmentRequest struct {
 	ProjectID  uuid.UUID `json:"project_id" validate:"required"`
 	InvestorID uuid.UUID `json:"investor_id" validate:"required"`
 	Amount     float64   `json:"amount" validate:"required,gt=0"`
+	IdempotencyKey string `json:"idempotency_key,omitempty"`
 }
 
 type ProfitDistribution struct {
