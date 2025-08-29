@@ -35,22 +35,22 @@ func NewImageController(imageService *services.ImageService) *ImageController {
 func (c *ImageController) CreateImage(ctx *gin.Context) {
 	var req entities.CreateImageRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		utils.SendErrorResponse(ctx, http.StatusBadRequest, "Invalid request body", err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
 	if err := utils.ValidateStruct(&req); err != nil {
-		utils.SendErrorResponse(ctx, http.StatusBadRequest, "Validation failed", err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Validation failed", err)
 		return
 	}
 
 	image, err := c.imageService.CreateImage(&req)
 	if err != nil {
-		utils.SendErrorResponse(ctx, http.StatusInternalServerError, "Failed to create image", err.Error())
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to create image", err)
 		return
 	}
 
-	utils.SendSuccessResponse(ctx, http.StatusCreated, "Image created successfully", image)
+	utils.SuccessResponse(ctx, http.StatusCreated, "Image created successfully", image)
 }
 
 // GetImage retrieves an image by ID
@@ -68,22 +68,22 @@ func (c *ImageController) GetImage(ctx *gin.Context) {
 	idParam := ctx.Param("id")
 	id, err := uuid.Parse(idParam)
 	if err != nil {
-		utils.SendErrorResponse(ctx, http.StatusBadRequest, "Invalid image ID", err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid image ID", err)
 		return
 	}
 
 	image, err := c.imageService.GetImageByID(id)
 	if err != nil {
-		utils.SendErrorResponse(ctx, http.StatusInternalServerError, "Failed to get image", err.Error())
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to get image", err)
 		return
 	}
 
 	if image == nil {
-		utils.SendErrorResponse(ctx, http.StatusNotFound, "Image not found", "")
+		utils.ErrorResponse(ctx, http.StatusNotFound, "Image not found", nil)
 		return
 	}
 
-	utils.SendSuccessResponse(ctx, http.StatusOK, "Image retrieved successfully", image)
+	utils.SuccessResponse(ctx, http.StatusOK, "Image retrieved successfully", image)
 }
 
 // GetImages retrieves images with pagination and optional filtering by used_by
@@ -123,11 +123,11 @@ func (c *ImageController) GetImages(ctx *gin.Context) {
 	}
 
 	if err != nil {
-		utils.SendErrorResponse(ctx, http.StatusInternalServerError, "Failed to get images", err.Error())
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to get images", err)
 		return
 	}
 
-	utils.SendSuccessResponse(ctx, http.StatusOK, "Images retrieved successfully", images)
+	utils.SuccessResponse(ctx, http.StatusOK, "Images retrieved successfully", images)
 }
 
 // UpdateImage updates an existing image
@@ -147,32 +147,32 @@ func (c *ImageController) UpdateImage(ctx *gin.Context) {
 	idParam := ctx.Param("id")
 	id, err := uuid.Parse(idParam)
 	if err != nil {
-		utils.SendErrorResponse(ctx, http.StatusBadRequest, "Invalid image ID", err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid image ID", err)
 		return
 	}
 
 	var req entities.UpdateImageRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		utils.SendErrorResponse(ctx, http.StatusBadRequest, "Invalid request body", err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
 	if err := utils.ValidateStruct(&req); err != nil {
-		utils.SendErrorResponse(ctx, http.StatusBadRequest, "Validation failed", err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Validation failed", err)
 		return
 	}
 
 	image, err := c.imageService.UpdateImage(id, &req)
 	if err != nil {
 		if err.Error() == "image not found" {
-			utils.SendErrorResponse(ctx, http.StatusNotFound, "Image not found", "")
+			utils.ErrorResponse(ctx, http.StatusNotFound, "Image not found", nil)
 			return
 		}
-		utils.SendErrorResponse(ctx, http.StatusInternalServerError, "Failed to update image", err.Error())
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to update image", err)
 		return
 	}
 
-	utils.SendSuccessResponse(ctx, http.StatusOK, "Image updated successfully", image)
+	utils.SuccessResponse(ctx, http.StatusOK, "Image updated successfully", image)
 }
 
 // DeleteImage deletes an image
@@ -190,19 +190,19 @@ func (c *ImageController) DeleteImage(ctx *gin.Context) {
 	idParam := ctx.Param("id")
 	id, err := uuid.Parse(idParam)
 	if err != nil {
-		utils.SendErrorResponse(ctx, http.StatusBadRequest, "Invalid image ID", err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid image ID", err)
 		return
 	}
 
 	err = c.imageService.DeleteImage(id)
 	if err != nil {
 		if err.Error() == "image not found" {
-			utils.SendErrorResponse(ctx, http.StatusNotFound, "Image not found", "")
+			utils.ErrorResponse(ctx, http.StatusNotFound, "Image not found", nil)
 			return
 		}
-		utils.SendErrorResponse(ctx, http.StatusInternalServerError, "Failed to delete image", err.Error())
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to delete image", err)
 		return
 	}
 
-	utils.SendSuccessResponse(ctx, http.StatusOK, "Image deleted successfully", nil)
+	utils.SuccessResponse(ctx, http.StatusOK, "Image deleted successfully", nil)
 }
