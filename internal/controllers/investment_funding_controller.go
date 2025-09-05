@@ -509,3 +509,92 @@ func (c *InvestmentFundingController) GetProjectInvestmentLimits(ctx *gin.Contex
 
 	utils.SuccessResponse(ctx, http.StatusOK, "Investment limits retrieved successfully", limits)
 }
+
+// GetInvestmentsByMember handles getting investments for a specific member
+// @Summary Get investments by member
+// @Tags investments
+// @Produce json
+// @Security BearerAuth
+// @Param member_id path string true "Member ID"
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.ErrorResponseData
+// @Failure 401 {object} utils.ErrorResponseData
+// @Router /api/v1/investments/member/{member_id} [get]
+func (c *InvestmentFundingController) GetInvestmentsByMember(ctx *gin.Context) {
+	memberIDParam := ctx.Param("member_id")
+	memberID, err := uuid.Parse(memberIDParam)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid member ID", err)
+		return
+	}
+
+	page := utils.GetIntQuery(ctx, "page", 1)
+	limit := utils.GetIntQuery(ctx, "limit", 10)
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
+
+	// Mock data - this would come from the investment service
+	memberInvestments := []map[string]interface{}{
+		{
+			"id":              uuid.New(),
+			"project_id":      uuid.New(),
+			"project_title":   "Halal Food Processing Plant",
+			"investor_id":     memberID,
+			"amount":          5000.00,
+			"investment_date": "2024-01-15T10:00:00Z",
+			"status":          "active",
+			"expected_return": "8-12% annually",
+			"investment_type": "equity",
+			"risk_level":      "medium",
+		},
+		{
+			"id":              uuid.New(),
+			"project_id":      uuid.New(),
+			"project_title":   "Renewable Energy Project",
+			"investor_id":     memberID,
+			"amount":          2500.00,
+			"investment_date": "2024-01-10T14:30:00Z",
+			"status":          "active",
+			"expected_return": "6-10% annually",
+			"investment_type": "profit_sharing",
+			"risk_level":      "low",
+		},
+	}
+
+	// Apply pagination
+	total := len(memberInvestments)
+	start := (page - 1) * limit
+	end := start + limit
+
+	if start > total {
+		memberInvestments = []map[string]interface{}{}
+	} else if end > total {
+		memberInvestments = memberInvestments[start:]
+	} else {
+		memberInvestments = memberInvestments[start:end]
+	}
+
+	// Calculate totals
+	var totalInvested float64 = 7500.00
+	var activeInvestments int = 2
+
+	response := map[string]interface{}{
+		"investments":        memberInvestments,
+		"page":               page,
+		"limit":              limit,
+		"total":              total,
+		"member_id":          memberID,
+		"total_invested":     totalInvested,
+		"active_investments": activeInvestments,
+		"message":            "Member investments retrieved successfully",
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "Member investments retrieved successfully", response)
+}

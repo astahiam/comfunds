@@ -42,24 +42,24 @@ func (c *ProjectController) GetPublicProjects(ctx *gin.Context) {
 	// Mock data for now - this would come from a project service
 	projects := []map[string]interface{}{
 		{
-			"id":          uuid.New(),
-			"title":       "Tech Startup Funding",
-			"description": "Innovative tech startup seeking investment for expansion",
+			"id":            uuid.New(),
+			"title":         "Tech Startup Funding",
+			"description":   "Innovative tech startup seeking investment for expansion",
 			"target_amount": 100000,
 			"raised_amount": 25000,
-			"status":      "active",
-			"category":    "Technology",
-			"created_at":  "2024-01-15T10:00:00Z",
+			"status":        "active",
+			"category":      "Technology",
+			"created_at":    "2024-01-15T10:00:00Z",
 		},
 		{
-			"id":          uuid.New(),
-			"title":       "Sustainable Agriculture Project", 
-			"description": "Organic farming initiative for community development",
+			"id":            uuid.New(),
+			"title":         "Sustainable Agriculture Project",
+			"description":   "Organic farming initiative for community development",
 			"target_amount": 50000,
 			"raised_amount": 15000,
-			"status":      "active",
-			"category":    "Agriculture",
-			"created_at":  "2024-01-10T09:00:00Z",
+			"status":        "active",
+			"category":      "Agriculture",
+			"created_at":    "2024-01-10T09:00:00Z",
 		},
 	}
 
@@ -199,11 +199,11 @@ func (c *ProjectController) CreateProject(ctx *gin.Context) {
 	}
 
 	var req struct {
-		Title         string  `json:"title" validate:"required,min=3,max=200"`
-		Description   string  `json:"description" validate:"required,min=10,max=2000"`
-		TargetAmount  float64 `json:"target_amount" validate:"required,min=1000"`
-		Category      string  `json:"category" validate:"required"`
-		BusinessID    *uuid.UUID `json:"business_id" validate:"required"`
+		Title        string     `json:"title" validate:"required,min=3,max=200"`
+		Description  string     `json:"description" validate:"required,min=10,max=2000"`
+		TargetAmount float64    `json:"target_amount" validate:"required,min=1000"`
+		Category     string     `json:"category" validate:"required"`
+		BusinessID   *uuid.UUID `json:"business_id" validate:"required"`
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -410,4 +410,208 @@ func (c *ProjectController) GetInvestmentOpportunities(ctx *gin.Context) {
 	}
 
 	utils.SuccessResponse(ctx, http.StatusOK, "Investment opportunities retrieved successfully", response)
+}
+
+// GetProjects returns all projects with optional filtering
+// @Summary Get all projects
+// @Tags projects
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
+// @Param status query string false "Filter by status"
+// @Param category query string false "Filter by category"
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} utils.ErrorResponseData
+// @Router /api/v1/projects [get]
+func (c *ProjectController) GetProjects(ctx *gin.Context) {
+	page := utils.GetIntQuery(ctx, "page", 1)
+	limit := utils.GetIntQuery(ctx, "limit", 10)
+	status := utils.GetStringQuery(ctx, "status", "")
+	category := utils.GetStringQuery(ctx, "category", "")
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 1000 {
+		limit = 10
+	}
+
+	// Mock data - this would come from a project service
+	allProjects := []map[string]interface{}{
+		{
+			"id":            uuid.New(),
+			"title":         "Tech Startup Funding",
+			"description":   "Innovative tech startup seeking investment for expansion",
+			"target_amount": 100000,
+			"raised_amount": 25000,
+			"status":        "active",
+			"category":      "Technology",
+			"created_at":    "2024-01-15T10:00:00Z",
+		},
+		{
+			"id":            uuid.New(),
+			"title":         "Sustainable Agriculture Project",
+			"description":   "Organic farming initiative for community development",
+			"target_amount": 50000,
+			"raised_amount": 15000,
+			"status":        "active",
+			"category":      "Agriculture",
+			"created_at":    "2024-01-10T09:00:00Z",
+		},
+		{
+			"id":            uuid.New(),
+			"title":         "Local Bakery Expansion",
+			"description":   "Expanding local bakery to serve more community members",
+			"target_amount": 75000,
+			"raised_amount": 45000,
+			"status":        "funded",
+			"category":      "Food & Beverage",
+			"created_at":    "2024-01-12T11:00:00Z",
+		},
+		{
+			"id":            uuid.New(),
+			"title":         "Community Center Renovation",
+			"description":   "Renovating community center for better services",
+			"target_amount": 200000,
+			"raised_amount": 120000,
+			"status":        "active",
+			"category":      "Community Development",
+			"created_at":    "2024-01-08T14:00:00Z",
+		},
+	}
+
+	// Apply filters
+	var filteredProjects []map[string]interface{}
+	for _, project := range allProjects {
+		includeProject := true
+
+		if status != "" {
+			if projectStatus, ok := project["status"].(string); !ok || projectStatus != status {
+				includeProject = false
+			}
+		}
+
+		if category != "" && includeProject {
+			if projectCategory, ok := project["category"].(string); !ok || projectCategory != category {
+				includeProject = false
+			}
+		}
+
+		if includeProject {
+			filteredProjects = append(filteredProjects, project)
+		}
+	}
+
+	// Apply pagination
+	total := len(filteredProjects)
+	start := (page - 1) * limit
+	end := start + limit
+
+	if start > total {
+		filteredProjects = []map[string]interface{}{}
+	} else if end > total {
+		filteredProjects = filteredProjects[start:]
+	} else {
+		filteredProjects = filteredProjects[start:end]
+	}
+
+	response := map[string]interface{}{
+		"projects": filteredProjects,
+		"page":     page,
+		"limit":    limit,
+		"total":    total,
+		"filters": map[string]interface{}{
+			"status":   status,
+			"category": category,
+		},
+		"message": "Projects retrieved successfully",
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "Projects retrieved successfully", response)
+}
+
+// GetProjectsAvailableForInvestment returns projects available for investment
+// @Summary Get projects available for investment
+// @Tags projects
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} utils.ErrorResponseData
+// @Router /api/v1/projects/available-for-investment [get]
+func (c *ProjectController) GetProjectsAvailableForInvestment(ctx *gin.Context) {
+	page := utils.GetIntQuery(ctx, "page", 1)
+	limit := utils.GetIntQuery(ctx, "limit", 10)
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
+
+	// Mock data - projects that are approved and available for investment
+	availableProjects := []map[string]interface{}{
+		{
+			"id":                uuid.New(),
+			"title":             "Halal Food Processing Plant",
+			"description":       "State-of-the-art halal food processing facility",
+			"target_amount":     500000,
+			"raised_amount":     200000,
+			"remaining_amount":  300000,
+			"min_investment":    1000,
+			"max_investment":    50000,
+			"expected_return":   "8-12% annually",
+			"investment_period": "24 months",
+			"status":            "approved",
+			"category":          "Food Processing",
+			"risk_level":        "Medium",
+			"sharia_compliant":  true,
+			"deadline":          "2024-06-30T23:59:59Z",
+			"created_at":        "2024-01-05T09:00:00Z",
+		},
+		{
+			"id":                uuid.New(),
+			"title":             "Renewable Energy Project",
+			"description":       "Solar panel installation for community buildings",
+			"target_amount":     300000,
+			"raised_amount":     150000,
+			"remaining_amount":  150000,
+			"min_investment":    500,
+			"max_investment":    25000,
+			"expected_return":   "6-10% annually",
+			"investment_period": "36 months",
+			"status":            "approved",
+			"category":          "Renewable Energy",
+			"risk_level":        "Low",
+			"sharia_compliant":  true,
+			"deadline":          "2024-05-31T23:59:59Z",
+			"created_at":        "2024-01-03T11:00:00Z",
+		},
+	}
+
+	// Apply pagination
+	total := len(availableProjects)
+	start := (page - 1) * limit
+	end := start + limit
+
+	if start > total {
+		availableProjects = []map[string]interface{}{}
+	} else if end > total {
+		availableProjects = availableProjects[start:]
+	} else {
+		availableProjects = availableProjects[start:end]
+	}
+
+	response := map[string]interface{}{
+		"projects": availableProjects,
+		"page":     page,
+		"limit":    limit,
+		"total":    total,
+		"message":  "Investment-ready projects retrieved successfully",
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "Available investment projects retrieved successfully", response)
 }

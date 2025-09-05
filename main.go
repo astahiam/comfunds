@@ -169,6 +169,8 @@ func main() {
 			// FR-008: Business Owners can create and manage projects
 			projects := protected.Group("/projects")
 			{
+				projects.GET("", projectController.GetProjects)                                                // Get all projects
+				projects.GET("/available-for-investment", projectController.GetProjectsAvailableForInvestment) // Get investment-ready projects
 				projects.POST("", permissionMiddleware.RequirePermission(auth.PermissionCreateProject), projectController.CreateProject)
 			}
 
@@ -192,8 +194,9 @@ func main() {
 				investments.POST("/project/:project_id/limits", permissionMiddleware.RequireAdminRole(), investmentFundingController.SetProjectInvestmentLimits) // Set limits
 
 				// Investor portfolio
-				investments.GET("/portfolio", investmentFundingController.GetInvestorPortfolio)        // Portfolio summary
-				investments.GET("/my-investments", investmentFundingController.GetInvestorInvestments) // My investments
+				investments.GET("/portfolio", investmentFundingController.GetInvestorPortfolio)           // Portfolio summary
+				investments.GET("/my-investments", investmentFundingController.GetInvestorInvestments)    // My investments
+				investments.GET("/member/:member_id", investmentFundingController.GetInvestmentsByMember) // Get investments by member
 			}
 
 			// Investment approval routes (admin/cooperative admin)

@@ -26,9 +26,9 @@ type UserServiceAuth interface {
 }
 
 type userServiceAuth struct {
-	userRepo         repositories.UserRepositorySharded
-	cooperativeRepo  repositories.CooperativeRepository
-	jwtManager       *auth.JWTManager
+	userRepo        repositories.UserRepositorySharded
+	cooperativeRepo repositories.CooperativeRepository
+	jwtManager      *auth.JWTManager
 }
 
 func NewUserServiceAuth(
@@ -279,7 +279,7 @@ func (s *userServiceAuth) validateMandatoryFields(req *entities.CreateUserReques
 
 func (s *userServiceAuth) requiresCooperativeVerification(roles []string) bool {
 	verificationRequiredRoles := []string{"member", "business_owner", "investor"}
-	
+
 	for _, role := range roles {
 		for _, reqRole := range verificationRequiredRoles {
 			if role == reqRole {
@@ -294,12 +294,12 @@ func (s *userServiceAuth) validatePasswordComplexity(password string) error {
 	if len(password) < 8 {
 		return fmt.Errorf("password must be at least 8 characters long")
 	}
-	
+
 	hasUpper := false
 	hasLower := false
 	hasDigit := false
 	hasSpecial := false
-	
+
 	for _, char := range password {
 		switch {
 		case 'A' <= char && char <= 'Z':
@@ -312,7 +312,7 @@ func (s *userServiceAuth) validatePasswordComplexity(password string) error {
 			hasSpecial = true
 		}
 	}
-	
+
 	if !hasUpper {
 		return fmt.Errorf("password must contain at least one uppercase letter")
 	}
@@ -325,6 +325,6 @@ func (s *userServiceAuth) validatePasswordComplexity(password string) error {
 	if !hasSpecial {
 		return fmt.Errorf("password must contain at least one special character")
 	}
-	
+
 	return nil
 }
