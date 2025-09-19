@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS cooperatives (
 );
 
 -- Create indexes for better performance
+CREATE INDEX idx_cooperatives_name ON cooperatives(name); -- Index for cooperative name search
 CREATE INDEX idx_cooperatives_registration_number ON cooperatives(registration_number);
 CREATE INDEX idx_cooperatives_is_active ON cooperatives(is_active);
 CREATE INDEX idx_cooperatives_created_at ON cooperatives(created_at);

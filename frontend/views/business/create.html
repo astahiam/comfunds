@@ -1,0 +1,431 @@
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/business" class="text-decoration-none">Bisnis</a></li>
+                    <li class="breadcrumb-item active">Buat Bisnis Baru</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-1">Buat Bisnis Baru</h1>
+            <p class="text-muted mb-0">Isi informasi bisnis Anda untuk mulai mencari pendanaan</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Business Creation Form -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Informasi Bisnis</h5>
+                </div>
+                <div class="card-body">
+                    <form id="createBusinessForm" class="needs-validation" novalidate>
+                        <!-- Business Name -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nama Bisnis <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                            <div class="invalid-feedback">
+                                Nama bisnis harus diisi
+                            </div>
+                        </div>
+
+                        <!-- Business Type -->
+                        <div class="mb-3">
+                            <label for="type" class="form-label">Jenis Bisnis <span class="text-danger">*</span></label>
+                            <select class="form-select" id="type" name="type" required>
+                                <option value="">Pilih Jenis Bisnis</option>
+                                <option value="manufacturing">Manufacturing</option>
+                                <option value="retail">Retail</option>
+                                <option value="services">Services</option>
+                                <option value="technology">Technology</option>
+                                <option value="agriculture">Agriculture</option>
+                                <option value="construction">Construction</option>
+                                <option value="healthcare">Healthcare</option>
+                                <option value="education">Education</option>
+                                <option value="finance">Finance</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Pilih jenis bisnis
+                            </div>
+                        </div>
+
+                        <!-- Cooperative -->
+                        <div class="mb-3">
+                            <label for="cooperative_id" class="form-label">Koperasi <span class="text-danger">*</span></label>
+                            <select class="form-select" id="cooperative_id" name="cooperative_id" required>
+                                <option value="">Pilih Koperasi</option>
+                                {{range .Cooperatives}}
+                                <option value="{{.ID}}">{{.Name}}</option>
+                                {{end}}
+                            </select>
+                            <div class="invalid-feedback">
+                                Pilih koperasi
+                            </div>
+                        </div>
+
+                        <!-- Business Description -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Deskripsi Bisnis <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="description" name="description" rows="4" required placeholder="Jelaskan bisnis Anda secara detail..."></textarea>
+                            <div class="form-text">
+                                Jelaskan tentang bisnis Anda, target pasar, keunggulan, dan rencana pengembangan
+                            </div>
+                            <div class="invalid-feedback">
+                                Deskripsi bisnis harus diisi
+                            </div>
+                        </div>
+
+                        <!-- Business Address -->
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Alamat Bisnis <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="address" name="address" rows="3" required placeholder="Alamat lengkap bisnis Anda..."></textarea>
+                            <div class="invalid-feedback">
+                                Alamat bisnis harus diisi
+                            </div>
+                        </div>
+
+                        <!-- Registration Number -->
+                        <div class="mb-3">
+                            <label for="registration_number" class="form-label">Nomor Registrasi <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="registration_number" name="registration_number" required placeholder="Nomor SIUP/TDP/NIB">
+                            <div class="form-text">
+                                Nomor registrasi legal bisnis (SIUP, TDP, NIB, dll)
+                            </div>
+                            <div class="invalid-feedback">
+                                Nomor registrasi harus diisi
+                            </div>
+                        </div>
+
+                        <!-- Legal Structure -->
+                        <div class="mb-3">
+                            <label for="legal_structure" class="form-label">Bentuk Badan Usaha <span class="text-danger">*</span></label>
+                            <select class="form-select" id="legal_structure" name="legal_structure" required>
+                                <option value="">Pilih Bentuk Badan Usaha</option>
+                                <option value="PT">PT (Perseroan Terbatas)</option>
+                                <option value="CV">CV (Commanditaire Vennootschap)</option>
+                                <option value="UD">UD (Usaha Dagang)</option>
+                                <option value="Firma">Firma</option>
+                                <option value="Koperasi">Koperasi</option>
+                                <option value="Yayasan">Yayasan</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Pilih bentuk badan usaha
+                            </div>
+                        </div>
+
+                        <!-- Industry -->
+                        <div class="mb-3">
+                            <label for="industry" class="form-label">Industri <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="industry" name="industry" required placeholder="Contoh: Makanan dan Minuman">
+                            <div class="form-text">
+                                Sektor industri spesifik bisnis Anda
+                            </div>
+                            <div class="invalid-feedback">
+                                Industri harus diisi
+                            </div>
+                        </div>
+
+                        <!-- Business Contact Info -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Nomor Telepon Bisnis <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="phone" name="phone" required placeholder="+62-xxx-xxxx-xxxx">
+                                <div class="invalid-feedback">
+                                    Nomor telepon bisnis harus diisi
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email Bisnis <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="email" name="email" required placeholder="bisnis@example.com">
+                                <div class="invalid-feedback">
+                                    Email bisnis harus diisi
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Established Date -->
+                        <div class="mb-3">
+                            <label for="established_date" class="form-label">Tanggal Didirikan <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="established_date" name="established_date" required>
+                            <div class="invalid-feedback">
+                                Tanggal didirikan harus diisi
+                            </div>
+                        </div>
+
+                        <!-- Financial Info -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="currency" class="form-label">Mata Uang <span class="text-danger">*</span></label>
+                                <select class="form-select" id="currency" name="currency" required>
+                                    <option value="">Pilih Mata Uang</option>
+                                    <option value="IDR" selected>IDR (Rupiah)</option>
+                                    <option value="USD">USD (Dollar)</option>
+                                    <option value="EUR">EUR (Euro)</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Pilih mata uang
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="employee_count" class="form-label">Jumlah Karyawan</label>
+                                <input type="number" class="form-control" id="employee_count" name="employee_count" min="1" value="1">
+                                <div class="form-text">
+                                    Jumlah karyawan saat ini
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bank Account -->
+                        <div class="mb-3">
+                            <label for="bank_account" class="form-label">Rekening Bank Bisnis <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="bank_account" name="bank_account" required placeholder="1234567890">
+                            <div class="form-text">
+                                Nomor rekening bank untuk bisnis
+                            </div>
+                            <div class="invalid-feedback">
+                                Rekening bank harus diisi
+                            </div>
+                        </div>
+
+                        <!-- Optional Fields -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="website" class="form-label">Website</label>
+                                <input type="url" class="form-control" id="website" name="website" placeholder="https://www.bisnis.com">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="annual_revenue" class="form-label">Pendapatan Tahunan</label>
+                                <input type="number" class="form-control" id="annual_revenue" name="annual_revenue" min="0" placeholder="0">
+                                <div class="form-text">
+                                    Pendapatan tahunan dalam Rupiah
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Business License -->
+                        <div class="mb-3">
+                            <label for="business_license" class="form-label">Nomor Izin Usaha</label>
+                            <input type="text" class="form-control" id="business_license" name="business_license" placeholder="Nomor izin usaha (opsional)">
+                            <div class="form-text">
+                                Nomor izin usaha atau sertifikat lainnya
+                            </div>
+                        </div>
+
+                        <!-- Business Document -->
+                        <div class="mb-3">
+                            <label for="document_url" class="form-label">Dokumen Bisnis</label>
+                            <input type="url" class="form-control" id="document_url" name="document_url" placeholder="URL dokumen bisnis (opsional)">
+                            <div class="form-text">
+                                Upload dokumen seperti SIUP, TDP, atau dokumen legal lainnya
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-flex justify-content-between">
+                            <a href="/business" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Kembali
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-2"></i>Simpan Bisnis
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Tips Card -->
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-lightbulb text-warning me-2"></i>
+                        Tips Membuat Bisnis
+                    </h6>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Gunakan nama yang mudah diingat
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Deskripsikan bisnis dengan jelas
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Pilih jenis bisnis yang sesuai
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Siapkan dokumen legal
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Pastikan koperasi yang tepat
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Requirements Card -->
+            <div class="card border-0 bg-primary text-white mt-3">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Persyaratan
+                    </h6>
+                    <p class="card-text small mb-0">
+                        Untuk dapat mengajukan pendanaan, bisnis Anda harus:
+                    </p>
+                    <ul class="list-unstyled small mt-2 mb-0">
+                        <li class="mb-1">
+                            <i class="fas fa-check me-2"></i>
+                            Memiliki dokumen legal
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-check me-2"></i>
+                            Disetujui oleh koperasi
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-check me-2"></i>
+                            Sesuai prinsip syariah
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check me-2"></i>
+                            Memiliki rencana bisnis
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form validation and submission
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('createBusinessForm');
+    const submitButton = form.querySelector('button[type="submit"]');
+    
+    console.log('Business form initialized');
+    console.log('Submit button found:', submitButton);
+    
+    // Test button click
+    submitButton.addEventListener('click', function(e) {
+        console.log('Submit button clicked!');
+    });
+
+    // Form submission
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        console.log('Form submit event triggered');
+        
+        if (!form.checkValidity()) {
+            e.stopPropagation();
+            form.classList.add('was-validated');
+            console.log('Form validation failed');
+            return;
+        }
+        
+        console.log('Form validation passed');
+
+        const formData = new FormData(form);
+        const businessData = {
+            name: formData.get('name'),
+            type: formData.get('type'),
+            description: formData.get('description'),
+            cooperative_id: formData.get('cooperative_id'),
+            registration_number: formData.get('registration_number'),
+            legal_structure: formData.get('legal_structure'),
+            industry: formData.get('industry'),
+            address: formData.get('address'),
+            phone: formData.get('phone'),
+            email: formData.get('email'),
+            established_date: formData.get('established_date') + 'T00:00:00Z', // Convert to ISO format
+            currency: formData.get('currency'),
+            bank_account: formData.get('bank_account'),
+            website: formData.get('website') || '',
+            employee_count: parseInt(formData.get('employee_count')) || 0,
+            annual_revenue: parseFloat(formData.get('annual_revenue')) || 0,
+            business_license: formData.get('business_license') || '',
+            documents: formData.get('document_url') ? [formData.get('document_url')] : []
+        };
+
+        console.log('Business data to be sent:', businessData);
+
+        try {
+            const response = await fetch('/api/businesses', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(businessData)
+            });
+
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                showToast('✅ Bisnis berhasil dibuat dan menunggu persetujuan!', 'success');
+                
+                // Show detailed success info
+                const successAlert = document.createElement('div');
+                successAlert.className = 'alert alert-success alert-dismissible fade show mt-3';
+                successAlert.innerHTML = `
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-check-circle fa-2x text-success me-3 mt-1"></i>
+                        <div>
+                            <strong>🎉 Bisnis Berhasil Dibuat!</strong><br>
+                            <div class="mt-2">
+                                <strong>Detail Bisnis:</strong><br>
+                                • <strong>Nama:</strong> ${businessData.name}<br>
+                                • <strong>Jenis:</strong> ${businessData.type}<br>
+                                • <strong>ID Bisnis:</strong> ${result.data?.id || 'Sedang diproses'}<br>
+                                • <strong>Status:</strong> Menunggu persetujuan koperasi<br>
+                                • <strong>Waktu:</strong> ${new Date().toLocaleString('id-ID')}
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    ℹ️ <strong>Catatan:</strong> Bisnis Anda telah tersimpan dalam sistem. 
+                                    Jika tidak muncul di daftar bisnis, silakan refresh halaman atau hubungi admin.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                form.insertAdjacentElement('beforebegin', successAlert);
+                
+                // Disable form to prevent double submission
+                form.style.opacity = '0.7';
+                form.style.pointerEvents = 'none';
+                
+                setTimeout(() => {
+                    window.location.href = result.redirect || '/business';
+                }, 5000);
+            } else {
+                showToast(result.message || 'Gagal membuat bisnis', 'error');
+            }
+        } catch (error) {
+            console.error('Create business error:', error);
+            showToast('Terjadi kesalahan saat membuat bisnis', 'error');
+        }
+    });
+
+    // Real-time validation
+    const inputs = form.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.checkValidity()) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            } else {
+                this.classList.remove('is-valid');
+                this.classList.add('is-invalid');
+            }
+        });
+    });
+});
+</script>

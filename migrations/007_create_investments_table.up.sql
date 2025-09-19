@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS investments (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     
-    CONSTRAINT fk_investments_project FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    CONSTRAINT fk_investments_investor FOREIGN KEY (investor_id) REFERENCES users(id) ON DELETE CASCADE,
+    -- Note: Foreign key constraints removed for sharded database architecture
+    -- Relationships maintained through application logic
     CONSTRAINT chk_investment_status CHECK (status IN ('pending', 'confirmed', 'refunded', 'cancelled')),
     CONSTRAINT unique_investor_project UNIQUE (project_id, investor_id)
 );

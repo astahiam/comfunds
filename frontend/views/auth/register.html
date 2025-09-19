@@ -1,0 +1,343 @@
+<div class="container-fluid vh-100">
+    <div class="row h-100">
+        <!-- Left Side - Branding -->
+        <div class="col-lg-6 d-none d-lg-block bg-gradient-primary d-flex align-items-center justify-content-center">
+            <div class="text-center text-white">
+                <div class="mb-4">
+                    <div class="kaaba-icon mx-auto mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-kaaba text-white" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h1 class="display-4 fw-bold mb-3">Hajifund</h1>
+                    <p class="lead mb-4">Bergabunglah dengan komunitas investor syariah</p>
+                    <div class="row g-3 text-start">
+                        <div class="col-12">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle me-3"></i>
+                                <span>Investasi syariah yang aman dan transparan</span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle me-3"></i>
+                                <span>Bagi hasil adil sesuai prinsip Islam</span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle me-3"></i>
+                                <span>Dukung pertumbuhan UMKM lokal</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Registration Form -->
+        <div class="col-lg-6 d-flex align-items-center justify-content-center p-5">
+            <div class="w-100" style="max-width: 500px;">
+                <!-- Mobile Logo -->
+                <div class="text-center mb-4 d-lg-none">
+                    <div class="kaaba-icon mx-auto mb-2">
+                        <i class="fas fa-kaaba text-success"></i>
+                    </div>
+                    <h3 class="fw-bold text-success">Hajifund</h3>
+                </div>
+
+                <h2 class="fw-bold mb-1">Buat Akun Baru</h2>
+                <p class="text-muted mb-4">Daftar sekarang dan mulai berinvestasi secara syariah</p>
+
+                <!-- Registration Form -->
+                <form id="registerForm" class="needs-validation" novalidate>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">Nama Lengkap</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                                <div class="invalid-feedback">
+                                    Nama harus diisi
+                                </div>
+                            </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-envelope text-muted"></i>
+                                </span>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                                <div class="invalid-feedback">
+                                    Email tidak valid
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Nomor Telepon</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-phone text-muted"></i>
+                                </span>
+                                <input type="tel" class="form-control" id="phone" name="phone" required>
+                                <div class="invalid-feedback">
+                                    Nomor telepon harus diisi
+                                </div>
+                            </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                            <label for="cooperative_id" class="form-label">Koperasi</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-building text-muted"></i>
+                                </span>
+                                <select class="form-select" id="cooperative_id" name="cooperative_id" required>
+                                    <option value="">Pilih Koperasi</option>
+                                    {{range .Cooperatives}}
+                                    <option value="{{.ID}}">{{.Name}}</option>
+                                    {{end}}
+                                </select>
+                                <div class="invalid-feedback">
+                                    Pilih koperasi
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Alamat</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-map-marker-alt text-muted"></i>
+                            </span>
+                            <textarea class="form-control" id="address" name="address" rows="2" required></textarea>
+                            <div class="invalid-feedback">
+                                Alamat harus diisi
+                            </div>
+                        </div>
+                        </div>
+
+                        <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-lock text-muted"></i>
+                            </span>
+                            <input type="password" class="form-control" id="password" name="password" required minlength="6">
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <div class="invalid-feedback">
+                                Password minimal 6 karakter
+                            </div>
+                        </div>
+                        </div>
+
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Konfirmasi Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-lock text-muted"></i>
+                            </span>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                            <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <div class="invalid-feedback">
+                                Konfirmasi password tidak cocok
+                            </div>
+                        </div>
+                        </div>
+
+                    <!-- Role Selection -->
+                    <div class="mb-3">
+                        <label class="form-label">Pilih Peran</label>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="role_investor" name="roles" value="investor">
+                                    <label class="form-check-label" for="role_investor">
+                                        <i class="fas fa-chart-line me-2 text-success"></i>
+                                        Investor
+                                        <small class="d-block text-muted">Berinvestasi dalam proyek UMKM</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                            <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="role_business_owner" name="roles" value="business_owner">
+                                    <label class="form-check-label" for="role_business_owner">
+                                        <i class="fas fa-briefcase me-2 text-primary"></i>
+                                        Pemilik Bisnis
+                                        <small class="d-block text-muted">Mencari pendanaan untuk bisnis</small>
+                                </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="invalid-feedback">
+                            Pilih minimal satu peran
+                        </div>
+                    </div>
+
+                    <!-- Terms and Conditions -->
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="terms" required>
+                        <label class="form-check-label" for="terms">
+                            Saya menyetujui 
+                            <a href="#" class="text-success text-decoration-none">Syarat dan Ketentuan</a>
+                            dan 
+                            <a href="#" class="text-success text-decoration-none">Kebijakan Privasi</a>
+                        </label>
+                        <div class="invalid-feedback">
+                            Anda harus menyetujui syarat dan ketentuan
+                            </div>
+                        </div>
+
+                    <button type="submit" class="btn btn-success w-100 mb-3">
+                            <i class="fas fa-user-plus me-2"></i>Daftar Sekarang
+                        </button>
+                    </form>
+
+                <!-- Links -->
+                <div class="text-center">
+                    <p class="text-muted">
+                        Sudah punya akun? 
+                        <a href="/login" class="text-success fw-semibold text-decoration-none">
+                            Masuk di sini
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form validation and submission
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('registerForm');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const togglePassword = document.getElementById('togglePassword');
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+
+    // Toggle password visibility
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        const icon = this.querySelector('i');
+        icon.classList.toggle('fa-eye');
+        icon.classList.toggle('fa-eye-slash');
+    });
+
+    toggleConfirmPassword.addEventListener('click', function() {
+        const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        confirmPasswordInput.setAttribute('type', type);
+        
+        const icon = this.querySelector('i');
+        icon.classList.toggle('fa-eye');
+        icon.classList.toggle('fa-eye-slash');
+    });
+
+    // Password confirmation validation
+    confirmPasswordInput.addEventListener('input', function() {
+        if (this.value !== passwordInput.value) {
+            this.setCustomValidity('Password tidak cocok');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+
+    // Role validation
+    const roleCheckboxes = document.querySelectorAll('input[name="roles"]');
+    roleCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', validateRoles);
+    });
+
+    function validateRoles() {
+        const checkedRoles = document.querySelectorAll('input[name="roles"]:checked');
+        const isValid = checkedRoles.length > 0;
+        
+        // Custom validation for roles
+        if (!isValid) {
+            document.querySelector('.invalid-feedback').style.display = 'block';
+        } else {
+            document.querySelector('.invalid-feedback').style.display = 'none';
+        }
+    }
+
+    // Form submission
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Validate roles
+        const checkedRoles = document.querySelectorAll('input[name="roles"]:checked');
+        if (checkedRoles.length === 0) {
+            showToast('Pilih minimal satu peran', 'error');
+        return;
+    }
+    
+        if (!form.checkValidity()) {
+            e.stopPropagation();
+            form.classList.add('was-validated');
+        return;
+    }
+    
+        const formData = new FormData(form);
+        const roles = [];
+        document.querySelectorAll('input[name="roles"]:checked').forEach(checkbox => {
+            roles.push(checkbox.value);
+        });
+
+        const cooperativeId = formData.get('cooperative_id');
+        const registerData = {
+            name: formData.get('name'),
+            email: formData.get('email'),
+            phone: formData.get('phone'),
+            address: formData.get('address'),
+            password: formData.get('password'),
+            cooperative_id: cooperativeId && cooperativeId.trim() !== '' ? cooperativeId : null,
+            roles: roles
+        };
+
+        // Debug logging
+        console.log('Registration data:', registerData);
+
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(registerData)
+            });
+
+            const result = await response.json();
+            console.log('Registration response:', result);
+
+            if (result.status === 'success') {
+                // Show success message
+                showToast('Registrasi berhasil! Mengalihkan...', 'success');
+                
+                // Redirect after short delay
+                setTimeout(() => {
+                    window.location.href = result.redirect || '/dashboard';
+                }, 1000);
+            } else {
+                console.error('Registration failed:', result);
+                showToast(result.message || 'Registrasi gagal', 'error');
+            }
+        } catch (error) {
+            console.error('Register error:', error);
+            showToast('Terjadi kesalahan saat registrasi', 'error');
+        }
+    });
+});
+</script>

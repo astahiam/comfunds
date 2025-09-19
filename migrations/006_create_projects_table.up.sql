@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS projects (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     
-    CONSTRAINT fk_projects_business FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE,
+    -- Note: Foreign key constraint removed for sharded database architecture
+    -- Business relationship maintained through application logic
     CONSTRAINT chk_project_type CHECK (project_type IN ('startup', 'expansion', 'equipment')),
     CONSTRAINT chk_project_status CHECK (status IN ('draft', 'submitted', 'approved', 'active', 'funded', 'closed', 'cancelled')),
     CONSTRAINT chk_funding_goal_minimum CHECK (minimum_funding IS NULL OR minimum_funding <= funding_goal),
@@ -24,12 +25,16 @@ CREATE TABLE IF NOT EXISTS projects (
 );
 
 -- Create indexes for better performance
+CREATE INDEX idx_projects_title ON projects(title); -- Index for project title search
 CREATE INDEX idx_projects_business_id ON projects(business_id);
 CREATE INDEX idx_projects_status ON projects(status);
-CREATE INDEX idx_projects_project_type ON projects(project_type);
+CREATE INDEX idx_projects_project_type ON projects(project_type); -- Index for project type filtering
 CREATE INDEX idx_projects_funding_deadline ON projects(funding_deadline);
 CREATE INDEX idx_projects_created_at ON projects(created_at);
 CREATE INDEX idx_projects_funding_goal ON projects(funding_goal);
+-- Additional indexes for sharded database performance
+CREATE INDEX idx_projects_title_type ON projects(title, project_type); -- Composite index for title and type searches
+CREATE INDEX idx_projects_status_type ON projects(status, project_type); -- Index for filtering by status and type
 
 -- Create trigger for updated_at
 CREATE TRIGGER update_projects_updated_at 

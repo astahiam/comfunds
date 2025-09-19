@@ -1,0 +1,565 @@
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="fas fa-crown text-danger me-2"></i>
+                        Admin Dashboard
+                    </h1>
+                    <p class="text-muted mb-0">Kelola platform Hajifund dan monitor aktivitas pengguna</p>
+                </div>
+                <div>
+                    <span class="badge bg-danger fs-6">
+                        <i class="fas fa-shield-alt me-1"></i>Administrator
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Approvals Alert -->
+    {{if .PendingBusinesses}}
+    <div class="row mb-4">
+        <div class="col">
+            <div class="alert alert-warning">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                    <div>
+                        <strong>Attention Required!</strong><br>
+                        <span>{{len .PendingBusinesses}} business(es) awaiting approval</span>
+                        <a href="#pendingBusinesses" class="btn btn-sm btn-warning ms-3">
+                            <i class="fas fa-eye me-1"></i>Review Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{end}}
+
+    <!-- Stats Overview -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Pengguna
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">1,234</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Koperasi
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">45</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-building fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Bisnis
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">156</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-briefcase fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Total Pendanaan
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Rp 2.5M</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Pending Approvals -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Persetujuan Tertunda</h6>
+                    <span class="badge bg-warning">5</span>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Koperasi Baru</h6>
+                                <small class="text-muted">Koperasi Syariah Jakarta</small>
+                            </div>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-success btn-sm" onclick="approveCooperative('coop1')">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="rejectCooperative('coop1')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Bisnis Baru</h6>
+                                <small class="text-muted">Toko Kelontong Ummi</small>
+                            </div>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-success btn-sm" onclick="approveBusiness('biz1')">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="rejectBusiness('biz1')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Proyek Pendanaan</h6>
+                                <small class="text-muted">Ekspansi Warung Makan</small>
+                            </div>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-success btn-sm" onclick="approveProject('proj1')">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="rejectProject('proj1')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="/admin/approvals" class="btn btn-outline-primary btn-sm">
+                            Lihat Semua
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Aktivitas Terbaru</h6>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Bisnis Disetujui</h6>
+                                <p class="text-muted mb-1">Toko Kelontong Ummi telah disetujui</p>
+                                <small class="text-muted">2 jam yang lalu</small>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-info"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">User Baru</h6>
+                                <p class="text-muted mb-1">Ahmad Rahman mendaftar sebagai investor</p>
+                                <small class="text-muted">4 jam yang lalu</small>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-warning"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Proyek Baru</h6>
+                                <p class="text-muted mb-1">Ekspansi Warung Makan menunggu persetujuan</p>
+                                <small class="text-muted">6 jam yang lalu</small>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Investasi Berhasil</h6>
+                                <p class="text-muted mb-1">Rp 5.000.000 diinvestasikan pada Proyek A</p>
+                                <small class="text-muted">1 hari yang lalu</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Aksi Cepat</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a href="/admin/users" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-users fa-2x d-block mb-2"></i>
+                                Kelola Pengguna
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/admin/cooperatives" class="btn btn-outline-success w-100">
+                                <i class="fas fa-building fa-2x d-block mb-2"></i>
+                                Kelola Koperasi
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/admin/businesses" class="btn btn-outline-info w-100">
+                                <i class="fas fa-briefcase fa-2x d-block mb-2"></i>
+                                Kelola Bisnis
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/admin/projects" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-project-diagram fa-2x d-block mb-2"></i>
+                                Kelola Proyek
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Business Approvals Section -->
+    {{if .PendingBusinesses}}
+    <div class="row" id="pendingBusinesses">
+        <div class="col">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clock me-2"></i>
+                        Pending Business Approvals ({{len .PendingBusinesses}})
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Business Name</th>
+                                    <th>Owner</th>
+                                    <th>Type</th>
+                                    <th>Cooperative</th>
+                                    <th>Submitted</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range .PendingBusinesses}}
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <h6 class="mb-1">{{.Name}}</h6>
+                                            <small class="text-muted">{{.Description}}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{.OwnerID}}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{.Type}}</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{.CooperativeID}}</small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{.CreatedAt.Format "02 Jan 2006"}}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-success" onclick="approveBusiness('{{.ID}}')">
+                                                <i class="fas fa-check me-1"></i>Approve
+                                            </button>
+                                            <button class="btn btn-danger" onclick="rejectBusiness('{{.ID}}')">
+                                                <i class="fas fa-times me-1"></i>Reject
+                                            </button>
+                                            <button class="btn btn-outline-primary" onclick="viewBusinessDetails('{{.ID}}')">
+                                                <i class="fas fa-eye me-1"></i>Details
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{end}}
+</div>
+
+<!-- Business Approval Functions -->
+<script>
+async function approveBusiness(businessId) {
+    if (!confirm('Are you sure you want to approve this business?')) return;
+    
+    try {
+        const response = await fetch(`/admin/api/businesses/${businessId}/approve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            showToast('Business approved successfully!', 'success');
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showToast(result.message || 'Failed to approve business', 'error');
+        }
+    } catch (error) {
+        console.error('Error approving business:', error);
+        showToast('Failed to approve business', 'error');
+    }
+}
+
+async function rejectBusiness(businessId) {
+    const reason = prompt('Please provide a reason for rejection:');
+    if (!reason) return;
+    
+    try {
+        const response = await fetch(`/admin/api/businesses/${businessId}/reject`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ reason: reason })
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            showToast('Business rejected successfully', 'success');
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showToast(result.message || 'Failed to reject business', 'error');
+        }
+    } catch (error) {
+        console.error('Error rejecting business:', error);
+        showToast('Failed to reject business', 'error');
+    }
+}
+
+function viewBusinessDetails(businessId) {
+    // Open business details in new tab
+    window.open(`/business/${businessId}`, '_blank');
+}
+</script>
+
+<style>
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e3e6f0;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.timeline-content {
+    margin-left: 20px;
+}
+</style>
+
+<script>
+// Approve cooperative
+async function approveCooperative(cooperativeId) {
+    if (!confirm('Apakah Anda yakin ingin menyetujui koperasi ini?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/admin/api/cooperatives/${cooperativeId}/approve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            showToast('Koperasi berhasil disetujui', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showToast(result.message || 'Gagal menyetujui koperasi', 'error');
+        }
+    } catch (error) {
+        console.error('Approve cooperative error:', error);
+        showToast('Terjadi kesalahan', 'error');
+    }
+}
+
+// Reject cooperative
+async function rejectCooperative(cooperativeId) {
+    if (!confirm('Apakah Anda yakin ingin menolak koperasi ini?')) {
+        return;
+    }
+
+    // Implementation for reject cooperative
+    showToast('Fitur penolakan koperasi akan segera tersedia', 'info');
+}
+
+// Approve business
+async function approveBusiness(businessId) {
+    if (!confirm('Apakah Anda yakin ingin menyetujui bisnis ini?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/admin/api/businesses/${businessId}/approve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            showToast('Bisnis berhasil disetujui', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showToast(result.message || 'Gagal menyetujui bisnis', 'error');
+        }
+    } catch (error) {
+        console.error('Approve business error:', error);
+        showToast('Terjadi kesalahan', 'error');
+    }
+}
+
+// Reject business
+async function rejectBusiness(businessId) {
+    if (!confirm('Apakah Anda yakin ingin menolak bisnis ini?')) {
+        return;
+    }
+
+    // Implementation for reject business
+    showToast('Fitur penolakan bisnis akan segera tersedia', 'info');
+}
+
+// Approve project
+async function approveProject(projectId) {
+    if (!confirm('Apakah Anda yakin ingin menyetujui proyek ini?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/admin/api/projects/${projectId}/approve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            showToast('Proyek berhasil disetujui', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showToast(result.message || 'Gagal menyetujui proyek', 'error');
+        }
+    } catch (error) {
+        console.error('Approve project error:', error);
+        showToast('Terjadi kesalahan', 'error');
+    }
+}
+
+// Reject project
+async function rejectProject(projectId) {
+    if (!confirm('Apakah Anda yakin ingin menolak proyek ini?')) {
+        return;
+    }
+
+    // Implementation for reject project
+    showToast('Fitur penolakan proyek akan segera tersedia', 'info');
+}
+</script>

@@ -12,18 +12,21 @@ CREATE TABLE IF NOT EXISTS businesses (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     
-    CONSTRAINT fk_businesses_owner FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_businesses_cooperative FOREIGN KEY (cooperative_id) REFERENCES cooperatives(id) ON DELETE CASCADE,
+    -- Note: Foreign key constraints removed for sharded database architecture
+    -- Relationships maintained through application logic
     CONSTRAINT chk_approval_status CHECK (approval_status IN ('pending', 'approved', 'rejected'))
 );
 
 -- Create indexes for better performance
+CREATE INDEX idx_businesses_name ON businesses(name); -- Index for business name search
 CREATE INDEX idx_businesses_owner_id ON businesses(owner_id);
 CREATE INDEX idx_businesses_cooperative_id ON businesses(cooperative_id);
 CREATE INDEX idx_businesses_approval_status ON businesses(approval_status);
-CREATE INDEX idx_businesses_business_type ON businesses(business_type);
+CREATE INDEX idx_businesses_business_type ON businesses(business_type); -- Index for business type filtering
 CREATE INDEX idx_businesses_is_active ON businesses(is_active);
 CREATE INDEX idx_businesses_created_at ON businesses(created_at);
+-- Additional indexes for sharded database performance
+CREATE INDEX idx_businesses_name_type ON businesses(name, business_type); -- Composite index for name and type searches
 
 -- Create trigger for updated_at
 CREATE TRIGGER update_businesses_updated_at 

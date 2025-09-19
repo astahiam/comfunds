@@ -1,0 +1,260 @@
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">Peluang Investasi</h1>
+                    <p class="text-muted mb-0">Temukan proyek terbaik untuk investasi syariah Anda</p>
+                </div>
+                {{if .User}}
+                <div>
+                    <a href="/dashboard" class="btn btn-outline-primary">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                </div>
+                {{else}}
+                <div>
+                    <a href="/login" class="btn btn-primary me-2">Masuk</a>
+                    <a href="/register" class="btn btn-outline-primary">Daftar</a>
+                </div>
+                {{end}}
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <select class="form-select" id="filterType">
+                                <option value="">Semua Jenis</option>
+                                <option value="startup">Startup</option>
+                                <option value="expansion">Ekspansi</option>
+                                <option value="equipment">Peralatan</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="filterFunding">
+                                <option value="">Semua Target</option>
+                                <option value="0-10000000">< Rp 10 Juta</option>
+                                <option value="10000000-50000000">Rp 10-50 Juta</option>
+                                <option value="50000000-100000000">Rp 50-100 Juta</option>
+                                <option value="100000000-999999999">> Rp 100 Juta</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="filterProgress">
+                                <option value="">Semua Progress</option>
+                                <option value="0-25">0-25%</option>
+                                <option value="26-50">26-50%</option>
+                                <option value="51-75">51-75%</option>
+                                <option value="76-100">76-100%</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-primary w-100" id="applyFilters">
+                                <i class="fas fa-filter me-2"></i>Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Projects Grid -->
+    <div class="row" id="projectsGrid">
+        {{range .Projects}}
+        <div class="col-lg-4 col-md-6 mb-4 project-card" 
+             data-type="{{.ProjectType}}" 
+             data-funding="{{.FundingGoal}}" 
+             data-progress="{{.FundingPercentage}}">
+            <div class="card h-100 border-0 shadow-sm">
+                <!-- Project Image -->
+                <div class="position-relative">
+                    <img src="/static/images/projects/default.jpg" class="card-img-top" alt="{{.Title}}" style="height: 200px; object-fit: cover;">
+                    <div class="position-absolute top-0 end-0 m-2">
+                        <span class="badge bg-{{if eq .ProjectType "startup"}}success{{else if eq .ProjectType "expansion"}}primary{{else}}info{{end}}">
+                            {{if eq .ProjectType "startup"}}Startup{{else if eq .ProjectType "expansion"}}Ekspansi{{else if eq .ProjectType "equipment"}}Peralatan{{else}}{{.ProjectType}}{{end}}
+                        </span>
+                    </div>
+                    <div class="position-absolute bottom-0 start-0 end-0 bg-gradient-dark p-2">
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {{.FundingPercentage}}%" 
+                                 aria-valuenow="{{.FundingPercentage}}" aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{.Title}}</h5>
+                    <p class="card-text text-muted flex-grow-1">{{.Description}}</p>
+                    
+                    <!-- Business Info -->
+                    {{if .Business}}
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-building text-muted me-2"></i>
+                        <small class="text-muted">{{.Business.Name}} - {{.Business.Type}}</small>
+                    </div>
+                    {{end}}
+
+                    <!-- Funding Info -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h6 mb-0 text-success">Rp {{printf "%.0f" .CurrentFunding}}</div>
+                                <small class="text-muted">Terkumpul</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h6 mb-0 text-primary">Rp {{printf "%.0f" .FundingGoal}}</div>
+                                <small class="text-muted">Target</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h6 mb-0 text-info">{{printf "%.1f" .FundingPercentage}}%</div>
+                                <small class="text-muted">Progress</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h6 mb-0 text-warning">{{.InvestmentCount}}</div>
+                                <small class="text-muted">Investor</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-auto">
+                        {{if .User}}
+                            {{if and (hasRole .User.Roles "investor") (eq .Status "active") (eq .ApprovalStatus "approved")}}
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <a href="/projects/{{.ID}}" class="btn btn-outline-primary btn-sm w-100">
+                                        <i class="fas fa-eye me-1"></i>Detail
+                                    </a>
+                                </div>
+                                <div class="col-6">
+                                    <a href="/projects/{{.ID}}/invest" class="btn btn-success btn-sm w-100">
+                                        <i class="fas fa-hand-holding-usd me-1"></i>Investasi
+                                    </a>
+                                </div>
+                            </div>
+                            {{else}}
+                            <a href="/projects/{{.ID}}" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="fas fa-eye me-1"></i>Lihat Detail
+                            </a>
+                            {{end}}
+                        {{else}}
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <a href="/projects/{{.ID}}" class="btn btn-outline-primary btn-sm w-100">
+                                    <i class="fas fa-eye me-1"></i>Detail
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="/login" class="btn btn-success btn-sm w-100">
+                                    <i class="fas fa-sign-in-alt me-1"></i>Login
+                                </a>
+                            </div>
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{else}}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">Belum Ada Proyek</h4>
+                <p class="text-muted">Proyek investasi akan muncul di sini setelah disetujui</p>
+                {{if and .User (hasRole .User.Roles "business_owner")}}
+                <a href="/projects/create" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Buat Proyek Pertama
+                </a>
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+.bg-gradient-dark {
+    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.7) 100%);
+}
+
+.project-card {
+    transition: transform 0.2s;
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+}
+</style>
+
+<!-- Filter JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterType = document.getElementById('filterType');
+    const filterFunding = document.getElementById('filterFunding');
+    const filterProgress = document.getElementById('filterProgress');
+    const applyFilters = document.getElementById('applyFilters');
+    const projectCards = document.querySelectorAll('.project-card');
+
+    function applyProjectFilters() {
+        const typeValue = filterType.value;
+        const fundingValue = filterFunding.value;
+        const progressValue = filterProgress.value;
+
+        projectCards.forEach(card => {
+            let show = true;
+
+            // Type filter
+            if (typeValue && card.dataset.type !== typeValue) {
+                show = false;
+            }
+
+            // Funding filter
+            if (fundingValue && show) {
+                const [min, max] = fundingValue.split('-').map(Number);
+                const funding = parseFloat(card.dataset.funding);
+                if (funding < min || (max && funding > max)) {
+                    show = false;
+                }
+            }
+
+            // Progress filter
+            if (progressValue && show) {
+                const [min, max] = progressValue.split('-').map(Number);
+                const progress = parseFloat(card.dataset.progress);
+                if (progress < min || progress > max) {
+                    show = false;
+                }
+            }
+
+            card.style.display = show ? 'block' : 'none';
+        });
+    }
+
+    applyFilters.addEventListener('click', applyProjectFilters);
+    
+    // Auto-apply on change
+    [filterType, filterFunding, filterProgress].forEach(filter => {
+        filter.addEventListener('change', applyProjectFilters);
+    });
+});
+</script>

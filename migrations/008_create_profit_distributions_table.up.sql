@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS profit_distributions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     
-    CONSTRAINT fk_profit_distributions_project FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    -- Note: Foreign key constraint removed for sharded database architecture
+    -- Project relationship maintained through application logic
     CONSTRAINT chk_distribution_status CHECK (status IN ('calculated', 'approved', 'distributed', 'cancelled'))
 );
 
@@ -26,8 +27,8 @@ CREATE TABLE IF NOT EXISTS investment_returns (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     
-    CONSTRAINT fk_investment_returns_investment FOREIGN KEY (investment_id) REFERENCES investments(id) ON DELETE CASCADE,
-    CONSTRAINT fk_investment_returns_distribution FOREIGN KEY (distribution_id) REFERENCES profit_distributions(id) ON DELETE CASCADE,
+    -- Note: Foreign key constraints removed for sharded database architecture
+    -- Relationships maintained through application logic
     CONSTRAINT chk_return_status CHECK (status IN ('pending', 'paid', 'failed')),
     CONSTRAINT unique_investment_distribution UNIQUE (investment_id, distribution_id)
 );

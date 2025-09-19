@@ -14,5 +14,6 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Create indexes for better performance
 CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_name ON users(name); -- Index for user name search
 CREATE INDEX idx_users_is_active ON users(is_active);
 CREATE INDEX idx_users_created_at ON users(created_at);

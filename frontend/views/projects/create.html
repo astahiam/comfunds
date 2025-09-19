@@ -1,0 +1,410 @@
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">Buat Proyek Pendanaan</h1>
+                    <p class="text-muted mb-0">Ajukan proyek bisnis Anda untuk mendapatkan pendanaan syariah</p>
+                </div>
+                <div>
+                    <a href="/projects" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Kembali
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Project Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-rocket text-primary me-2"></i>
+                        Detail Proyek
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="createProjectForm" novalidate>
+                        <!-- Basic Information -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="title" class="form-label">Judul Proyek <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-tag text-muted"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="title" name="title" 
+                                           placeholder="Contoh: Ekspansi Toko Kelontong Berkah" required>
+                                    <div class="invalid-feedback">
+                                        Masukkan judul proyek
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="business_id" class="form-label">Bisnis <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-building text-muted"></i>
+                                    </span>
+                                    <select class="form-select" id="business_id" name="business_id" required>
+                                        <option value="">Pilih Bisnis</option>
+                                        {{range .Businesses}}
+                                        <option value="{{.ID}}">{{.Name}} ({{.Type}})</option>
+                                        {{end}}
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Pilih bisnis untuk proyek ini
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Deskripsi Proyek <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="description" name="description" rows="4" 
+                                      placeholder="Jelaskan tujuan proyek, manfaat yang diharapkan, dan rencana penggunaan dana..." required></textarea>
+                            <div class="invalid-feedback">
+                                Masukkan deskripsi proyek minimal 50 karakter
+                            </div>
+                        </div>
+
+                        <!-- Project Type and Funding -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="project_type" class="form-label">Jenis Proyek <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-list text-muted"></i>
+                                    </span>
+                                    <select class="form-select" id="project_type" name="project_type" required>
+                                        <option value="">Pilih Jenis Proyek</option>
+                                        <option value="startup">Startup - Bisnis Baru</option>
+                                        <option value="expansion">Ekspansi - Pengembangan Bisnis</option>
+                                        <option value="equipment">Peralatan - Pembelian Alat</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Pilih jenis proyek
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="funding_goal" class="form-label">Target Pendanaan <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">Rp</span>
+                                    <input type="number" class="form-control" id="funding_goal" name="funding_goal" 
+                                           placeholder="50000000" min="1000000" required>
+                                    <div class="invalid-feedback">
+                                        Masukkan target pendanaan minimal Rp 1.000.000
+                                    </div>
+                                </div>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle text-info me-1"></i>
+                                    Target pendanaan harus realistis dan sesuai kebutuhan proyek
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="minimum_funding" class="form-label">Minimum Pendanaan</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">Rp</span>
+                                    <input type="number" class="form-control" id="minimum_funding" name="minimum_funding" 
+                                           placeholder="10000000" min="0">
+                                    <div class="invalid-feedback">
+                                        Minimum pendanaan tidak boleh lebih dari target
+                                    </div>
+                                </div>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle text-info me-1"></i>
+                                    Jumlah minimum untuk proyek dapat dimulai (opsional)
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="funding_deadline" class="form-label">Batas Waktu Pendanaan <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-calendar text-muted"></i>
+                                    </span>
+                                    <input type="date" class="form-control" id="funding_deadline" name="funding_deadline" required>
+                                    <div class="invalid-feedback">
+                                        Pilih batas waktu pendanaan
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Profit Sharing -->
+                        <div class="card bg-light mb-3">
+                            <div class="card-header bg-transparent">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-percentage text-success me-2"></i>
+                                    Bagi Hasil (Profit Sharing)
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="investor_share" class="form-label">Porsi Investor (%)</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="investor_share" name="investor_share" 
+                                                   value="70" min="50" max="90" required>
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                        <div class="form-text">Porsi keuntungan untuk investor (50-90%)</div>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="business_share" class="form-label">Porsi Bisnis (%)</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="business_share" name="business_share" 
+                                                   value="30" min="10" max="50" readonly>
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                        <div class="form-text">Porsi keuntungan untuk pemilik bisnis</div>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info">
+                                    <i class="fas fa-lightbulb me-2"></i>
+                                    <strong>Catatan:</strong> Sistem bagi hasil mengikuti prinsip syariah. 
+                                    Keuntungan dan kerugian akan dibagi sesuai proporsi yang disepakati.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Milestones -->
+                        <div class="mb-3">
+                            <label class="form-label">Milestone Proyek</label>
+                            <div id="milestonesContainer">
+                                <div class="milestone-item border rounded p-3 mb-2">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <input type="text" class="form-control milestone-description" 
+                                                   placeholder="Contoh: Pembelian peralatan dan setup awal" name="milestone_1">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="input-group">
+                                                <input type="number" class="form-control milestone-percentage" 
+                                                       placeholder="25" min="1" max="100" name="milestone_1_percentage">
+                                                <span class="input-group-text">%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="addMilestone">
+                                <i class="fas fa-plus me-1"></i>Tambah Milestone
+                            </button>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle text-info me-1"></i>
+                                Milestone membantu investor memantau progress proyek
+                            </div>
+                        </div>
+
+                        <!-- Documents -->
+                        <div class="mb-4">
+                            <label for="documents" class="form-label">Dokumen Pendukung</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-file-alt text-muted"></i>
+                                </span>
+                                <input type="url" class="form-control" id="documents" name="documents" 
+                                       placeholder="https://drive.google.com/file/d/...">
+                            </div>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle text-info me-1"></i>
+                                Link ke dokumen bisnis plan, laporan keuangan, atau dokumen lainnya
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="btn btn-outline-secondary me-md-2" onclick="window.history.back()">
+                                <i class="fas fa-times me-2"></i>Batal
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-paper-plane me-2"></i>Ajukan Proyek
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i class="fas fa-info-circle text-primary me-2"></i>
+            <strong class="me-auto">HajiFund</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage">
+            <!-- Message will be inserted here -->
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('createProjectForm');
+    const investorShare = document.getElementById('investor_share');
+    const businessShare = document.getElementById('business_share');
+    const addMilestoneBtn = document.getElementById('addMilestone');
+    const milestonesContainer = document.getElementById('milestonesContainer');
+    let milestoneCount = 1;
+
+    // Set minimum date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('funding_deadline').min = tomorrow.toISOString().split('T')[0];
+
+    // Auto-calculate business share
+    investorShare.addEventListener('input', function() {
+        const investorValue = parseInt(this.value) || 0;
+        const businessValue = 100 - investorValue;
+        businessShare.value = businessValue;
+    });
+
+    // Add milestone functionality
+    addMilestoneBtn.addEventListener('click', function() {
+        milestoneCount++;
+        const milestoneHtml = `
+            <div class="milestone-item border rounded p-3 mb-2">
+                <div class="row">
+                    <div class="col-md-8">
+                        <input type="text" class="form-control milestone-description" 
+                               placeholder="Deskripsi milestone..." name="milestone_${milestoneCount}">
+                    </div>
+                    <div class="col-md-3">
+                        <div class="input-group">
+                            <input type="number" class="form-control milestone-percentage" 
+                                   placeholder="25" min="1" max="100" name="milestone_${milestoneCount}_percentage">
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-milestone">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        milestonesContainer.insertAdjacentHTML('beforeend', milestoneHtml);
+    });
+
+    // Remove milestone functionality
+    milestonesContainer.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-milestone')) {
+            e.target.closest('.milestone-item').remove();
+        }
+    });
+
+    // Form submission
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (!form.checkValidity()) {
+            e.stopPropagation();
+            form.classList.add('was-validated');
+            return;
+        }
+
+        const submitBtn = document.getElementById('submitBtn');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Memproses...';
+
+        const formData = new FormData(form);
+        
+        // Collect milestones
+        const milestones = {};
+        const milestoneItems = document.querySelectorAll('.milestone-item');
+        milestoneItems.forEach((item, index) => {
+            const description = item.querySelector('.milestone-description').value;
+            const percentage = item.querySelector('.milestone-percentage').value;
+            if (description && percentage) {
+                milestones[`milestone_${index + 1}`] = {
+                    description: description,
+                    percentage: parseInt(percentage)
+                };
+            }
+        });
+
+        // Collect profit sharing ratio
+        const profitSharingRatio = {
+            investor_share: parseInt(formData.get('investor_share')),
+            business_share: parseInt(formData.get('business_share'))
+        };
+
+        const projectData = {
+            title: formData.get('title'),
+            description: formData.get('description'),
+            business_id: formData.get('business_id'),
+            funding_goal: parseFloat(formData.get('funding_goal')),
+            minimum_funding: parseFloat(formData.get('minimum_funding')) || 0,
+            funding_deadline: formData.get('funding_deadline') + 'T23:59:59Z',
+            project_type: formData.get('project_type'),
+            profit_sharing_ratio: profitSharingRatio,
+            milestones: milestones,
+            documents: formData.get('documents') ? [formData.get('documents')] : []
+        };
+
+        try {
+            const response = await fetch('/api/projects', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(projectData)
+            });
+
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                showToast('Proyek berhasil dibuat dan menunggu persetujuan!', 'success');
+                setTimeout(() => {
+                    window.location.href = result.redirect || '/projects';
+                }, 2000);
+            } else {
+                showToast(result.message || 'Gagal membuat proyek', 'error');
+            }
+        } catch (error) {
+            console.error('Create project error:', error);
+            showToast('Terjadi kesalahan saat membuat proyek', 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    });
+
+    function showToast(message, type) {
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        const toastHeader = toast.querySelector('.toast-header i');
+        
+        toastMessage.textContent = message;
+        
+        // Update icon and color based on type
+        if (type === 'success') {
+            toastHeader.className = 'fas fa-check-circle text-success me-2';
+        } else if (type === 'error') {
+            toastHeader.className = 'fas fa-exclamation-circle text-danger me-2';
+        } else {
+            toastHeader.className = 'fas fa-info-circle text-primary me-2';
+        }
+        
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+    }
+});
+</script>

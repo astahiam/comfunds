@@ -1,0 +1,634 @@
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="fas fa-users text-primary me-2"></i>
+                        User Management
+                    </h1>
+                    <p class="text-muted mb-0">Manage all users, roles, and permissions</p>
+                </div>
+                <div>
+                    <a href="/admin" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Admin
+                    </a>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                        <i class="fas fa-user-plus me-2"></i>Add User
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card border-0 bg-primary text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{len .Users}}</h4>
+                    <small>Total Users</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 bg-success text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{if index .RoleStats "admin"}}{{index .RoleStats "admin"}}{{else}}0{{end}}</h4>
+                    <small>Admins</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 bg-info text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{if index .RoleStats "business_owner"}}{{index .RoleStats "business_owner"}}{{else}}0{{end}}</h4>
+                    <small>Business Owners</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 bg-warning text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{if index .RoleStats "investor"}}{{index .RoleStats "investor"}}{{else}}0{{end}}</h4>
+                    <small>Investors</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 bg-secondary text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{if index .RoleStats "cooperative_admin"}}{{index .RoleStats "cooperative_admin"}}{{else}}0{{end}}</h4>
+                    <small>Coop Admins</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 bg-dark text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{if index .RoleStats "guest"}}{{index .RoleStats "guest"}}{{else}}0{{end}}</h4>
+                    <small>Guests</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control" id="searchUsers" placeholder="Search by name or email...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="filterRole">
+                                <option value="">All Roles</option>
+                                <option value="admin">Admin</option>
+                                <option value="cooperative_admin">Cooperative Admin</option>
+                                <option value="business_owner">Business Owner</option>
+                                <option value="investor">Investor</option>
+                                <option value="guest">Guest</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="filterStatus">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-outline-primary w-100" id="clearFilters">
+                                <i class="fas fa-times me-1"></i>Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list me-2"></i>All Users
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {{if .Users}}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="usersTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Roles</th>
+                                    <th>Cooperative</th>
+                                    <th>KYC Status</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range .Users}}
+                                <tr data-user-id="{{.ID}}" data-roles="{{range .Roles}}{{.}} {{end}}" data-status="{{if .IsActive}}active{{else}}inactive{{end}}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">{{.Name}}</h6>
+                                                <small class="text-muted">{{.Email}}</small>
+                                                {{if .Phone}}
+                                                <br><small class="text-muted"><i class="fas fa-phone me-1"></i>{{.Phone}}</small>
+                                                {{end}}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {{range .Roles}}
+                                        <span class="badge bg-{{if eq . "admin"}}danger{{else if eq . "cooperative_admin"}}warning{{else if eq . "business_owner"}}primary{{else if eq . "investor"}}success{{else}}secondary{{end}} me-1">
+                                            {{if eq . "admin"}}Admin{{else if eq . "cooperative_admin"}}Coop Admin{{else if eq . "business_owner"}}Business Owner{{else if eq . "investor"}}Investor{{else}}{{.}}{{end}}
+                                        </span>
+                                        {{end}}
+                                    </td>
+                                    <td>
+                                        {{if .CooperativeID}}
+                                            {{if eq (printf "%s" .CooperativeID) "550e8400-e29b-41d4-a716-446655440001"}}
+                                                <span class="badge bg-info">Koperasi Haji</span>
+                                            {{else if eq (printf "%s" .CooperativeID) "550e8400-e29b-41d4-a716-446655440002"}}
+                                                <span class="badge bg-info">Koperasi SIDANA</span>
+                                            {{else}}
+                                                <span class="badge bg-secondary">Member</span>
+                                            {{end}}
+                                        {{else}}
+                                            <span class="text-muted">-</span>
+                                        {{end}}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{if eq .KYCStatus "verified"}}success{{else if eq .KYCStatus "pending"}}warning{{else}}danger{{end}}">
+                                            {{if eq .KYCStatus "verified"}}Verified{{else if eq .KYCStatus "pending"}}Pending{{else}}Not Started{{end}}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {{if .IsActive}}
+                                            <span class="badge bg-success">Active</span>
+                                        {{else}}
+                                            <span class="badge bg-danger">Inactive</span>
+                                        {{end}}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{.CreatedAt.Format "02 Jan 2006"}}</small>
+                                    </td>
+                                    <td>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-cog"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <a class="dropdown-item" href="#" onclick="viewUser('{{.ID}}')">
+                                                        <i class="fas fa-eye me-2"></i>View Details
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#" onclick="editUser('{{.ID}}')">
+                                                        <i class="fas fa-edit me-2"></i>Edit User
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#" onclick="manageRoles('{{.ID}}')">
+                                                        <i class="fas fa-user-tag me-2"></i>Manage Roles
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                {{if .IsActive}}
+                                                <li>
+                                                    <a class="dropdown-item text-warning" href="#" onclick="deactivateUser('{{.ID}}')">
+                                                        <i class="fas fa-user-times me-2"></i>Deactivate
+                                                    </a>
+                                                </li>
+                                                {{else}}
+                                                <li>
+                                                    <a class="dropdown-item text-success" href="#" onclick="activateUser('{{.ID}}')">
+                                                        <i class="fas fa-user-check me-2"></i>Activate
+                                                    </a>
+                                                </li>
+                                                {{end}}
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                    {{else}}
+                    <!-- Empty State -->
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Users Found</h5>
+                        <p class="text-muted">No users match the current filters</p>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Details Modal -->
+<div class="modal fade" id="userDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user me-2"></i>User Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="userDetailsContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>Edit User
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <input type="hidden" id="editUserId" name="user_id">
+                    
+                    <div class="mb-3">
+                        <label for="editUserName" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="editUserName" name="name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editUserEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="editUserEmail" name="email" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editUserPhone" class="form-label">Phone</label>
+                        <input type="tel" class="form-control" id="editUserPhone" name="phone">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editUserAddress" class="form-label">Address</label>
+                        <textarea class="form-control" id="editUserAddress" name="address" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveUserChanges()">
+                    <i class="fas fa-save me-2"></i>Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Manage Roles Modal -->
+<div class="modal fade" id="manageRolesModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-tag me-2"></i>Manage User Roles
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <h6 id="roleUserName">User Name</h6>
+                    <small class="text-muted" id="roleUserEmail">user@example.com</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Available Roles</label>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="role_admin" value="admin">
+                                <label class="form-check-label" for="role_admin">
+                                    <i class="fas fa-crown text-danger me-1"></i>Admin
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="role_cooperative_admin" value="cooperative_admin">
+                                <label class="form-check-label" for="role_cooperative_admin">
+                                    <i class="fas fa-building text-warning me-1"></i>Cooperative Admin
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="role_business_owner" value="business_owner">
+                                <label class="form-check-label" for="role_business_owner">
+                                    <i class="fas fa-briefcase text-primary me-1"></i>Business Owner
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="role_investor" value="investor">
+                                <label class="form-check-label" for="role_investor">
+                                    <i class="fas fa-chart-line text-success me-1"></i>Investor
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <input type="hidden" id="manageRolesUserId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveRoleChanges()">
+                    <i class="fas fa-save me-2"></i>Update Roles
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchUsers');
+    const roleFilter = document.getElementById('filterRole');
+    const statusFilter = document.getElementById('filterStatus');
+    const clearFiltersBtn = document.getElementById('clearFilters');
+    const tableRows = document.querySelectorAll('#usersTable tbody tr');
+
+    // Search and filter functionality
+    function applyFilters() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedRole = roleFilter.value;
+        const selectedStatus = statusFilter.value;
+
+        tableRows.forEach(row => {
+            const userText = row.textContent.toLowerCase();
+            const userRoles = row.dataset.roles || '';
+            const userStatus = row.dataset.status || '';
+
+            let show = true;
+
+            // Search filter
+            if (searchTerm && !userText.includes(searchTerm)) {
+                show = false;
+            }
+
+            // Role filter
+            if (selectedRole && !userRoles.includes(selectedRole)) {
+                show = false;
+            }
+
+            // Status filter
+            if (selectedStatus && userStatus !== selectedStatus) {
+                show = false;
+            }
+
+            row.style.display = show ? '' : 'none';
+        });
+    }
+
+    // Event listeners
+    searchInput.addEventListener('input', applyFilters);
+    roleFilter.addEventListener('change', applyFilters);
+    statusFilter.addEventListener('change', applyFilters);
+    
+    clearFiltersBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        roleFilter.value = '';
+        statusFilter.value = '';
+        applyFilters();
+    });
+});
+
+// User management functions
+function viewUser(userId) {
+    // Load user details
+    fetch(`/api/admin/users/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const user = data.data;
+                const content = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Basic Information</h6>
+                            <p><strong>ID:</strong> ${user.id}</p>
+                            <p><strong>Name:</strong> ${user.name}</p>
+                            <p><strong>Email:</strong> ${user.email}</p>
+                            <p><strong>Phone:</strong> ${user.phone || 'Not provided'}</p>
+                            <p><strong>Address:</strong> ${user.address || 'Not provided'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Account Status</h6>
+                            <p><strong>KYC Status:</strong> <span class="badge bg-${user.kyc_status === 'verified' ? 'success' : user.kyc_status === 'pending' ? 'warning' : 'danger'}">${user.kyc_status}</span></p>
+                            <p><strong>Account Status:</strong> <span class="badge bg-${user.is_active ? 'success' : 'danger'}">${user.is_active ? 'Active' : 'Inactive'}</span></p>
+                            <p><strong>Roles:</strong> ${user.roles.map(role => `<span class="badge bg-secondary me-1">${role}</span>`).join('')}</p>
+                            <p><strong>Joined:</strong> ${new Date(user.created_at).toLocaleDateString('id-ID')}</p>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('userDetailsContent').innerHTML = content;
+                new bootstrap.Modal(document.getElementById('userDetailsModal')).show();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading user details:', error);
+            showToast('Failed to load user details', 'error');
+        });
+}
+
+function editUser(userId) {
+    // Load user data for editing
+    fetch(`/api/admin/users/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const user = data.data;
+                document.getElementById('editUserId').value = user.id;
+                document.getElementById('editUserName').value = user.name;
+                document.getElementById('editUserEmail').value = user.email;
+                document.getElementById('editUserPhone').value = user.phone || '';
+                document.getElementById('editUserAddress').value = user.address || '';
+                
+                new bootstrap.Modal(document.getElementById('editUserModal')).show();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading user data:', error);
+            showToast('Failed to load user data', 'error');
+        });
+}
+
+function manageRoles(userId) {
+    // Load user data for role management
+    fetch(`/api/admin/users/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const user = data.data;
+                document.getElementById('manageRolesUserId').value = user.id;
+                document.getElementById('roleUserName').textContent = user.name;
+                document.getElementById('roleUserEmail').textContent = user.email;
+                
+                // Clear all checkboxes
+                document.querySelectorAll('#manageRolesModal input[type="checkbox"]').forEach(cb => cb.checked = false);
+                
+                // Check current roles
+                user.roles.forEach(role => {
+                    const checkbox = document.getElementById(`role_${role}`);
+                    if (checkbox) checkbox.checked = true;
+                });
+                
+                new bootstrap.Modal(document.getElementById('manageRolesModal')).show();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading user roles:', error);
+            showToast('Failed to load user roles', 'error');
+        });
+}
+
+function saveUserChanges() {
+    const form = document.getElementById('editUserForm');
+    const formData = new FormData(form);
+    const userId = formData.get('user_id');
+    
+    const userData = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        phone: formData.get('phone'),
+        address: formData.get('address')
+    };
+
+    fetch(`/api/admin/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast('User updated successfully', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showToast(data.message || 'Failed to update user', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating user:', error);
+        showToast('Failed to update user', 'error');
+    });
+}
+
+function saveRoleChanges() {
+    const userId = document.getElementById('manageRolesUserId').value;
+    const roles = [];
+    
+    document.querySelectorAll('#manageRolesModal input[type="checkbox"]:checked').forEach(cb => {
+        roles.push(cb.value);
+    });
+
+    fetch(`/api/admin/users/${userId}/roles`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ roles: roles })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast('User roles updated successfully', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('manageRolesModal')).hide();
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showToast(data.message || 'Failed to update roles', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating roles:', error);
+        showToast('Failed to update roles', 'error');
+    });
+}
+
+function deactivateUser(userId) {
+    if (!confirm('Are you sure you want to deactivate this user?')) return;
+    
+    fetch(`/api/admin/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ is_active: false })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast('User deactivated successfully', 'success');
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showToast(data.message || 'Failed to deactivate user', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error deactivating user:', error);
+        showToast('Failed to deactivate user', 'error');
+    });
+}
+
+function activateUser(userId) {
+    fetch(`/api/admin/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ is_active: true })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast('User activated successfully', 'success');
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showToast(data.message || 'Failed to activate user', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error activating user:', error);
+        showToast('Failed to activate user', 'error');
+    });
+}
+</script>

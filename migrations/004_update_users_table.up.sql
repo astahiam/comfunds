@@ -14,14 +14,16 @@ ALTER TABLE users DROP COLUMN id;
 ALTER TABLE users RENAME COLUMN temp_id TO id;
 ALTER TABLE users ADD PRIMARY KEY (id);
 
--- Add foreign key constraint to cooperatives
-ALTER TABLE users ADD CONSTRAINT fk_users_cooperative 
-    FOREIGN KEY (cooperative_id) REFERENCES cooperatives(id) ON DELETE SET NULL;
+-- Note: Foreign key constraint removed for sharded database architecture
+-- Cooperative relationship maintained through application logic
 
 -- Create new indexes
 CREATE INDEX idx_users_cooperative_id ON users(cooperative_id);
 CREATE INDEX idx_users_roles ON users USING GIN(roles);
 CREATE INDEX idx_users_kyc_status ON users(kyc_status);
+-- Additional indexes for sharded database performance
+CREATE INDEX idx_users_name_search ON users(name); -- Enhanced name search index
+CREATE INDEX idx_users_phone ON users(phone); -- Index for phone number search
 
 -- Create trigger for updated_at
 CREATE TRIGGER update_users_updated_at 

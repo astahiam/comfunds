@@ -1,0 +1,247 @@
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">Manajemen Bisnis</h1>
+                    <p class="text-muted mb-0">Kelola bisnis Anda dan ajukan pendanaan</p>
+                </div>
+                <a href="/business/create" class="btn btn-success">
+                    <i class="fas fa-plus me-2"></i>Tambah Bisnis
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-briefcase fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="card-title mb-0">{{len .Businesses}}</h5>
+                            <small>Total Bisnis</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="card-title mb-0">0</h5>
+                            <small>Disetujui</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="card-title mb-0">0</h5>
+                            <small>Menunggu</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="card-title mb-0">0</h5>
+                            <small>Proyek Aktif</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Businesses List -->
+    <div class="row">
+        <div class="col">
+            {{if .Businesses}}
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Daftar Bisnis</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Nama Bisnis</th>
+                                    <th>Jenis</th>
+                                    <th>Status</th>
+                                    <th>Tanggal Dibuat</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range .Businesses}}
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <h6 class="mb-1">{{.Name}}</h6>
+                                            <small class="text-muted">{{.Description}}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{.Type}}</span>
+                                    </td>
+                                    <td>
+                                        {{if eq .ApprovalStatus "approved"}}
+                                            <span class="badge bg-success">Disetujui</span>
+                                        {{else if eq .ApprovalStatus "pending"}}
+                                            <span class="badge bg-warning">Menunggu</span>
+                                        {{else if eq .ApprovalStatus "rejected"}}
+                                            <span class="badge bg-danger">Ditolak</span>
+                                        {{else}}
+                                            <span class="badge bg-info">Draft</span>
+                                        {{end}}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{.CreatedAt.Format "02 Jan 2006"}}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="/business/{{.ID}}" class="btn btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {{if eq .ApprovalStatus "draft"}}
+                                            <button class="btn btn-outline-success" onclick="submitForApproval('{{.ID}}')">
+                                                <i class="fas fa-paper-plane"></i>
+                                            </button>
+                                            {{end}}
+                                            <button class="btn btn-outline-danger" onclick="deleteBusiness('{{.ID}}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {{else}}
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-briefcase fa-4x text-muted"></i>
+                </div>
+                <h4 class="text-muted mb-3">Belum Ada Bisnis Terdaftar</h4>
+                <p class="text-muted mb-4">Mulai dengan membuat bisnis pertama Anda untuk mendapatkan pendanaan syariah</p>
+                
+                <!-- Info Alert -->
+                <div class="alert alert-info mx-auto" style="max-width: 500px;">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-info-circle me-2 mt-1"></i>
+                        <div class="text-start">
+                            <strong>Informasi:</strong><br>
+                            <small>
+                                • Jika Anda baru saja membuat bisnis, mungkin perlu beberapa saat untuk muncul<br>
+                                • Bisnis akan ditampilkan setelah diproses oleh sistem<br>
+                                • Refresh halaman ini dalam beberapa menit
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <a href="/business/create" class="btn btn-success btn-lg me-3">
+                        <i class="fas fa-plus me-2"></i>Buat Bisnis Baru
+                    </a>
+                    <button onclick="window.location.reload()" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                    </button>
+                </div>
+            </div>
+            {{end}}
+        </div>
+    </div>
+</div>
+
+<script>
+// Submit business for approval
+async function submitForApproval(businessId) {
+    if (!confirm('Apakah Anda yakin ingin mengajukan bisnis ini untuk persetujuan?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/businesses/${businessId}/submit-approval`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            showToast('Bisnis berhasil diajukan untuk persetujuan', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showToast(result.message || 'Gagal mengajukan bisnis', 'error');
+        }
+    } catch (error) {
+        console.error('Submit for approval error:', error);
+        showToast('Terjadi kesalahan', 'error');
+    }
+}
+
+// Delete business
+async function deleteBusiness(businessId) {
+    if (!confirm('Apakah Anda yakin ingin menghapus bisnis ini? Tindakan ini tidak dapat dibatalkan.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/businesses/${businessId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            showToast('Bisnis berhasil dihapus', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showToast(result.message || 'Gagal menghapus bisnis', 'error');
+        }
+    } catch (error) {
+        console.error('Delete business error:', error);
+        showToast('Terjadi kesalahan', 'error');
+    }
+}
+</script>

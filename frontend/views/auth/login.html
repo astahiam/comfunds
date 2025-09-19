@@ -1,0 +1,197 @@
+{{ define "auth/login" }}
+<div class="container-fluid vh-100">
+    <div class="row h-100">
+        <!-- Left Side - Branding -->
+        <div class="col-lg-6 d-none d-lg-block bg-gradient-primary d-flex align-items-center justify-content-center">
+            <div class="text-center text-white">
+                <div class="mb-4">
+                    <div class="kaaba-icon mx-auto mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-kaaba text-white" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h1 class="display-4 fw-bold mb-3">Hajifund</h1>
+                    <p class="lead mb-4">Solusi Terbaik Pendanaan Syirkah Berbasis Syariah</p>
+                    <div class="d-flex justify-content-center gap-4">
+                        <div class="text-center">
+                            <div class="h3 mb-1">1.2K+</div>
+                            <small>Investor Aktif</small>
+                        </div>
+                        <div class="text-center">
+                            <div class="h3 mb-1">350+</div>
+                            <small>UMKM Terdanai</small>
+                        </div>
+                        <div class="text-center">
+                            <div class="h3 mb-1">Rp 2.5M+</div>
+                            <small>Total Pendanaan</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Login Form -->
+        <div class="col-lg-6 d-flex align-items-center justify-content-center p-5">
+            <div class="w-100" style="max-width: 400px;">
+                <!-- Mobile Logo -->
+                <div class="text-center mb-4 d-lg-none">
+                    <div class="kaaba-icon mx-auto mb-2">
+                        <i class="fas fa-kaaba text-success"></i>
+                    </div>
+                    <h3 class="fw-bold text-success">Hajifund</h3>
+                </div>
+
+                <h2 class="fw-bold mb-1">Selamat Datang</h2>
+                <p class="text-muted mb-4">Masuk ke akun Anda untuk melanjutkan</p>
+
+                <!-- Login Form -->
+                <form id="loginForm" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-envelope text-muted"></i>
+                            </span>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                            <div class="invalid-feedback">
+                                Email tidak valid
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-lock text-muted"></i>
+                            </span>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <div class="invalid-feedback">
+                                Password harus diisi
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="rememberMe">
+                        <label class="form-check-label" for="rememberMe">
+                            Ingat saya
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 mb-3">
+                        <i class="fas fa-sign-in-alt me-2"></i>Masuk
+                    </button>
+                </form>
+
+                <!-- Demo Accounts -->
+                <div class="card border-0 bg-light mb-4">
+                    <div class="card-body p-3">
+                        <h6 class="card-title text-muted mb-2">Demo Accounts:</h6>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <button class="btn btn-outline-primary btn-sm w-100" onclick="fillDemoUser()">
+                                    <i class="fas fa-user me-1"></i>Member
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn btn-outline-warning btn-sm w-100" onclick="fillDemoAdmin()">
+                                    <i class="fas fa-crown me-1"></i>Admin
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Links -->
+                <div class="text-center">
+                    <p class="text-muted">
+                        Belum punya akun? 
+                        <a href="/register" class="text-success fw-semibold text-decoration-none">
+                            Daftar sekarang
+                        </a>
+                    </p>
+                    <a href="#" class="text-muted text-decoration-none small">
+                        <i class="fas fa-key me-1"></i>Lupa password?
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form validation and submission
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('loginForm');
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+
+    // Toggle password visibility
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        const icon = this.querySelector('i');
+        icon.classList.toggle('fa-eye');
+        icon.classList.toggle('fa-eye-slash');
+    });
+
+    // Form submission
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!form.checkValidity()) {
+            e.stopPropagation();
+            form.classList.add('was-validated');
+            return;
+        }
+
+        const formData = new FormData(form);
+        const loginData = {
+            email: formData.get('email'),
+            password: formData.get('password')
+        };
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(loginData)
+            });
+
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                // Show success message
+                showToast('Login berhasil! Mengalihkan...', 'success');
+                
+                // Redirect after short delay
+                setTimeout(() => {
+                    window.location.href = result.redirect || '/dashboard';
+                }, 1000);
+            } else {
+                showToast(result.message || 'Login gagal', 'error');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            showToast('Terjadi kesalahan saat login', 'error');
+        }
+    });
+
+    // Demo account functions
+    window.fillDemoUser = function() {
+        document.getElementById('email').value = 'member@hajifund.com';
+        document.getElementById('password').value = 'password123';
+    };
+
+    window.fillDemoAdmin = function() {
+        document.getElementById('email').value = 'admin@hajifund.com';
+        document.getElementById('password').value = 'admin123';
+    };
+});
+</script>
+{{ end }}

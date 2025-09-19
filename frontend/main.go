@@ -1,0 +1,168 @@
+package main
+
+import (
+	"hajifund-frontend/handlers"
+	"hajifund-frontend/middleware"
+	"log"
+	"os"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/template/html/v2"
+	"github.com/joho/godotenv"
+)
+
+func main() {
+	// Load environment variables
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
+
+	// Initialize HTML template engine
+	engine := html.New("./views", ".html")
+	engine.Reload(true) // Enable auto-reload in development
+
+	// Add template functions
+	engine.AddFunc("hasRole", func(roles []string, role string) bool {
+		for _, r := range roles {
+			if r == role {
+				return true
+			}
+		}
+		return false
+	})
+
+	// Create Fiber app
+	app := fiber.New(fiber.Config{
+		Views: engine,
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			code := fiber.StatusInternalServerError
+			if e, ok := err.(*fiber.Error); ok {
+				code = e.Code
+			}
+			return c.Status(code).Render("error", fiber.Map{
+				"Code":    code,
+				"Message": err.Error(),
+			})
+		},
+	})
+
+	// Middleware
+	app.Use(recover.New())
+	app.Use(logger.New())
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:8080",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
+	}))
+
+	// Static files
+	app.Static("/static", "./static")
+
+	// Initialize handlers
+	authHandler := handlers.NewAuthHandler()
+	dashboardHandler := handlers.NewDashboardHandler()
+	adminHandler := handlers.NewAdminHandler()
+	cooperativeHandler := handlers.NewCooperativeHandler()
+	projectHandler := handlers.NewProjectHandler()
+	investmentHandler := handlers.NewInvestmentHandler()
+	businessHandler := handlers.NewBusinessHandler()
+
+	// Test route
+	app.Get("/test", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"status":  "success",
+			"message": "HajiFund Frontend is running!",
+		})
+	})
+
+	// Routes
+	setupRoutes(app, authHandler, dashboardHandler, adminHandler, cooperativeHandler, projectHandler, investmentHandler, businessHandler)
+
+	// Start server
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000"
+	}
+
+	log.Printf("🚀 HajiFund Frontend starting on port %s", port)
+	log.Fatal(app.Listen(":" + port))
+}
+
+func setupRoutes(app *fiber.App, authHandler, dashboardHandler, adminHandler, cooperativeHandler, projectHandler, investmentHandler, businessHandler *handlers.Handler) {
+	// Public routes with optional authentication
+	app.Get("/", middleware.OptionalAuthMiddleware, handlers.LandingPage)
+	app.Get("/login", middleware.OptionalAuthMiddleware, authHandler.LoginPage)
+	app.Get("/register", middleware.OptionalAuthMiddleware, authHandler.RegisterPage)
+	app.Post("/api/auth/login", authHandler.Login)
+	app.Post("/api/auth/register", authHandler.Register)
+	app.Post("/api/auth/logout", authHandler.Logout)
+
+	// Public project routes (FR-006: Guest users can view public projects)
+	app.Get("/projects/public", middleware.OptionalAuthMiddleware, projectHandler.PublicProjectsPage)
+
+	// Protected routes (require authentication)
+	protected := app.Group("/", middleware.AuthMiddleware)
+	{
+		// Dashboard routes
+		protected.Get("/dashboard", dashboardHandler.Dashboard)
+		protected.Get("/profile", dashboardHandler.Profile)
+		protected.Put("/api/profile", dashboardHandler.UpdateProfile)
+
+		// Project routes (FR-032 to FR-040)
+		protected.Get("/projects", projectHandler.UserProjectsPage)
+		protected.Get("/projects/create", middleware.RequireBusinessOwner, projectHandler.CreateProjectPage)
+		protected.Post("/api/projects", middleware.RequireBusinessOwner, projectHandler.CreateProject)
+		protected.Get("/projects/:id", projectHandler.ProjectDetail)
+
+		// Investment routes (FR-041 to FR-049, FR-054 to FR-057)
+		protected.Get("/investments", middleware.RequireInvestor, investmentHandler.UserInvestmentsPage)
+		protected.Get("/investments/:id", middleware.RequireInvestor, investmentHandler.InvestmentDetailPage)
+		protected.Get("/portfolio", middleware.RequireInvestor, investmentHandler.PortfolioPage)
+		protected.Get("/projects/:id/invest", middleware.RequireInvestor, investmentHandler.ProjectInvestmentPage)
+		protected.Post("/api/investments", middleware.RequireInvestor, investmentHandler.Invest)
+
+		// Business routes (FR-024 to FR-031)
+		protected.Get("/business", middleware.RequireCooperativeMember, businessHandler.BusinessPage)
+		protected.Get("/business/create", middleware.RequireBusinessOwner, businessHandler.CreateBusinessPage)
+		protected.Post("/api/businesses", middleware.RequireBusinessOwner, businessHandler.CreateBusiness)
+		protected.Get("/business/:id", businessHandler.BusinessDetail)
+		protected.Put("/api/businesses/:id", middleware.RequireBusinessOwner, businessHandler.UpdateBusiness)
+		protected.Post("/api/businesses/:id/submit-approval", middleware.RequireBusinessOwner, businessHandler.SubmitBusinessForApproval)
+	}
+
+	// Admin routes (require admin role)
+	admin := app.Group("/admin", middleware.AuthMiddleware, middleware.RequireAdmin)
+	{
+		admin.Get("/", adminHandler.AdminDashboard)
+		admin.Get("/users", adminHandler.UsersPage)
+		admin.Get("/cooperatives", adminHandler.CooperativesPage)
+		admin.Get("/projects", adminHandler.ProjectsPage)
+		admin.Get("/investments", adminHandler.InvestmentsPage)
+		admin.Post("/api/cooperatives/:id/approve", adminHandler.ApproveCooperative)
+		admin.Post("/api/projects/:id/approve", adminHandler.ApproveProject)
+		admin.Post("/api/businesses/:id/approve", adminHandler.ApproveBusiness)
+		admin.Post("/api/businesses/:id/reject", adminHandler.RejectBusiness)
+		admin.Post("/api/investments/:id/approve", adminHandler.ApproveInvestment)
+
+		// Admin user management routes (FR-007)
+		admin.Get("/api/users/:id", adminHandler.GetUser)
+		admin.Put("/api/users/:id", adminHandler.UpdateUser)
+		admin.Put("/api/users/:id/roles", adminHandler.UpdateUserRoles)
+	}
+
+	// Cooperative admin routes (require cooperative admin role)
+	coopAdmin := app.Group("/cooperative", middleware.AuthMiddleware, middleware.RequireCooperativeAdmin)
+	{
+		coopAdmin.Get("/", cooperativeHandler.CooperativeDashboard)
+		coopAdmin.Get("/members", cooperativeHandler.MembersPage)
+		coopAdmin.Get("/projects", cooperativeHandler.CooperativeProjectsPage)
+		coopAdmin.Get("/businesses", cooperativeHandler.BusinessesPage)
+		coopAdmin.Post("/api/members/:id/approve", cooperativeHandler.ApproveMember)
+		coopAdmin.Post("/api/projects/:id/approve", cooperativeHandler.CooperativeApproveProject)
+		coopAdmin.Post("/api/businesses/:id/approve", cooperativeHandler.CooperativeApproveBusiness)
+		coopAdmin.Post("/api/investments/:id/disburse", cooperativeHandler.DisburseInvestment)
+	}
+}

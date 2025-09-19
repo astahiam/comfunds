@@ -1,0 +1,325 @@
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/business" class="text-decoration-none">Bisnis</a></li>
+                    <li class="breadcrumb-item active">{{.Business.Name}}</li>
+                </ol>
+            </nav>
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="h3 mb-1">{{.Business.Name}}</h1>
+                    <p class="text-muted mb-0">{{.Business.Description}}</p>
+                </div>
+                <div class="text-end">
+                    {{if eq .Business.ApprovalStatus "approved"}}
+                        <span class="badge bg-success fs-6">Disetujui</span>
+                    {{else if eq .Business.ApprovalStatus "pending"}}
+                        <span class="badge bg-warning fs-6">Menunggu Persetujuan</span>
+                    {{else if eq .Business.ApprovalStatus "rejected"}}
+                        <span class="badge bg-danger fs-6">Ditolak</span>
+                    {{else}}
+                        <span class="badge bg-info fs-6">Draft</span>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Business Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Informasi Bisnis</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Nama Bisnis</label>
+                            <p class="mb-0">{{.Business.Name}}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Jenis Bisnis</label>
+                            <p class="mb-0">
+                                <span class="badge bg-secondary">{{.Business.Type}}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Status</label>
+                            <p class="mb-0">
+                                {{if eq .Business.Status "active"}}
+                                    <span class="badge bg-success">Aktif</span>
+                                {{else}}
+                                    <span class="badge bg-secondary">Non-Aktif</span>
+                                {{end}}
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Tanggal Dibuat</label>
+                            <p class="mb-0">{{.Business.CreatedAt.Format "02 Januari 2006"}}</p>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-semibold">Deskripsi</label>
+                            <p class="mb-0">{{.Business.Description}}</p>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-semibold">Alamat</label>
+                            <p class="mb-0">
+                                <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                                {{.Business.Address}}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions Card -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Aksi</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {{if eq .Business.ApprovalStatus "draft"}}
+                        <div class="col-md-6">
+                            <button class="btn btn-success w-100" onclick="submitForApproval('{{.Business.ID}}')">
+                                <i class="fas fa-paper-plane me-2"></i>Ajukan untuk Persetujuan
+                            </button>
+                        </div>
+                        {{else if eq .Business.ApprovalStatus "approved"}}
+                        <div class="col-md-6">
+                            <a href="/projects/create?business_id={{.Business.ID}}" class="btn btn-primary w-100">
+                                <i class="fas fa-plus me-2"></i>Buat Proyek Pendanaan
+                            </a>
+                        </div>
+                        {{end}}
+                        <div class="col-md-6">
+                            <button class="btn btn-outline-primary w-100" onclick="editBusiness('{{.Business.ID}}')">
+                                <i class="fas fa-edit me-2"></i>Edit Bisnis
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-outline-danger w-100" onclick="deleteBusiness('{{.Business.ID}}')">
+                                <i class="fas fa-trash me-2"></i>Hapus Bisnis
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Status Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Status Persetujuan</h5>
+                </div>
+                <div class="card-body">
+                    {{if eq .Business.ApprovalStatus "approved"}}
+                    <div class="text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-check-circle fa-3x text-success"></i>
+                        </div>
+                        <h6 class="text-success">Bisnis Disetujui</h6>
+                        <p class="text-muted small mb-0">
+                            Bisnis Anda telah disetujui dan siap untuk membuat proyek pendanaan.
+                        </p>
+                    </div>
+                    {{else if eq .Business.ApprovalStatus "pending"}}
+                    <div class="text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-clock fa-3x text-warning"></i>
+                        </div>
+                        <h6 class="text-warning">Menunggu Persetujuan</h6>
+                        <p class="text-muted small mb-0">
+                            Bisnis Anda sedang dalam proses persetujuan oleh koperasi.
+                        </p>
+                    </div>
+                    {{else if eq .Business.ApprovalStatus "rejected"}}
+                    <div class="text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-times-circle fa-3x text-danger"></i>
+                        </div>
+                        <h6 class="text-danger">Bisnis Ditolak</h6>
+                        <p class="text-muted small mb-0">
+                            Bisnis Anda ditolak. Silakan periksa kembali informasi dan ajukan ulang.
+                        </p>
+                    </div>
+                    {{else}}
+                    <div class="text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-file-alt fa-3x text-info"></i>
+                        </div>
+                        <h6 class="text-info">Draft</h6>
+                        <p class="text-muted small mb-0">
+                            Bisnis Anda masih dalam draft. Lengkapi informasi dan ajukan untuk persetujuan.
+                        </p>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Statistik</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 text-center">
+                        <div class="col-6">
+                            <div class="border rounded p-3">
+                                <h5 class="mb-1 text-primary">0</h5>
+                                <small class="text-muted">Proyek</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded p-3">
+                                <h5 class="mb-1 text-success">Rp 0</h5>
+                                <small class="text-muted">Total Pendanaan</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded p-3">
+                                <h5 class="mb-1 text-info">0</h5>
+                                <small class="text-muted">Investor</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded p-3">
+                                <h5 class="mb-1 text-warning">0%</h5>
+                                <small class="text-muted">Tingkat Keberhasilan</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-lightbulb text-warning me-2"></i>
+                        Tips Selanjutnya
+                    </h6>
+                    <ul class="list-unstyled mb-0">
+                        {{if eq .Business.ApprovalStatus "approved"}}
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Buat proyek pendanaan pertama Anda
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Siapkan rencana bisnis yang detail
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Tentukan target pendanaan yang realistis
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Promosikan proyek Anda ke investor
+                        </li>
+                        {{else if eq .Business.ApprovalStatus "pending"}}
+                        <li class="mb-2">
+                            <i class="fas fa-clock text-warning me-2"></i>
+                            Tunggu persetujuan dari koperasi
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-file-alt text-info me-2"></i>
+                            Siapkan dokumen tambahan jika diperlukan
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-phone text-primary me-2"></i>
+                            Hubungi koperasi untuk update status
+                        </li>
+                        {{else}}
+                        <li class="mb-2">
+                            <i class="fas fa-edit text-primary me-2"></i>
+                            Lengkapi informasi bisnis
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-paper-plane text-success me-2"></i>
+                            Ajukan untuk persetujuan
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-file-alt text-info me-2"></i>
+                            Siapkan dokumen legal
+                        </li>
+                        {{end}}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Submit business for approval
+async function submitForApproval(businessId) {
+    if (!confirm('Apakah Anda yakin ingin mengajukan bisnis ini untuk persetujuan?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/businesses/${businessId}/submit-approval`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            showToast('Bisnis berhasil diajukan untuk persetujuan', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showToast(result.message || 'Gagal mengajukan bisnis', 'error');
+        }
+    } catch (error) {
+        console.error('Submit for approval error:', error);
+        showToast('Terjadi kesalahan', 'error');
+    }
+}
+
+// Edit business
+function editBusiness(businessId) {
+    // For now, just redirect to edit page or show modal
+    showToast('Fitur edit bisnis akan segera tersedia', 'info');
+}
+
+// Delete business
+async function deleteBusiness(businessId) {
+    if (!confirm('Apakah Anda yakin ingin menghapus bisnis ini? Tindakan ini tidak dapat dibatalkan.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/businesses/${businessId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            showToast('Bisnis berhasil dihapus', 'success');
+            setTimeout(() => {
+                window.location.href = '/business';
+            }, 1000);
+        } else {
+            showToast(result.message || 'Gagal menghapus bisnis', 'error');
+        }
+    } catch (error) {
+        console.error('Delete business error:', error);
+        showToast('Terjadi kesalahan', 'error');
+    }
+}
+</script>

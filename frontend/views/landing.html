@@ -1,0 +1,386 @@
+<!-- Hero Section (Design Aligned) -->
+<section class="hero-section-new position-relative overflow-hidden">
+    <div class="container">
+        <div class="row align-items-center min-vh-80 py-5">
+            <!-- Left Content -->
+            <div class="col-12 col-lg-6">
+                <h1 class="hero-title mb-3">
+                    {{if .HeroData.hero_content.title}}
+                        {{.HeroData.hero_content.title}}
+                    {{else}}
+                        Solusi Terbaik Pendanaan Syirkah Berbasis Syariah
+                    {{end}}
+                </h1>
+                <p class="hero-subtitle mb-4">
+                    {{if .HeroData.hero_content.subtitle}}
+                        {{.HeroData.hero_content.subtitle}}
+                    {{else}}
+                        Kami membantu pengembangan UMKM dengan solusi pendanaan profit sharing syirkah secara musyarakah, amanah dan terpercaya.
+                    {{end}}
+                </p>
+                
+                <!-- CTA Buttons -->
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    {{if .HeroData.hero_content.cta_buttons}}
+                        {{range .HeroData.hero_content.cta_buttons}}
+                            {{if eq .type "outline"}}
+                                <a href="{{.url}}" class="btn btn-outline-success btn-lg px-4">{{.text}}</a>
+                            {{else}}
+                                <a href="{{.url}}" class="btn btn-success btn-lg px-4">{{.text}}</a>
+                            {{end}}
+                        {{end}}
+                    {{else}}
+                        <a href="/ajukan-pembiayaan" class="btn btn-outline-success btn-lg px-4">Ajukan Pembiayaan</a>
+                        <a href="/register" class="btn btn-success btn-lg px-4">Daftar Sebagai Investor</a>
+                    {{end}}
+                </div>
+            </div>
+            
+            <!-- Right Content - Hero Image -->
+            <div class="col-12 col-lg-6 mt-5 mt-lg-0">
+                <div class="hero-image-container position-relative">
+                    <!-- Decorative Background Elements -->
+                    <div class="hero-decorative-bg">
+                        <div class="decorative-dot dot-1"></div>
+                        <div class="decorative-dot dot-2"></div>
+                        <div class="decorative-dot dot-3"></div>
+                        <div class="decorative-dot dot-4"></div>
+                        <div class="decorative-dot dot-5"></div>
+                        <div class="decorative-dot dot-6"></div>
+                        <div class="decorative-dot dot-7"></div>
+                        <div class="decorative-dot dot-8"></div>
+                    </div>
+                    
+                    <!-- Hero Person Image -->
+                    <div class="hero-person-image">
+                        {{if .HeroData.hero_content.hero_image.url}}
+                            <img src="{{.HeroData.hero_content.hero_image.url}}" alt="{{.HeroData.hero_content.hero_image.alt}}" class="img-fluid">
+                        {{else}}
+                            <img src="/static/images/hero/hero-person.png" alt="Hajifund Hero" class="img-fluid">
+                        {{end}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Benefits / Why Us -->
+<section id="why-us" class="hf-section py-5 bg-light">
+    <div class="container">
+        <div class="row mb-5 text-center">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="display-6 fw-bold mb-2">Mengapa memilih HajiFund?</h2>
+                <p class="text-muted">Keamanan, transparansi, dan kepatuhan syariah untuk investasi Anda</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="hf-feature h-100">
+                    <div class="hf-feature-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h5 class="mb-2">Aman & Transparan</h5>
+                    <p class="text-muted mb-0">Pendanaan terkelola melalui koperasi, pelaporan jelas, dan audit trail.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="hf-feature h-100">
+                    <div class="hf-feature-icon"><i class="fas fa-mosque"></i></div>
+                    <h5 class="mb-2">Kepatuhan Syariah</h5>
+                    <p class="text-muted mb-0">Skema bagi hasil adil dan sesuai prinsip syariah.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="hf-feature h-100">
+                    <div class="hf-feature-icon"><i class="fas fa-hands-helping"></i></div>
+                    <h5 class="mb-2">Dampak Sosial</h5>
+                    <p class="text-muted mb-0">Dukung pertumbuhan UMKM lokal dan pemberdayaan komunitas.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Steps / How it works -->
+<section id="how-it-works" class="hf-section py-5">
+    <div class="container">
+        <div class="row mb-5 text-center">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="display-6 fw-bold mb-2">Bagaimana cara kerjanya</h2>
+                <p class="text-muted">Empat langkah mudah untuk mulai berinvestasi di UMKM</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="hf-step h-100">
+                    <span class="hf-step-number">1</span>
+                    <h6 class="mb-2">Daftar & Verifikasi</h6>
+                    <p class="text-muted mb-0">Buat akun dan lengkapi verifikasi identitas Anda.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="hf-step h-100">
+                    <span class="hf-step-number">2</span>
+                    <h6 class="mb-2">Pilih Proyek</h6>
+                    <p class="text-muted mb-0">Jelajahi proyek UMKM yang telah diverifikasi.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="hf-step h-100">
+                    <span class="hf-step-number">3</span>
+                    <h6 class="mb-2">Investasi</h6>
+                    <p class="text-muted mb-0">Lakukan pendanaan sesuai kemampuan Anda.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="hf-step h-100">
+                    <span class="hf-step-number">4</span>
+                    <h6 class="mb-2">Terima Bagi Hasil</h6>
+                    <p class="text-muted mb-0">Dapatkan bagi hasil sesuai jadwal yang ditetapkan.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Projects -->
+<section class="py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="display-5 fw-bold mb-3">Proyek Unggulan</h2>
+                <p class="lead text-muted">
+                    Temukan peluang investasi terbaik dari UMKM berkualitas yang telah diverifikasi
+                </p>
+            </div>
+        </div>
+        
+        <div class="row">
+            {{range .FeaturedProjects}}
+            <div class="col-lg-4 mb-4">
+                <div class="card project-card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="badge bg-success">{{.Category}}</span>
+                            <span class="badge bg-info">{{.Status}}</span>
+                        </div>
+                        <h5 class="card-title">{{.Title}}</h5>
+                        <p class="card-text text-muted">{{.Description}}</p>
+                        
+                        <div class="progress mb-3" style="height: 8px;">
+                            <div class="progress-bar bg-success" style="width: 75%"></div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between text-sm">
+                            <span class="text-muted">Terkumpul</span>
+                            <span class="fw-bold">Rp {{printf "%.0f" .RaisedAmount}}</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-sm">
+                            <span class="text-muted">Target</span>
+                            <span class="fw-bold">Rp {{printf "%.0f" .TargetAmount}}</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a href="/projects/{{.ID}}" class="btn btn-success w-100">
+                            <i class="fas fa-eye me-2"></i>Lihat Detail
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {{end}}
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="/projects" class="btn btn-outline-success btn-lg">
+                <i class="fas fa-list me-2"></i>Lihat Semua Proyek
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section id="testimonials" class="hf-section py-5 bg-light">
+    <div class="container">
+        <div class="row mb-5 text-center">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="display-6 fw-bold mb-2">Apa kata mereka</h2>
+                <p class="text-muted">Cerita nyata dari investor dan pelaku UMKM</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="hf-testimonial h-100">
+                    <p class="mb-3">“Prosesnya mudah dan transparan. Saya merasa dana saya benar-benar berdampak.”</p>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="hf-avatar"><img src="/static/images/avatars/avatar-1.png" alt="Rahma" style="width:40px;height:40px;border-radius:50%;object-fit:cover;"></div>
+                        <div>
+                            <div class="fw-semibold">Rahma</div>
+                            <small class="text-muted">Investor</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="hf-testimonial h-100">
+                    <p class="mb-3">“Pendanaan HajiFund membantu kami membuka cabang baru dengan skema syariah.”</p>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="hf-avatar"><img src="/static/images/avatars/avatar-2.png" alt="Hadi" style="width:40px;height:40px;border-radius:50%;object-fit:cover;"></div>
+                        <div>
+                            <div class="fw-semibold">Hadi</div>
+                            <small class="text-muted">Pemilik UMKM</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="hf-testimonial h-100">
+                    <p class="mb-3">“Kepatuhan syariah dan pelaporan rapi menjadi alasan saya memilih platform ini.”</p>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="hf-avatar"><img src="/static/images/avatars/avatar-3.png" alt="Siti" style="width:40px;height:40px;border-radius:50%;object-fit:cover;"></div>
+                        <div>
+                            <div class="fw-semibold">Siti</div>
+                            <small class="text-muted">Investor</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Partners / Logos -->
+<section id="partners" class="hf-section py-4">
+    <div class="container">
+        <div class="d-flex flex-wrap justify-content-center align-items-center gap-4">
+            <div class="hf-partner-logo"><img src="/static/images/logos/company-logo-1.png" alt="Partner" height="28"></div>
+            <div class="hf-partner-logo"><img src="/static/images/logos/company-logo-2.png" alt="Partner" height="28"></div>
+            <div class="hf-partner-logo"><img src="/static/images/logos/company-logo-3.png" alt="Partner" height="28"></div>
+            <div class="hf-partner-logo"><img src="/static/images/logos/logomark-1.png" alt="Partner" height="28"></div>
+            <div class="hf-partner-logo"><img src="/static/images/logos/logomark-2.png" alt="Partner" height="28"></div>
+        </div>
+    </div>
+</section>
+
+<!-- Cooperatives Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="display-5 fw-bold mb-3">Koperasi Terpercaya</h2>
+                <p class="lead text-muted">
+                    Bermitra dengan koperasi syariah terpercaya di seluruh Indonesia
+                </p>
+            </div>
+        </div>
+        
+        <div class="row">
+            {{range .ActiveCooperatives}}
+            <div class="col-lg-6 mb-4">
+                <div class="card cooperative-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="cooperative-icon me-3">
+                                <i class="fas fa-building text-success"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1">{{.Name}}</h5>
+                                <p class="text-muted mb-0">{{.Description}}</p>
+                            </div>
+                        </div>
+                        <a href="/cooperatives/{{.ID}}" class="btn btn-outline-success">
+                            <i class="fas fa-info-circle me-2"></i>Pelajari Lebih Lanjut
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {{end}}
+        </div>
+    </div>
+</section>
+
+<!-- CTA Band -->
+<section class="hf-cta py-5 text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h2 class="display-6 fw-bold mb-2">Siap memulai investasi syariah?</h2>
+                <p class="mb-0">Bergabung dengan ribuan investor yang telah menikmati bagi hasil adil</p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <a href="/register" class="btn btn-light text-success fw-semibold px-4">Buat Akun</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works (legacy content retained for reference) -->
+<section class="py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="display-5 fw-bold mb-3">Cara Kerja HajiFund</h2>
+                <p class="lead text-muted">
+                    Proses investasi syariah yang mudah, aman, dan transparan
+                </p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-3 mb-4">
+                <div class="text-center">
+                    <div class="step-icon mb-3">
+                        <i class="fas fa-user-plus text-success display-4"></i>
+                    </div>
+                    <h5>1. Daftar & Verifikasi</h5>
+                    <p class="text-muted">Daftar sebagai investor dan verifikasi identitas Anda</p>
+                </div>
+            </div>
+            <div class="col-lg-3 mb-4">
+                <div class="text-center">
+                    <div class="step-icon mb-3">
+                        <i class="fas fa-search text-success display-4"></i>
+                    </div>
+                    <h5>2. Pilih Proyek</h5>
+                    <p class="text-muted">Jelajahi dan pilih proyek UMKM yang sesuai minat Anda</p>
+                </div>
+            </div>
+            <div class="col-lg-3 mb-4">
+                <div class="text-center">
+                    <div class="step-icon mb-3">
+                        <i class="fas fa-money-bill-wave text-success display-4"></i>
+                    </div>
+                    <h5>3. Investasi</h5>
+                    <p class="text-muted">Lakukan investasi dengan nominal yang Anda inginkan</p>
+                </div>
+            </div>
+            <div class="col-lg-3 mb-4">
+                <div class="text-center">
+                    <div class="step-icon mb-3">
+                        <i class="fas fa-chart-pie text-success display-4"></i>
+                    </div>
+                    <h5>4. Dapatkan Return</h5>
+                    <p class="text-muted">Terima bagi hasil sesuai kesepakatan yang telah ditetapkan</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-gradient-primary text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h2 class="display-5 fw-bold mb-3">Siap Memulai Investasi Syariah?</h2>
+                <p class="lead mb-0">
+                    Bergabunglah dengan ribuan investor yang telah merasakan manfaat investasi syariah di HajiFund
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="/register" class="btn btn-success btn-lg">
+                    <i class="fas fa-rocket me-2"></i>Mulai Sekarang
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+ 

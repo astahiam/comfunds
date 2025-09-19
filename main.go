@@ -3,12 +3,14 @@ package main
 import (
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"comfunds/internal/auth"
 	"comfunds/internal/config"
 	"comfunds/internal/controllers"
 	"comfunds/internal/database"
+	"comfunds/internal/middleware"
 	"comfunds/internal/repositories"
 	"comfunds/internal/services"
 
@@ -88,19 +90,34 @@ func main() {
 	// Setup router
 	router := gin.Default()
 
-	// CORS middleware
-	router.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
+	// Configure trusted proxies for production
+	if cfg.Environment == "production" {
+		trustedProxies := os.Getenv("TRUSTED_PROXIES")
+		if trustedProxies != "" {
+			router.SetTrustedProxies([]string{trustedProxies})
+		} else {
+			router.SetTrustedProxies(nil) // Don't trust any proxies if not configured
 		}
+	}
 
-		c.Next()
-	})
+	// Apply security middleware
+	router.Use(middleware.SecurityHeaders())
+	router.Use(middleware.CORSMiddleware())
+
+	// Apply general rate limiting (60 requests per minute with burst of 100)
+	generalRPM := 60
+	generalBurst := 100
+	if rpm := os.Getenv("GENERAL_RATE_LIMIT_RPM"); rpm != "" {
+		if val := parseIntEnv(rpm, generalRPM); val > 0 {
+			generalRPM = val
+		}
+	}
+	if burst := os.Getenv("GENERAL_RATE_LIMIT_BURST"); burst != "" {
+		if val := parseIntEnv(burst, generalBurst); val > 0 {
+			generalBurst = val
+		}
+	}
+	router.Use(middleware.RateLimitMiddleware(generalRPM, generalBurst))
 
 	// API routes
 	v1 := router.Group("/api/v1")
@@ -133,10 +150,85 @@ func main() {
 		{
 			// FR-006: Guest users can view public project information only
 			public.GET("/projects", projectController.GetPublicProjects)
+
+			// Public cooperatives for registration
+			public.GET("/cooperatives", func(c *gin.Context) {
+				// For now, return hardcoded cooperatives with proper UUIDs
+				c.JSON(200, gin.H{
+					"status": "success",
+					"data": gin.H{
+						"cooperatives": []gin.H{
+							{
+								"id":          "550e8400-e29b-41d4-a716-446655440001",
+								"name":        "Koperasi Haji",
+								"description": "Koperasi untuk jamaah haji dan umroh",
+							},
+							{
+								"id":          "550e8400-e29b-41d4-a716-446655440002",
+								"name":        "Koperasi SIDANA",
+								"description": "Koperasi Simpan Pinjam Dana Amanah",
+							},
+						},
+					},
+				})
+			})
+
+			// Hero section data
+			public.GET("/hero", func(c *gin.Context) {
+				c.JSON(200, gin.H{
+					"status": "success",
+					"data": gin.H{
+						"navigation": gin.H{
+							"logo": gin.H{
+								"text": "Hajifund",
+								"icon": "fas fa-kaaba",
+							},
+							"menu_items": []gin.H{
+								{"text": "Home", "url": "/", "active": true},
+								{"text": "Info Pembiayaan", "url": "/info-pembiayaan"},
+								{"text": "Ajukan Pembiayaan", "url": "/ajukan-pembiayaan"},
+								{"text": "Tentang Kami", "url": "/tentang-kami"},
+								{"text": "Kisah Sukses", "url": "/kisah-sukses"},
+							},
+							"auth_buttons": gin.H{
+								"login":    gin.H{"text": "Masuk", "url": "/login"},
+								"register": gin.H{"text": "Daftar", "url": "/register", "type": "primary"},
+							},
+						},
+						"hero_content": gin.H{
+							"title":    "Solusi Terbaik Pendanaan Syirkah Berbasis Syariah",
+							"subtitle": "Kami membantu pengembangan UMKM dengan solusi pendanaan profit sharing syirkah secara musyarakah, amanah dan terpercaya.",
+							"cta_buttons": []gin.H{
+								{
+									"text": "Ajukan Pembiayaan",
+									"url":  "/ajukan-pembiayaan",
+									"type": "outline",
+								},
+								{
+									"text": "Daftar Sebagai Investor",
+									"url":  "/register",
+									"type": "primary",
+								},
+							},
+							"hero_image": gin.H{
+								"url":                 "/static/images/hero/hero-person.png",
+								"alt":                 "Hajifund Hero",
+								"decorative_elements": true,
+							},
+						},
+						"stats": []gin.H{
+							{"value": "1.2K+", "label": "Investor Aktif"},
+							{"value": "350+", "label": "UMKM Terdanai"},
+							{"value": "Rp 2.5M+", "label": "Total Pendanaan"},
+						},
+					},
+				})
+			})
 		}
 
 		// Role information (public)
 		v1.GET("/roles/info", roleController.GetRoleInfo)
+		v1.GET("/roles/compatibility", roleController.GetRoleCompatibility)
 
 		// Protected routes (require authentication)
 		protected := v1.Group("/")
@@ -154,6 +246,8 @@ func main() {
 			{
 				user.GET("/roles", roleController.GetUserRoles)
 				user.PUT("/roles", roleController.UpdateUserRoles)
+				user.POST("/roles/add", roleController.AddUserRole)
+				user.POST("/roles/remove", roleController.RemoveUserRole)
 
 				// FR-008: Business Owners can manage their projects
 				user.GET("/projects", permissionMiddleware.RequirePermission(auth.PermissionManageOwnProjects), projectController.GetUserProjects)
@@ -367,6 +461,14 @@ func main() {
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
+	}
+	return defaultValue
+}
+
+// Helper function to parse integer environment variables with default values
+func parseIntEnv(value string, defaultValue int) int {
+	if parsed, err := strconv.Atoi(value); err == nil {
+		return parsed
 	}
 	return defaultValue
 }
