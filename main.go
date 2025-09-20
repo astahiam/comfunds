@@ -63,7 +63,9 @@ func main() {
 	projectApprovalService := services.NewProjectApprovalService(auditService)
 	fundMonitoringService := services.NewFundMonitoringService(auditService)
 	memberRegistryService := services.NewMemberRegistryService(userRepo, cooperativeRepo, auditService)
-	businessManagementService := services.NewBusinessManagementService(auditService)
+	// Business repository wired to service for DB-backed reads
+	businessRepo := repositories.NewBusinessRepository(shardMgr)
+	businessManagementService := services.NewBusinessManagementServiceWithRepo(auditService, businessRepo)
 	investmentFundingService := services.NewInvestmentFundingService(auditService)
 	fundManagementService := services.NewFundManagementService(auditService)
 	profitSharingService := services.NewProfitSharingService(auditService)
@@ -355,6 +357,8 @@ func main() {
 
 				// FR-027: Business approval management
 				admin.GET("/businesses/pending", businessController.GetPendingBusinessApprovals)
+				admin.GET("/businesses", businessController.GetAllBusinesses)
+				admin.GET("/businesses/:id", businessController.GetBusiness)
 				admin.POST("/businesses/approve", businessController.ApproveBusiness)
 				admin.POST("/businesses/reject", businessController.RejectBusiness)
 			}

@@ -46,7 +46,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	user := &models.User{
 		ID:            getStringFromClaims(claims, "user_id"),
 		Email:         getStringFromClaims(claims, "email"),
-		Name:          getStringFromClaims(claims, "email"), // Use email as name fallback since name not in JWT
+		Name:          getStringFromClaims(claims, "name"), // Now includes name from JWT
 		Phone:         getStringFromClaims(claims, "phone"),
 		Address:       getStringFromClaims(claims, "address"),
 		CooperativeID: getStringPointerFromClaims(claims, "cooperative_id"),
@@ -100,7 +100,7 @@ func OptionalAuthMiddleware(c *fiber.Ctx) error {
 	user := &models.User{
 		ID:            getStringFromClaims(claims, "user_id"),
 		Email:         getStringFromClaims(claims, "email"),
-		Name:          getStringFromClaims(claims, "email"), // Use email as name fallback since name not in JWT
+		Name:          getStringFromClaims(claims, "name"), // Now includes name from JWT
 		Phone:         getStringFromClaims(claims, "phone"),
 		Address:       getStringFromClaims(claims, "address"),
 		CooperativeID: getStringPointerFromClaims(claims, "cooperative_id"),

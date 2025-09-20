@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"comfunds/internal/entities"
+	"comfunds/internal/repositories"
 
 	"github.com/google/uuid"
 )
@@ -27,13 +28,15 @@ type BusinessManagementService interface {
 	SubmitBusinessForApproval(ctx context.Context, businessID, submitterID uuid.UUID) error
 	ApproveBusinessRegistration(ctx context.Context, req *entities.BusinessApprovalRequest, approverID uuid.UUID) error
 	RejectBusinessRegistration(ctx context.Context, req *entities.BusinessRejectionRequest, approverID uuid.UUID) error
-	GetPendingBusinessApprovals(ctx context.Context, cooperativeID uuid.UUID, page, limit int) ([]*entities.BusinessExtended, int, error)
+	GetPendingBusinessApprovals(ctx context.Context, cooperativeID *uuid.UUID, page, limit int) ([]*entities.BusinessExtended, int, error)
 
 	// FR-028: Business CRUD Operations
 	GetOwnerBusinesses(ctx context.Context, ownerID uuid.UUID, page, limit int) ([]*entities.BusinessExtended, int, error)
 	GetCooperativeBusinesses(ctx context.Context, cooperativeID uuid.UUID, status string, page, limit int) ([]*entities.BusinessExtended, int, error)
 	SearchBusinesses(ctx context.Context, filter *entities.BusinessFilter) ([]*entities.BusinessExtended, int, error)
 	DeleteBusiness(ctx context.Context, businessID, deleterID uuid.UUID, reason string) error
+	// New: list all businesses for admin
+	ListAllBusinesses(ctx context.Context, page, limit int) ([]*entities.BusinessExtended, int, error)
 
 	// FR-029: Multiple Business Management
 	GetBusinessesByOwner(ctx context.Context, ownerID uuid.UUID) ([]*entities.BusinessExtended, error)
@@ -59,16 +62,30 @@ type BusinessManagementService interface {
 }
 
 type businessManagementService struct {
-	auditService AuditService
+	auditService   AuditService
+	mockBusinesses []*entities.BusinessExtended // Mock repository for testing
+	businessRepo   repositories.BusinessRepository
 }
 
 func NewBusinessManagementService(auditService AuditService) BusinessManagementService {
+	fmt.Printf("DEBUG: Creating new BusinessManagementService instance\n")
 	return &businessManagementService{
-		auditService: auditService,
+		auditService:   auditService,
+		mockBusinesses: make([]*entities.BusinessExtended, 0),
+	}
+}
+
+func NewBusinessManagementServiceWithRepo(auditService AuditService, repo repositories.BusinessRepository) BusinessManagementService {
+	fmt.Printf("DEBUG: Creating BusinessManagementService with repository\n")
+	return &businessManagementService{
+		auditService:   auditService,
+		businessRepo:   repo,
+		mockBusinesses: make([]*entities.BusinessExtended, 0),
 	}
 }
 
 func (s *businessManagementService) CreateBusiness(ctx context.Context, req *entities.CreateBusinessExtendedRequest, ownerID uuid.UUID) (*entities.BusinessExtended, error) {
+	fmt.Printf("DEBUG: CreateBusiness called for owner %s, business name: %s\n", ownerID.String(), req.Name)
 	// FR-025: Validate required fields
 	if err := s.validateBusinessRegistrationData(req); err != nil {
 		return nil, err
@@ -89,7 +106,7 @@ func (s *businessManagementService) CreateBusiness(ctx context.Context, req *ent
 		Type:               req.Type,
 		Description:        req.Description,
 		OwnerID:            ownerID,
-		CooperativeID:      uuid.New(), // Would get from owner's cooperative
+		CooperativeID:      req.CooperativeID,
 		RegistrationNumber: req.RegistrationNumber,
 		TaxID:              req.TaxID,
 		LegalStructure:     req.LegalStructure,
@@ -114,8 +131,19 @@ func (s *businessManagementService) CreateBusiness(ctx context.Context, req *ent
 		UpdatedAt:          time.Now(),
 	}
 
-	// In real implementation, save to repository
-	// createdBusiness, err := s.businessRepo.Create(ctx, business)
+	// Save to database using repository
+	if s.businessRepo != nil {
+		createdBusiness, err := s.businessRepo.Create(ctx, business)
+		if err != nil {
+			return nil, fmt.Errorf("failed to save business to database: %w", err)
+		}
+		business = createdBusiness
+		fmt.Printf("DEBUG: Created business in database: %s\n", business.Name)
+	} else {
+		// Fallback to global business store for testing
+		GlobalBusinessStore.AddBusiness(business)
+		fmt.Printf("DEBUG: Created business %s, total businesses: %d\n", business.Name, len(GlobalBusinessStore.GetAllBusinesses()))
+	}
 
 	// Log audit trail
 	s.auditService.LogOperation(ctx, &LogOperationRequest{
@@ -209,13 +237,15 @@ func (s *businessManagementService) SubmitBusinessForApproval(ctx context.Contex
 }
 
 func (s *businessManagementService) ApproveBusinessRegistration(ctx context.Context, req *entities.BusinessApprovalRequest, approverID uuid.UUID) error {
-	// Update business status
-	now := time.Now()
-
-	// In real implementation, update business
-	// business.Status = entities.BusinessStatusApproved
-	// business.ApprovedBy = &approverID
-	// business.ApprovedAt = &now
+	// If repo available, update DB, else fallback to in-memory
+	if s.businessRepo != nil {
+		if err := s.businessRepo.ApproveBusiness(ctx, req.BusinessID); err != nil {
+			return err
+		}
+	} else {
+		GlobalBusinessStore.UpdateBusinessStatus(req.BusinessID, "approved")
+	}
+	fmt.Printf("DEBUG: Approved business %s\n", req.BusinessID.String())
 
 	// Log audit trail
 	s.auditService.LogOperation(ctx, &LogOperationRequest{
@@ -223,7 +253,7 @@ func (s *businessManagementService) ApproveBusinessRegistration(ctx context.Cont
 		EntityID:   req.BusinessID,
 		Operation:  entities.AuditOperationUpdate,
 		UserID:     approverID,
-		Changes:    map[string]interface{}{"action": "approve_business", "comments": req.Comments, "approved_at": now},
+		Changes:    map[string]interface{}{"action": "approve_business", "comments": req.Comments},
 		Status:     entities.AuditStatusSuccess,
 	})
 
@@ -231,9 +261,14 @@ func (s *businessManagementService) ApproveBusinessRegistration(ctx context.Cont
 }
 
 func (s *businessManagementService) RejectBusinessRegistration(ctx context.Context, req *entities.BusinessRejectionRequest, approverID uuid.UUID) error {
-	// Update business status
-	// business.Status = entities.BusinessStatusRejected
-	// business.RejectionReason = req.Reason
+	if s.businessRepo != nil {
+		if err := s.businessRepo.RejectBusiness(ctx, req.BusinessID, req.Reason); err != nil {
+			return err
+		}
+	} else {
+		GlobalBusinessStore.UpdateBusinessStatus(req.BusinessID, "rejected")
+	}
+	fmt.Printf("DEBUG: Rejected business %s\n", req.BusinessID.String())
 
 	// Log audit trail
 	s.auditService.LogOperation(ctx, &LogOperationRequest{
@@ -414,7 +449,19 @@ func (s *businessManagementService) GetBusinessAnalytics(ctx context.Context, bu
 
 // Mock implementations for interface compliance
 func (s *businessManagementService) GetBusiness(ctx context.Context, businessID uuid.UUID) (*entities.BusinessExtended, error) {
-	return nil, fmt.Errorf("not implemented - requires repository")
+	if s.businessRepo == nil {
+		// Fallback to in-memory store
+		business := GlobalBusinessStore.GetBusinessByID(businessID)
+		if business == nil {
+			return nil, fmt.Errorf("business not found")
+		}
+		return business, nil
+	}
+	business, err := s.businessRepo.GetByID(ctx, businessID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get business from repository: %w", err)
+	}
+	return business, nil
 }
 
 func (s *businessManagementService) UpdateBusiness(ctx context.Context, businessID uuid.UUID, req *entities.UpdateBusinessExtendedRequest, updaterID uuid.UUID) (*entities.BusinessExtended, error) {
@@ -425,12 +472,66 @@ func (s *businessManagementService) UploadBusinessDocument(ctx context.Context, 
 	return fmt.Errorf("not implemented - requires document storage")
 }
 
-func (s *businessManagementService) GetPendingBusinessApprovals(ctx context.Context, cooperativeID uuid.UUID, page, limit int) ([]*entities.BusinessExtended, int, error) {
-	return []*entities.BusinessExtended{}, 0, nil
+func (s *businessManagementService) GetPendingBusinessApprovals(ctx context.Context, cooperativeID *uuid.UUID, page, limit int) ([]*entities.BusinessExtended, int, error) {
+	fmt.Printf("DEBUG: GetPendingBusinessApprovals called\n")
+	if s.businessRepo != nil {
+		offset := (page - 1) * limit
+		return s.businessRepo.GetPendingBusinesses(ctx, cooperativeID, limit, offset)
+	}
+
+	// Get pending businesses from global store
+	allPendingBusinesses := GlobalBusinessStore.GetPendingBusinesses(cooperativeID)
+	fmt.Printf("DEBUG: Found %d pending businesses\n", len(allPendingBusinesses))
+
+	// Simple pagination
+	total := len(allPendingBusinesses)
+	start := (page - 1) * limit
+	end := start + limit
+
+	if start > total {
+		return []*entities.BusinessExtended{}, total, nil
+	}
+
+	if end > total {
+		end = total
+	}
+
+	if start >= end {
+		return []*entities.BusinessExtended{}, total, nil
+	}
+
+	return allPendingBusinesses[start:end], total, nil
 }
 
 func (s *businessManagementService) GetOwnerBusinesses(ctx context.Context, ownerID uuid.UUID, page, limit int) ([]*entities.BusinessExtended, int, error) {
-	return []*entities.BusinessExtended{}, 0, nil
+	fmt.Printf("DEBUG: GetOwnerBusinesses called for owner %s\n", ownerID.String())
+	if s.businessRepo != nil {
+		offset := (page - 1) * limit
+		return s.businessRepo.GetByOwner(ctx, ownerID, limit, offset)
+	}
+
+	// Get businesses from global store
+	allBusinesses := GlobalBusinessStore.GetBusinessesByOwner(ownerID)
+	fmt.Printf("DEBUG: Found %d businesses for owner %s\n", len(allBusinesses), ownerID.String())
+
+	// Simple pagination
+	total := len(allBusinesses)
+	start := (page - 1) * limit
+	end := start + limit
+
+	if start > total {
+		return []*entities.BusinessExtended{}, total, nil
+	}
+
+	if end > total {
+		end = total
+	}
+
+	if start >= end {
+		return []*entities.BusinessExtended{}, total, nil
+	}
+
+	return allBusinesses[start:end], total, nil
 }
 
 func (s *businessManagementService) GetCooperativeBusinesses(ctx context.Context, cooperativeID uuid.UUID, status string, page, limit int) ([]*entities.BusinessExtended, int, error) {
@@ -439,6 +540,33 @@ func (s *businessManagementService) GetCooperativeBusinesses(ctx context.Context
 
 func (s *businessManagementService) SearchBusinesses(ctx context.Context, filter *entities.BusinessFilter) ([]*entities.BusinessExtended, int, error) {
 	return []*entities.BusinessExtended{}, 0, nil
+}
+
+func (s *businessManagementService) ListAllBusinesses(ctx context.Context, page, limit int) ([]*entities.BusinessExtended, int, error) {
+	fmt.Printf("DEBUG: ListAllBusinesses called, businessRepo is nil: %v\n", s.businessRepo == nil)
+	if s.businessRepo == nil {
+		// Fallback to in-memory store contents
+		all := GlobalBusinessStore.GetAllBusinesses()
+		total := len(all)
+		fmt.Printf("DEBUG: Using in-memory store, found %d businesses\n", total)
+		start := (page - 1) * limit
+		end := start + limit
+		if start > total {
+			return []*entities.BusinessExtended{}, total, nil
+		}
+		if end > total {
+			end = total
+		}
+		if start >= end {
+			return []*entities.BusinessExtended{}, total, nil
+		}
+		return all[start:end], total, nil
+	}
+	fmt.Printf("DEBUG: Using database repository\n")
+	offset := (page - 1) * limit
+	businesses, total, err := s.businessRepo.GetAll(ctx, limit, offset)
+	fmt.Printf("DEBUG: Repository returned %d businesses, total=%d, error=%v\n", len(businesses), total, err)
+	return businesses, total, err
 }
 
 func (s *businessManagementService) DeleteBusiness(ctx context.Context, businessID, deleterID uuid.UUID, reason string) error {

@@ -144,6 +144,7 @@ type CreateBusinessExtendedRequest struct {
 	Name               string                 `json:"name" validate:"required,min=2,max=200"`
 	Type               string                 `json:"type" validate:"required,oneof=manufacturing retail services technology agriculture construction healthcare education finance other"`
 	Description        string                 `json:"description" validate:"required,min=10,max=1000"`
+	CooperativeID      uuid.UUID              `json:"cooperative_id" validate:"required"`
 	RegistrationNumber string                 `json:"registration_number" validate:"required"`
 	TaxID              string                 `json:"tax_id"`
 	LegalStructure     string                 `json:"legal_structure" validate:"required"`

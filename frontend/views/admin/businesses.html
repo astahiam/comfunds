@@ -1,0 +1,307 @@
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="fas fa-briefcase text-primary me-2"></i>
+                        Business Management
+                    </h1>
+                    <p class="text-muted mb-0">Review and approve business registrations</p>
+                </div>
+                <div>
+                    <a href="/admin" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Admin
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 bg-primary text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{len .Businesses}}</h4>
+                    <small>Total Businesses</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 bg-warning text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{.PendingCount}}</h4>
+                    <small>Pending Approval</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 bg-success text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{.ApprovedCount}}</h4>
+                    <small>Approved</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 bg-danger text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{.RejectedCount}}</h4>
+                    <small>Rejected</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control" id="searchBusinesses" placeholder="Search businesses...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="filterStatus">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="filterType">
+                                <option value="">All Types</option>
+                                <option value="retail">Retail</option>
+                                <option value="services">Services</option>
+                                <option value="manufacturing">Manufacturing</option>
+                                <option value="technology">Technology</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-outline-primary w-100" id="clearFilters">
+                                <i class="fas fa-times me-1"></i>Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Businesses Table -->
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list me-2"></i>All Businesses
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {{if .Businesses}}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="businessesTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Business</th>
+                                    <th>Type</th>
+                                    <th>Owner</th>
+                                    <th>Cooperative</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range .Businesses}}
+                                <tr data-status="{{.ApprovalStatus}}" data-type="{{.Type}}">
+                                    <td>
+                                        <div>
+                                            <h6 class="mb-1">
+                                                <a href="/admin/businesses/{{.ID}}" class="text-decoration-none">
+                                                    {{.Name}}
+                                                </a>
+                                            </h6>
+                                            <small class="text-muted">{{.Description}}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{.Type}}</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{.OwnerID}}</small>
+                                    </td>
+                                    <td>
+                                        {{if eq .CooperativeID "550e8400-e29b-41d4-a716-446655440001"}}
+                                            <span class="badge bg-info">Koperasi Haji</span>
+                                        {{else if eq .CooperativeID "550e8400-e29b-41d4-a716-446655440002"}}
+                                            <span class="badge bg-info">Koperasi SIDANA</span>
+                                        {{else}}
+                                            <span class="badge bg-secondary">Other</span>
+                                        {{end}}
+                                    </td>
+                                    <td>
+                                        {{if eq .ApprovalStatus "approved"}}
+                                            <span class="badge bg-success">Approved</span>
+                                        {{else if eq .ApprovalStatus "pending"}}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {{else if eq .ApprovalStatus "rejected"}}
+                                            <span class="badge bg-danger">Rejected</span>
+                                        {{else}}
+                                            <span class="badge bg-secondary">{{.ApprovalStatus}}</span>
+                                        {{end}}
+                                    </td>
+                                    <td>
+                                        {{if eq .ApprovalStatus "pending"}}
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-success" onclick="approveBusiness('{{.ID}}')">
+                                                <i class="fas fa-check me-1"></i>Approve
+                                            </button>
+                                            <button class="btn btn-danger" onclick="rejectBusiness('{{.ID}}')">
+                                                <i class="fas fa-times me-1"></i>Reject
+                                            </button>
+                                        </div>
+                                        {{else}}
+                                        <button class="btn btn-outline-primary btn-sm" onclick="viewBusinessDetails('{{.ID}}')">
+                                            <i class="fas fa-eye me-1"></i>View
+                                        </button>
+                                        {{end}}
+                                    </td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                    {{else}}
+                    <!-- Empty State -->
+                    <div class="text-center py-5">
+                        <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Businesses Found</h5>
+                        <p class="text-muted">No businesses registered yet</p>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchBusinesses');
+    const statusFilter = document.getElementById('filterStatus');
+    const typeFilter = document.getElementById('filterType');
+    const clearFiltersBtn = document.getElementById('clearFilters');
+    const tableRows = document.querySelectorAll('#businessesTable tbody tr');
+
+    // Search and filter functionality
+    function applyFilters() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedStatus = statusFilter.value;
+        const selectedType = typeFilter.value;
+
+        tableRows.forEach(row => {
+            const businessText = row.textContent.toLowerCase();
+            const businessStatus = row.dataset.status || '';
+            const businessType = row.dataset.type || '';
+
+            let show = true;
+
+            // Search filter
+            if (searchTerm && !businessText.includes(searchTerm)) {
+                show = false;
+            }
+
+            // Status filter
+            if (selectedStatus && businessStatus !== selectedStatus) {
+                show = false;
+            }
+
+            // Type filter
+            if (selectedType && businessType !== selectedType) {
+                show = false;
+            }
+
+            row.style.display = show ? '' : 'none';
+        });
+    }
+
+    // Event listeners
+    searchInput.addEventListener('input', applyFilters);
+    statusFilter.addEventListener('change', applyFilters);
+    typeFilter.addEventListener('change', applyFilters);
+    
+    clearFiltersBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        statusFilter.value = '';
+        typeFilter.value = '';
+        applyFilters();
+    });
+});
+
+// Business management functions
+async function approveBusiness(businessId) {
+    if (!confirm('Are you sure you want to approve this business?')) return;
+    
+    try {
+        const response = await fetch(`/admin/api/businesses/${businessId}/approve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            showToast('Business approved successfully!', 'success');
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showToast(result.message || 'Failed to approve business', 'error');
+        }
+    } catch (error) {
+        console.error('Error approving business:', error);
+        showToast('Failed to approve business', 'error');
+    }
+}
+
+async function rejectBusiness(businessId) {
+    const reason = prompt('Please provide a reason for rejection:');
+    if (!reason) return;
+    
+    try {
+        const response = await fetch(`/admin/api/businesses/${businessId}/reject`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ reason: reason })
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            showToast('Business rejected successfully', 'success');
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showToast(result.message || 'Failed to reject business', 'error');
+        }
+    } catch (error) {
+        console.error('Error rejecting business:', error);
+        showToast('Failed to reject business', 'error');
+    }
+}
+
+function viewBusinessDetails(businessId) {
+    // Open business details in new tab
+    window.open(`/business/${businessId}`, '_blank');
+}
+</script>

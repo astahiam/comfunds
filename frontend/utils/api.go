@@ -21,7 +21,7 @@ type APIResponse struct {
 // MakeAPIRequest makes HTTP request to backend API
 func MakeAPIRequest(method, endpoint string, body interface{}, headers map[string]string) (*APIResponse, error) {
 	var reqBody io.Reader
-	
+
 	if body != nil {
 		jsonData, err := json.Marshal(body)
 		if err != nil {
@@ -29,42 +29,46 @@ func MakeAPIRequest(method, endpoint string, body interface{}, headers map[strin
 		}
 		reqBody = bytes.NewBuffer(jsonData)
 	}
-	
+
 	req, err := http.NewRequest(method, APIBaseURL+endpoint, reqBody)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Set default headers
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
-	
+
 	// Set custom headers
 	for key, value := range headers {
 		req.Header.Set(key, value)
 	}
-	
+
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	
+
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var apiResp APIResponse
 	if err := json.Unmarshal(respBody, &apiResp); err != nil {
 		return nil, err
 	}
-	
+
 	if resp.StatusCode >= 400 {
-		return nil, fmt.Errorf("API error: %s", apiResp.Message)
+		// Include backend error details when available
+		if apiResp.Error != nil {
+			return nil, fmt.Errorf("%s: %v", apiResp.Message, apiResp.Error)
+		}
+		return nil, fmt.Errorf("%s", apiResp.Message)
 	}
-	
+
 	return &apiResp, nil
 }
 

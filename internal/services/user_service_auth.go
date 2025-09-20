@@ -109,7 +109,7 @@ func (s *userServiceAuth) Register(ctx context.Context, req *entities.CreateUser
 	}
 
 	// FR-004: Generate JWT tokens
-	accessToken, err := s.jwtManager.Generate(createdUser.ID, createdUser.Email, createdUser.Roles, createdUser.CooperativeID)
+	accessToken, err := s.jwtManager.Generate(createdUser.ID, createdUser.Email, createdUser.Name, createdUser.Roles, createdUser.CooperativeID)
 	if err != nil {
 		return nil, "", "", fmt.Errorf("failed to generate access token: %w", err)
 	}
@@ -140,7 +140,7 @@ func (s *userServiceAuth) Login(ctx context.Context, email, password string) (*e
 	}
 
 	// Generate JWT tokens
-	accessToken, err := s.jwtManager.Generate(user.ID, user.Email, user.Roles, user.CooperativeID)
+	accessToken, err := s.jwtManager.Generate(user.ID, user.Email, user.Name, user.Roles, user.CooperativeID)
 	if err != nil {
 		return nil, "", "", fmt.Errorf("failed to generate access token: %w", err)
 	}
@@ -171,7 +171,7 @@ func (s *userServiceAuth) RefreshToken(ctx context.Context, refreshToken string)
 	}
 
 	// Generate new access token
-	accessToken, err := s.jwtManager.Generate(user.ID, user.Email, user.Roles, user.CooperativeID)
+	accessToken, err := s.jwtManager.Generate(user.ID, user.Email, user.Name, user.Roles, user.CooperativeID)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate access token: %w", err)
 	}

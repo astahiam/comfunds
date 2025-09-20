@@ -1,0 +1,303 @@
+{{define "content"}}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0 text-gray-800">
+                    <i class="fas fa-building me-2"></i>Business Details
+                </h1>
+                <div>
+                    <a href="/admin/businesses" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Businesses
+                    </a>
+                    {{if eq .Business.ApprovalStatus "pending"}}
+                    <button class="btn btn-success ms-2" onclick="approveBusiness('{{.Business.ID}}')">
+                        <i class="fas fa-check me-1"></i>Approve
+                    </button>
+                    <button class="btn btn-danger ms-2" onclick="rejectBusiness('{{.Business.ID}}')">
+                        <i class="fas fa-times me-1"></i>Reject
+                    </button>
+                    {{end}}
+                </div>
+            </div>
+
+            <!-- Business Information Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle me-2"></i>Business Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Business Name:</label>
+                                <p class="form-control-plaintext">{{.Business.Name}}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Business Type:</label>
+                                <p class="form-control-plaintext">{{.Business.Type}}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Industry:</label>
+                                <p class="form-control-plaintext">{{.Business.Industry}}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Legal Structure:</label>
+                                <p class="form-control-plaintext">{{.Business.LegalStructure}}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Registration Number:</label>
+                                <p class="form-control-plaintext">{{.Business.RegistrationNumber}}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Business License:</label>
+                                <p class="form-control-plaintext">{{.Business.BusinessLicense}}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Established Date:</label>
+                                <p class="form-control-plaintext">{{.Business.EstablishedDate}}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Status:</label>
+                                <span class="badge 
+                                    {{if eq .Business.ApprovalStatus "pending"}}bg-warning{{end}}
+                                    {{if eq .Business.ApprovalStatus "approved"}}bg-success{{end}}
+                                    {{if eq .Business.ApprovalStatus "rejected"}}bg-danger{{end}}
+                                ">
+                                    {{.Business.ApprovalStatus}}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Description:</label>
+                        <p class="form-control-plaintext">{{.Business.Description}}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-address-book me-2"></i>Contact Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Address:</label>
+                                <p class="form-control-plaintext">{{.Business.Address}}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Phone:</label>
+                                <p class="form-control-plaintext">{{.Business.Phone}}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Email:</label>
+                                <p class="form-control-plaintext">{{.Business.Email}}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Website:</label>
+                                <p class="form-control-plaintext">{{.Business.Website}}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Information Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-line me-2"></i>Financial Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Employee Count:</label>
+                                <p class="form-control-plaintext">{{.Business.EmployeeCount}}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Annual Revenue:</label>
+                                <p class="form-control-plaintext">{{.Business.AnnualRevenue}} {{.Business.Currency}}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Bank Account:</label>
+                                <p class="form-control-plaintext">{{.Business.BankAccount}}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-file-alt me-2"></i>Documents
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Business License:</label>
+                        <p class="form-control-plaintext">{{.Business.BusinessLicense}}</p>
+                    </div>
+                    <!-- Add more document fields as needed -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approval Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="approveModalLabel">Approve Business</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to approve this business?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="confirmApprove()">Approve</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rejection Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectModalLabel">Reject Business</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="rejectReason" class="form-label">Reason for rejection:</label>
+                    <textarea class="form-control" id="rejectReason" rows="3" placeholder="Please provide a reason for rejection..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmReject()">Reject</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentBusinessId = '';
+
+function approveBusiness(businessId) {
+    currentBusinessId = businessId;
+    new bootstrap.Modal(document.getElementById('approveModal')).show();
+}
+
+function rejectBusiness(businessId) {
+    currentBusinessId = businessId;
+    new bootstrap.Modal(document.getElementById('rejectModal')).show();
+}
+
+function confirmApprove() {
+    if (!currentBusinessId) return;
+    
+    fetch(`/admin/api/businesses/${currentBusinessId}/approve`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast('Business approved successfully', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showToast(data.message || 'Failed to approve business', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Failed to approve business', 'error');
+    });
+    
+    bootstrap.Modal.getInstance(document.getElementById('approveModal')).hide();
+}
+
+function confirmReject() {
+    if (!currentBusinessId) return;
+    
+    const reason = document.getElementById('rejectReason').value;
+    if (!reason.trim()) {
+        showToast('Please provide a reason for rejection', 'error');
+        return;
+    }
+    
+    fetch(`/admin/api/businesses/${currentBusinessId}/reject`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reason: reason })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast('Business rejected successfully', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showToast(data.message || 'Failed to reject business', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Failed to reject business', 'error');
+    });
+    
+    bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
+}
+
+function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    toast.addEventListener('hidden.bs.toast', () => {
+        document.body.removeChild(toast);
+    });
+}
+</script>
+{{end}}

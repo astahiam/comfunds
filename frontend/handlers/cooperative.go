@@ -23,7 +23,7 @@ func (h *Handler) CooperativeProjectsPage(c *fiber.Ctx) error {
 	})
 }
 
-func (h *Handler) BusinessesPage(c *fiber.Ctx) error {
+func (h *Handler) CooperativeBusinessesPage(c *fiber.Ctx) error {
 	return c.Render("cooperative/businesses", fiber.Map{
 		"Title": "Businesses - Cooperative Admin",
 	})

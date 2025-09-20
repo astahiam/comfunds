@@ -12,30 +12,27 @@ func (h *Handler) AdminDashboard(c *fiber.Ctx) error {
 	user := c.Locals("user").(*models.User)
 	authHeaders := utils.GetAuthHeaders(getTokenFromContext(c))
 
-	// Get pending businesses by querying database directly
-	// Since admin needs to see ALL pending businesses across cooperatives
+	// Fetch pending businesses from backend API (no mock)
 	var pendingBusinesses []models.Business
-
-	// For now, create mock pending businesses to demonstrate admin functionality
-	pendingBusinesses = []models.Business{
-		{
-			ID:             "mock-business-1",
-			Name:           "Toko Kelontong Berkah",
-			Type:           "retail",
-			Description:    "Toko kelontong yang melayani kebutuhan sehari-hari masyarakat",
-			ApprovalStatus: "pending",
-			OwnerID:        "owner-123",
-			CooperativeID:  "550e8400-e29b-41d4-a716-446655440001",
-		},
-		{
-			ID:             "mock-business-2",
-			Name:           "Warung Makan Sederhana",
-			Type:           "services",
-			Description:    "Warung makan dengan menu masakan rumahan yang lezat",
-			ApprovalStatus: "pending",
-			OwnerID:        "owner-456",
-			CooperativeID:  "550e8400-e29b-41d4-a716-446655440002",
-		},
+	if resp, err := utils.MakeAPIRequest("GET", "/api/v1/admin/businesses/pending", nil, authHeaders); err == nil && resp.Data != nil {
+		if data, ok := resp.Data.(map[string]interface{}); ok {
+			if list, ok := data["businesses"].([]interface{}); ok {
+				pendingBusinesses = make([]models.Business, 0, len(list))
+				for _, item := range list {
+					if m, ok := item.(map[string]interface{}); ok {
+						pendingBusinesses = append(pendingBusinesses, models.Business{
+							ID:             getStringValue(m["id"]),
+							Name:           getStringValue(m["name"]),
+							Type:           getStringValue(m["type"]),
+							Description:    getStringValue(m["description"]),
+							ApprovalStatus: getStringValue(m["approval_status"]),
+							OwnerID:        getStringValue(m["owner_id"]),
+							CooperativeID:  getStringValue(m["cooperative_id"]),
+						})
+					}
+				}
+			}
+		}
 	}
 
 	// Get system statistics
@@ -87,16 +84,167 @@ func (h *Handler) UsersPage(c *fiber.Ctx) error {
 	}, "base")
 }
 
+// BusinessesPage renders the admin businesses management page
+func (h *Handler) BusinessesPage(c *fiber.Ctx) error {
+	user := c.Locals("user").(*models.User)
+
+	// Get all businesses for admin review
+	var allBusinesses []models.Business
+	authHeaders := utils.GetAuthHeaders(getTokenFromContext(c))
+
+	// Try to get real businesses from backend API
+	businessesResp, err := utils.MakeAPIRequest("GET", "/api/v1/admin/businesses", nil, authHeaders)
+	if err == nil && businessesResp.Data != nil {
+		if data, ok := businessesResp.Data.(map[string]interface{}); ok {
+			if businessesData, ok := data["businesses"].([]interface{}); ok {
+				allBusinesses = make([]models.Business, len(businessesData))
+				for i, business := range businessesData {
+					if businessMap, ok := business.(map[string]interface{}); ok {
+						allBusinesses[i] = models.Business{
+							ID:             getStringValue(businessMap["id"]),
+							Name:           getStringValue(businessMap["name"]),
+							Type:           getStringValue(businessMap["type"]),
+							Description:    getStringValue(businessMap["description"]),
+							ApprovalStatus: getStringValue(businessMap["approval_status"]),
+							OwnerID:        getStringValue(businessMap["owner_id"]),
+							CooperativeID:  getStringValue(businessMap["cooperative_id"]),
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Compute counts
+	pendingCount := 0
+	approvedCount := 0
+	rejectedCount := 0
+	for _, b := range allBusinesses {
+		switch b.ApprovalStatus {
+		case "pending":
+			pendingCount++
+		case "approved":
+			approvedCount++
+		case "rejected":
+			rejectedCount++
+		}
+	}
+
+	return c.Render("admin/businesses", fiber.Map{
+		"Title":         "Business Management - HajiFund Admin",
+		"User":          user,
+		"Businesses":    allBusinesses,
+		"PendingCount":  pendingCount,
+		"ApprovedCount": approvedCount,
+		"RejectedCount": rejectedCount,
+	}, "base")
+}
+
+// BusinessDetailPage renders the admin business detail page
+func (h *Handler) BusinessDetailPage(c *fiber.Ctx) error {
+	user := c.Locals("user").(*models.User)
+	businessID := c.Params("id")
+	authHeaders := utils.GetAuthHeaders(getTokenFromContext(c))
+
+	// Get business details from backend API
+	var business models.Business
+	businessResp, err := utils.MakeAPIRequest("GET", "/api/v1/admin/businesses/"+businessID, nil, authHeaders)
+	if err != nil || businessResp.Data == nil {
+		return c.Status(404).Render("errors/404", fiber.Map{
+			"Title": "Business Not Found - HajiFund Admin",
+			"User":  user,
+		}, "base")
+	}
+
+	if data, ok := businessResp.Data.(map[string]interface{}); ok {
+		business = models.Business{
+			ID:             getStringValue(data["id"]),
+			Name:           getStringValue(data["name"]),
+			Type:           getStringValue(data["type"]),
+			Description:    getStringValue(data["description"]),
+			ApprovalStatus: getStringValue(data["approval_status"]),
+			OwnerID:        getStringValue(data["owner_id"]),
+			CooperativeID:  getStringValue(data["cooperative_id"]),
+			RegistrationNumber: getStringValue(data["registration_number"]),
+			LegalStructure: getStringValue(data["legal_structure"]),
+			Industry:       getStringValue(data["industry"]),
+			Address:        getStringValue(data["address"]),
+			Phone:          getStringValue(data["phone"]),
+			Email:          getStringValue(data["email"]),
+			Website:        getStringValue(data["website"]),
+			EstablishedDate: getStringValue(data["established_date"]),
+			EmployeeCount:  getIntValue(data["employee_count"]),
+			AnnualRevenue:  getFloatValue(data["annual_revenue"]),
+			Currency:       getStringValue(data["currency"]),
+			BankAccount:    getStringValue(data["bank_account"]),
+			BusinessLicense: getStringValue(data["business_license"]),
+		}
+	}
+
+	return c.Render("admin/business-detail", fiber.Map{
+		"Title":    "Business Details - HajiFund Admin",
+		"User":     user,
+		"Business": business,
+	}, "base")
+}
+
 func (h *Handler) CooperativesPage(c *fiber.Ctx) error {
+	user := c.Locals("user").(*models.User)
+
+	// Get cooperatives data
+	cooperatives := []models.Cooperative{
+		{
+			ID:          "550e8400-e29b-41d4-a716-446655440001",
+			Name:        "Koperasi Haji",
+			Description: "Koperasi untuk jamaah haji dan umroh",
+		},
+		{
+			ID:          "550e8400-e29b-41d4-a716-446655440002",
+			Name:        "Koperasi SIDANA",
+			Description: "Koperasi Simpan Pinjam Dana Amanah",
+		},
+	}
+
 	return c.Render("admin/cooperatives", fiber.Map{
-		"Title": "Cooperatives - HajiFund Admin",
-	})
+		"Title":        "Cooperative Management - HajiFund Admin",
+		"User":         user,
+		"Cooperatives": cooperatives,
+	}, "base")
 }
 
 func (h *Handler) ProjectsPage(c *fiber.Ctx) error {
+	user := c.Locals("user").(*models.User)
+	authHeaders := utils.GetAuthHeaders(getTokenFromContext(c))
+
+	// Fetch projects (admin sees all projects)
+	projectsResp, err := utils.MakeAPIRequest("GET", "/api/v1/projects", nil, authHeaders)
+	var projects []models.Project
+	if err == nil && projectsResp.Data != nil {
+		if data, ok := projectsResp.Data.(map[string]interface{}); ok {
+			if projData, ok := data["projects"].([]interface{}); ok {
+				projects = make([]models.Project, len(projData))
+				for i, proj := range projData {
+					if pm, ok := proj.(map[string]interface{}); ok {
+						projects[i] = models.Project{
+							ID:             getStringValue(pm["id"]),
+							Title:          getStringValue(pm["title"]),
+							Description:    getStringValue(pm["description"]),
+							BusinessID:     getStringValue(pm["business_id"]),
+							ProjectType:    getStringValue(pm["project_type"]),
+							Status:         getStringValue(pm["status"]),
+							ApprovalStatus: getStringValue(pm["approval_status"]),
+						}
+					}
+				}
+			}
+		}
+	}
+
 	return c.Render("admin/projects", fiber.Map{
-		"Title": "Projects - HajiFund Admin",
-	})
+		"Title":    "Projects - HajiFund Admin",
+		"User":     user,
+		"Projects": projects,
+	}, "base")
 }
 
 func (h *Handler) InvestmentsPage(c *fiber.Ctx) error {
@@ -208,6 +356,34 @@ func parseUsersFromAPI(usersData []interface{}) []models.User {
 		}
 	}
 	return users
+}
+
+// Helper function to get int value from interface{}
+func getIntValue(val interface{}) int {
+	if val == nil {
+		return 0
+	}
+	if intVal, ok := val.(int); ok {
+		return intVal
+	}
+	if floatVal, ok := val.(float64); ok {
+		return int(floatVal)
+	}
+	return 0
+}
+
+// Helper function to get float value from interface{}
+func getFloatValue(val interface{}) float64 {
+	if val == nil {
+		return 0.0
+	}
+	if floatVal, ok := val.(float64); ok {
+		return floatVal
+	}
+	if intVal, ok := val.(int); ok {
+		return float64(intVal)
+	}
+	return 0.0
 }
 
 // GetUser handles getting a specific user by ID (FR-007)

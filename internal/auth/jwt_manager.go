@@ -14,9 +14,10 @@ type JWTManager struct {
 }
 
 type Claims struct {
-	UserID        uuid.UUID `json:"user_id"`
-	Email         string    `json:"email"`
-	Roles         []string  `json:"roles"`
+	UserID        uuid.UUID  `json:"user_id"`
+	Email         string     `json:"email"`
+	Name          string     `json:"name"`
+	Roles         []string   `json:"roles"`
 	CooperativeID *uuid.UUID `json:"cooperative_id,omitempty"`
 	jwt.RegisteredClaims
 }
@@ -28,10 +29,11 @@ func NewJWTManager(secretKey string, tokenDuration time.Duration) *JWTManager {
 	}
 }
 
-func (manager *JWTManager) Generate(userID uuid.UUID, email string, roles []string, cooperativeID *uuid.UUID) (string, error) {
+func (manager *JWTManager) Generate(userID uuid.UUID, email, name string, roles []string, cooperativeID *uuid.UUID) (string, error) {
 	claims := Claims{
 		UserID:        userID,
 		Email:         email,
+		Name:          name,
 		Roles:         roles,
 		CooperativeID: cooperativeID,
 		RegisteredClaims: jwt.RegisteredClaims{

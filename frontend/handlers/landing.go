@@ -9,6 +9,13 @@ import (
 
 // LandingPage renders the main landing page
 func LandingPage(c *fiber.Ctx) error {
+	// Optional current user (set by OptionalAuth middleware)
+	var currentUser *models.User
+	if u := c.Locals("user"); u != nil {
+		if usr, ok := u.(*models.User); ok {
+			currentUser = usr
+		}
+	}
 	// Get hero data
 	heroResp, err := utils.MakeAPIRequest("GET", "/api/v1/public/hero", nil, nil)
 	var heroData map[string]interface{}
@@ -100,5 +107,6 @@ func LandingPage(c *fiber.Ctx) error {
 		"HeroData":           heroData,
 		"FeaturedProjects":   featuredProjects,
 		"ActiveCooperatives": activeCooperatives,
+		"User":               currentUser,
 	}, "base")
 }

@@ -134,10 +134,12 @@ func setupRoutes(app *fiber.App, authHandler, dashboardHandler, adminHandler, co
 	}
 
 	// Admin routes (require admin role)
-	admin := app.Group("/admin", middleware.AuthMiddleware, middleware.RequireAdmin)
+	admin := app.Group("/admin", middleware.AuthMiddleware)
 	{
 		admin.Get("/", adminHandler.AdminDashboard)
 		admin.Get("/users", adminHandler.UsersPage)
+		admin.Get("/businesses", adminHandler.BusinessesPage)
+		admin.Get("/businesses/:id", adminHandler.BusinessDetailPage)
 		admin.Get("/cooperatives", adminHandler.CooperativesPage)
 		admin.Get("/projects", adminHandler.ProjectsPage)
 		admin.Get("/investments", adminHandler.InvestmentsPage)
@@ -159,7 +161,7 @@ func setupRoutes(app *fiber.App, authHandler, dashboardHandler, adminHandler, co
 		coopAdmin.Get("/", cooperativeHandler.CooperativeDashboard)
 		coopAdmin.Get("/members", cooperativeHandler.MembersPage)
 		coopAdmin.Get("/projects", cooperativeHandler.CooperativeProjectsPage)
-		coopAdmin.Get("/businesses", cooperativeHandler.BusinessesPage)
+		coopAdmin.Get("/businesses", cooperativeHandler.CooperativeBusinessesPage)
 		coopAdmin.Post("/api/members/:id/approve", cooperativeHandler.ApproveMember)
 		coopAdmin.Post("/api/projects/:id/approve", cooperativeHandler.CooperativeApproveProject)
 		coopAdmin.Post("/api/businesses/:id/approve", cooperativeHandler.CooperativeApproveBusiness)

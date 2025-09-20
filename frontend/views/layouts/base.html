@@ -51,6 +51,7 @@
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-user me-1"></i>{{.User.Name}}
                                 <small class="d-block text-muted" style="font-size: 0.7rem;">
+                                    {{.User.Email}} - 
                                     {{range $index, $role := .User.Roles}}
                                         {{if $index}}, {{end}}
                                         {{if eq $role "investor"}}Investor{{end}}

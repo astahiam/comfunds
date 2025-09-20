@@ -113,7 +113,7 @@ func (h *Handler) CreateBusiness(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Failed to create business",
+			"message": err.Error(),
 		})
 	}
 

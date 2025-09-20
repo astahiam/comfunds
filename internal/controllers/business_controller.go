@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"comfunds/internal/auth"
@@ -37,6 +38,9 @@ func NewBusinessController(businessService services.BusinessManagementService) *
 // @Failure 403 {object} utils.ErrorResponseData
 // @Router /api/v1/businesses [post]
 func (c *BusinessController) CreateBusiness(ctx *gin.Context) {
+	fmt.Printf("DEBUG: CreateBusiness controller called\n")
+	fmt.Printf("DEBUG: Request URL: %s\n", ctx.Request.URL.String())
+	fmt.Printf("DEBUG: Request Method: %s\n", ctx.Request.Method)
 	userID, exists := ctx.Get("user_id")
 	if !exists {
 		utils.ErrorResponse(ctx, http.StatusUnauthorized, "User not authenticated", nil)
@@ -72,11 +76,13 @@ func (c *BusinessController) CreateBusiness(ctx *gin.Context) {
 		return
 	}
 
+	fmt.Printf("DEBUG: Calling businessService.CreateBusiness for user %s\n", userID.(uuid.UUID).String())
 	business, err := c.businessService.CreateBusiness(ctx.Request.Context(), &req, userID.(uuid.UUID))
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, "Failed to create business", err)
 		return
 	}
+	fmt.Printf("DEBUG: Business created successfully: %s\n", business.Name)
 
 	utils.SuccessResponse(ctx, http.StatusCreated, "Business created successfully", business)
 }
@@ -120,8 +126,12 @@ func (c *BusinessController) GetBusiness(ctx *gin.Context) {
 // @Failure 401 {object} utils.ErrorResponseData
 // @Router /api/v1/user/businesses [get]
 func (c *BusinessController) GetOwnerBusinesses(ctx *gin.Context) {
+	fmt.Printf("DEBUG: GetOwnerBusinesses controller called\n")
+	fmt.Printf("DEBUG: Request URL: %s\n", ctx.Request.URL.String())
+	fmt.Printf("DEBUG: Request Method: %s\n", ctx.Request.Method)
 	userID, exists := ctx.Get("user_id")
 	if !exists {
+		fmt.Printf("DEBUG: User not authenticated\n")
 		utils.ErrorResponse(ctx, http.StatusUnauthorized, "User not authenticated", nil)
 		return
 	}
@@ -129,7 +139,10 @@ func (c *BusinessController) GetOwnerBusinesses(ctx *gin.Context) {
 	page := utils.GetIntQuery(ctx, "page", 1)
 	limit := utils.GetIntQuery(ctx, "limit", 10)
 
+	fmt.Printf("DEBUG: Calling businessService.GetOwnerBusinesses for user %s\n", userID.(uuid.UUID).String())
+	fmt.Printf("DEBUG: businessService is nil: %t\n", c.businessService == nil)
 	businesses, total, err := c.businessService.GetOwnerBusinesses(ctx.Request.Context(), userID.(uuid.UUID), page, limit)
+	fmt.Printf("DEBUG: GetOwnerBusinesses returned %d businesses, total: %d, error: %v\n", len(businesses), total, err)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to get businesses", err)
 		return
@@ -499,35 +512,46 @@ func (c *BusinessController) GetBusinessAnalytics(ctx *gin.Context) {
 // @Failure 403 {object} utils.ErrorResponseData
 // @Router /api/v1/admin/businesses/pending [get]
 func (c *BusinessController) GetPendingBusinessApprovals(ctx *gin.Context) {
+	fmt.Printf("DEBUG: GetPendingBusinessApprovals controller called\n")
 	userRoles, exists := ctx.Get("user_roles")
 	if !exists {
+		fmt.Printf("DEBUG: User roles not found\n")
 		utils.ErrorResponse(ctx, http.StatusUnauthorized, "User roles not found", nil)
 		return
 	}
 
 	userRolesList, ok := userRoles.([]string)
 	if !ok {
+		fmt.Printf("DEBUG: Invalid user roles format\n")
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Invalid user roles format", nil)
 		return
 	}
 
 	// Only admin can view pending approvals
 	if !c.roleValidator.CanUserApproveProjects(userRolesList) {
+		fmt.Printf("DEBUG: Admin role required\n")
 		utils.ErrorResponse(ctx, http.StatusForbidden, "Admin role required to view pending approvals", nil)
 		return
 	}
 
 	cooperativeIDParam := ctx.Query("cooperative_id")
-	cooperativeID, err := uuid.Parse(cooperativeIDParam)
-	if err != nil {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid cooperative ID", err)
-		return
+	var cooperativeID *uuid.UUID
+	if cooperativeIDParam != "" && cooperativeIDParam != "null" {
+		parsedID, err := uuid.Parse(cooperativeIDParam)
+		if err != nil {
+			utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid cooperative ID", err)
+			return
+		}
+		cooperativeID = &parsedID
 	}
 
 	page := utils.GetIntQuery(ctx, "page", 1)
 	limit := utils.GetIntQuery(ctx, "limit", 10)
 
+	fmt.Printf("DEBUG: Calling businessService.GetPendingBusinessApprovals\n")
+	fmt.Printf("DEBUG: businessService is nil: %t\n", c.businessService == nil)
 	businesses, total, err := c.businessService.GetPendingBusinessApprovals(ctx.Request.Context(), cooperativeID, page, limit)
+	fmt.Printf("DEBUG: GetPendingBusinessApprovals returned %d businesses, total: %d, error: %v\n", len(businesses), total, err)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to get pending approvals", err)
 		return
@@ -542,4 +566,37 @@ func (c *BusinessController) GetPendingBusinessApprovals(ctx *gin.Context) {
 	}
 
 	utils.SuccessResponse(ctx, http.StatusOK, "Pending business approvals retrieved successfully", response)
+}
+
+// GetAllBusinesses (Admin) lists all businesses regardless of approval status
+func (c *BusinessController) GetAllBusinesses(ctx *gin.Context) {
+	fmt.Printf("DEBUG: GetAllBusinesses called\n")
+	userRoles, exists := ctx.Get("user_roles")
+	if !exists {
+		fmt.Printf("DEBUG: User roles not found\n")
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "User roles not found", nil)
+		return
+	}
+	userRolesList, ok := userRoles.([]string)
+	if !ok || !c.roleValidator.CanUserApproveProjects(userRolesList) {
+		fmt.Printf("DEBUG: Admin role required\n")
+		utils.ErrorResponse(ctx, http.StatusForbidden, "Admin role required", nil)
+		return
+	}
+	page := utils.GetIntQuery(ctx, "page", 1)
+	limit := utils.GetIntQuery(ctx, "limit", 50)
+	fmt.Printf("DEBUG: Calling ListAllBusinesses with page=%d, limit=%d\n", page, limit)
+	businesses, total, err := c.businessService.ListAllBusinesses(ctx.Request.Context(), page, limit)
+	if err != nil {
+		fmt.Printf("DEBUG: Error calling ListAllBusinesses: %v\n", err)
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to list businesses", err)
+		return
+	}
+	fmt.Printf("DEBUG: Found %d businesses, total=%d\n", len(businesses), total)
+	utils.SuccessResponse(ctx, http.StatusOK, "Businesses retrieved successfully", map[string]interface{}{
+		"businesses": businesses,
+		"page":       page,
+		"limit":      limit,
+		"total":      total,
+	})
 }
