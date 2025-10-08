@@ -266,7 +266,7 @@ function handleFileUpload(file, callback) {
 // Hero section data fetching
 async function fetchHeroData() {
     try {
-        const response = await fetch('/api/v1/public/hero');
+        const response = await fetch('http://localhost:8080/api/v1/public/hero');
         const data = await response.json();
         
         if (data.status === 'success') {

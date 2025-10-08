@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"comfunds/internal/auth"
+	"comfunds/internal/entities"
+	"comfunds/internal/repositories"
 	"comfunds/internal/utils"
 
 	"github.com/gin-gonic/gin"
@@ -11,11 +13,13 @@ import (
 )
 
 type ProjectController struct {
+	projectRepo   repositories.ProjectRepository
 	roleValidator *auth.RoleValidator
 }
 
-func NewProjectController() *ProjectController {
+func NewProjectController(projectRepo repositories.ProjectRepository) *ProjectController {
 	return &ProjectController{
+		projectRepo:   projectRepo,
 		roleValidator: auth.NewRoleValidator(),
 	}
 }
@@ -199,39 +203,118 @@ func (c *ProjectController) CreateProject(ctx *gin.Context) {
 	}
 
 	var req struct {
-		Title        string     `json:"title" validate:"required,min=3,max=200"`
-		Description  string     `json:"description" validate:"required,min=10,max=2000"`
-		TargetAmount float64    `json:"target_amount" validate:"required,min=1000"`
-		Category     string     `json:"category" validate:"required"`
-		BusinessID   *uuid.UUID `json:"business_id" validate:"required"`
+		Title            string     `json:"title" validate:"required,min=3,max=200"`
+		Description      string     `json:"description" validate:"required,min=10,max=2000"`
+		TargetAmount     float64    `json:"target_amount" validate:"required,min=1000"`
+		Category         string     `json:"category" validate:"required"`
+		BusinessID       *uuid.UUID `json:"business_id" validate:"required"`
+		MinInvestment    *float64   `json:"min_investment" validate:"omitempty,min=100"`
+		RiskLevel        *string    `json:"risk_level" validate:"omitempty,oneof=Low Medium High"`
+		InvestmentPeriod *int       `json:"investment_period" validate:"omitempty,min=6,max=120"`
+		ExpectedReturn   *string    `json:"expected_return" validate:"omitempty"`
+		StartDate        *string    `json:"start_date" validate:"omitempty"`
+		EndDate          *string    `json:"end_date" validate:"omitempty"`
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		// Log the error for debugging
+		ctx.Error(err)
 		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request payload", err)
 		return
 	}
 
+	// Debug: Log the received request
+	ctx.Set("debug_request", req)
+
 	if err := utils.ValidateStruct(&req); err != nil {
+		// Log validation errors
+		ctx.Error(err)
 		utils.ErrorResponse(ctx, http.StatusBadRequest, "Validation failed", err)
 		return
 	}
 
-	// Mock project creation - this would use a project service
-	project := map[string]interface{}{
-		"id":            uuid.New(),
-		"title":         req.Title,
-		"description":   req.Description,
-		"target_amount": req.TargetAmount,
-		"raised_amount": 0,
-		"category":      req.Category,
-		"business_id":   req.BusinessID,
-		"owner_id":      userID,
-		"status":        "pending_approval",
-		"created_at":    "2024-01-15T12:00:00Z",
+	// Parse user UUID and cooperative ID
+	var userUUID uuid.UUID
+	switch v := userID.(type) {
+	case string:
+		var err error
+		userUUID, err = uuid.Parse(v)
+		if err != nil {
+			utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid user ID", err)
+			return
+		}
+	case uuid.UUID:
+		userUUID = v
+	default:
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid user ID format", nil)
+		return
+	}
+
+	cooperativeID, exists := ctx.Get("cooperative_id")
+	var cooperativeUUID uuid.UUID
+	if exists && cooperativeID != nil {
+		if coopIDStr, ok := cooperativeID.(string); ok {
+			cooperativeUUID, _ = uuid.Parse(coopIDStr)
+		}
+	}
+
+	// Create project entity
+	newProject := &entities.Project{
+		ID:             uuid.New(),
+		Title:          req.Title,
+		Description:    req.Description,
+		TargetAmount:   req.TargetAmount,
+		RaisedAmount:   0,
+		Category:       req.Category,
+		BusinessID:     *req.BusinessID,
+		OwnerID:        userUUID,
+		CooperativeID:  cooperativeUUID,
+		Status:         "draft",
+		ApprovalStatus: "pending",
+	}
+
+	// Add optional fields if provided
+	if req.MinInvestment != nil {
+		newProject.MinInvestment = *req.MinInvestment
+	}
+	if req.RiskLevel != nil {
+		newProject.RiskLevel = *req.RiskLevel
+	}
+	if req.InvestmentPeriod != nil {
+		newProject.InvestmentPeriod = *req.InvestmentPeriod
+	}
+	if req.ExpectedReturn != nil {
+		newProject.ExpectedReturn = *req.ExpectedReturn
+	}
+	// Note: StartDate and EndDate require time.Time parsing, skipping for now
+
+	// Save to database
+	createdProject, err := c.projectRepo.Create(ctx, newProject)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to create project", err)
+		return
+	}
+
+	// Convert to response format
+	projectResponse := map[string]interface{}{
+		"id":              createdProject.ID.String(),
+		"title":           createdProject.Title,
+		"description":     createdProject.Description,
+		"target_amount":   createdProject.TargetAmount,
+		"raised_amount":   createdProject.RaisedAmount,
+		"min_investment":  createdProject.MinInvestment,
+		"category":        createdProject.Category,
+		"business_id":     createdProject.BusinessID.String(),
+		"owner_id":        createdProject.OwnerID.String(),
+		"cooperative_id":  createdProject.CooperativeID.String(),
+		"status":          createdProject.Status,
+		"approval_status": createdProject.ApprovalStatus,
+		"risk_level":      createdProject.RiskLevel,
+		"created_at":      createdProject.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 	}
 
 	response := map[string]interface{}{
-		"project": project,
+		"project": projectResponse,
 		"message": "Project created successfully and pending cooperative approval",
 	}
 
@@ -284,26 +367,84 @@ func (c *ProjectController) GetUserProjects(ctx *gin.Context) {
 		limit = 10
 	}
 
-	// Mock data - this would come from a project service
-	userProjects := []map[string]interface{}{
-		{
-			"id":            uuid.New(),
-			"title":         "My Restaurant Chain",
-			"description":   "Expanding my restaurant business to new locations",
-			"target_amount": 150000,
-			"raised_amount": 75000,
-			"status":        "active",
-			"category":      "Food & Beverage",
-			"owner_id":      userID,
-			"created_at":    "2024-01-10T10:00:00Z",
-		},
+	offset := (page - 1) * limit
+
+	// Parse user UUID
+	var userUUID uuid.UUID
+	switch v := userID.(type) {
+	case string:
+		var err error
+		userUUID, err = uuid.Parse(v)
+		if err != nil {
+			utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid user ID", err)
+			return
+		}
+	case uuid.UUID:
+		userUUID = v
+	default:
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid user ID format", nil)
+		return
 	}
+
+	// Fetch user's projects from repository
+	projects, err := c.projectRepo.GetByOwnerID(ctx, userUUID, limit, offset)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to fetch user projects", err)
+		return
+	}
+
+	// Convert to map format for response
+	var userProjects []map[string]interface{}
+	for _, project := range projects {
+		projectMap := map[string]interface{}{
+			"id":              project.ID.String(),
+			"title":           project.Title,
+			"description":     project.Description,
+			"target_amount":   project.TargetAmount,
+			"raised_amount":   project.RaisedAmount,
+			"min_investment":  project.MinInvestment,
+			"category":        project.Category,
+			"status":          project.Status,
+			"approval_status": project.ApprovalStatus,
+			"risk_level":      project.RiskLevel,
+			"business_id":     project.BusinessID.String(),
+			"owner_id":        project.OwnerID.String(),
+			"cooperative_id":  project.CooperativeID.String(),
+			"created_at":      project.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		}
+
+		if project.ApprovedBy != nil {
+			projectMap["approved_by"] = project.ApprovedBy.String()
+		}
+		if project.ApprovedAt != nil {
+			projectMap["approved_at"] = project.ApprovedAt.Format("2006-01-02T15:04:05Z07:00")
+		}
+		if project.RejectedBy != nil {
+			projectMap["rejected_by"] = project.RejectedBy.String()
+		}
+		if project.RejectedAt != nil {
+			projectMap["rejected_at"] = project.RejectedAt.Format("2006-01-02T15:04:05Z07:00")
+		}
+		if project.RejectionReason != nil {
+			projectMap["rejection_reason"] = *project.RejectionReason
+		}
+		if project.ReviewerComments != nil {
+			projectMap["reviewer_comments"] = *project.ReviewerComments
+		}
+
+		userProjects = append(userProjects, projectMap)
+	}
+
+	// Get total count for pagination
+	// Note: This is a simple count of returned projects.
+	// For production, you'd want a separate Count method filtered by owner
+	total := len(userProjects)
 
 	response := map[string]interface{}{
 		"projects":   userProjects,
 		"page":       page,
 		"limit":      limit,
-		"total":      len(userProjects),
+		"total":      total,
 		"owner_id":   userID,
 		"user_roles": userRolesList,
 		"message":    "User's projects retrieved successfully",
@@ -429,6 +570,7 @@ func (c *ProjectController) GetProjects(ctx *gin.Context) {
 	limit := utils.GetIntQuery(ctx, "limit", 10)
 	status := utils.GetStringQuery(ctx, "status", "")
 	category := utils.GetStringQuery(ctx, "category", "")
+	approvalStatus := utils.GetStringQuery(ctx, "approval_status", "")
 
 	if page < 1 {
 		page = 1
@@ -437,75 +579,76 @@ func (c *ProjectController) GetProjects(ctx *gin.Context) {
 		limit = 10
 	}
 
-	// Mock data - this would come from a project service
-	allProjects := []map[string]interface{}{
-		{
-			"id":            uuid.New(),
-			"title":         "Tech Startup Funding",
-			"description":   "Innovative tech startup seeking investment for expansion",
-			"target_amount": 100000,
-			"raised_amount": 25000,
-			"status":        "active",
-			"category":      "Technology",
-			"created_at":    "2024-01-15T10:00:00Z",
-		},
-		{
-			"id":            uuid.New(),
-			"title":         "Sustainable Agriculture Project",
-			"description":   "Organic farming initiative for community development",
-			"target_amount": 50000,
-			"raised_amount": 15000,
-			"status":        "active",
-			"category":      "Agriculture",
-			"created_at":    "2024-01-10T09:00:00Z",
-		},
-		{
-			"id":            uuid.New(),
-			"title":         "Local Bakery Expansion",
-			"description":   "Expanding local bakery to serve more community members",
-			"target_amount": 75000,
-			"raised_amount": 45000,
-			"status":        "funded",
-			"category":      "Food & Beverage",
-			"created_at":    "2024-01-12T11:00:00Z",
-		},
-		{
-			"id":            uuid.New(),
-			"title":         "Community Center Renovation",
-			"description":   "Renovating community center for better services",
-			"target_amount": 200000,
-			"raised_amount": 120000,
-			"status":        "active",
-			"category":      "Community Development",
-			"created_at":    "2024-01-08T14:00:00Z",
-		},
+	offset := (page - 1) * limit
+
+	// Fetch projects from repository
+	projects, err := c.projectRepo.GetAll(ctx, limit*10, 0) // Fetch more to filter
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to fetch projects", err)
+		return
 	}
 
-	// Apply filters
+	// Convert to map format and apply filters
 	var filteredProjects []map[string]interface{}
-	for _, project := range allProjects {
+	for _, project := range projects {
 		includeProject := true
 
-		if status != "" {
-			if projectStatus, ok := project["status"].(string); !ok || projectStatus != status {
-				includeProject = false
-			}
+		if status != "" && project.Status != status {
+			includeProject = false
 		}
 
-		if category != "" && includeProject {
-			if projectCategory, ok := project["category"].(string); !ok || projectCategory != category {
-				includeProject = false
-			}
+		if category != "" && includeProject && project.Category != category {
+			includeProject = false
+		}
+
+		if approvalStatus != "" && includeProject && project.ApprovalStatus != approvalStatus {
+			includeProject = false
 		}
 
 		if includeProject {
-			filteredProjects = append(filteredProjects, project)
+			projectMap := map[string]interface{}{
+				"id":              project.ID.String(),
+				"title":           project.Title,
+				"description":     project.Description,
+				"target_amount":   project.TargetAmount,
+				"raised_amount":   project.RaisedAmount,
+				"min_investment":  project.MinInvestment,
+				"category":        project.Category,
+				"status":          project.Status,
+				"approval_status": project.ApprovalStatus,
+				"risk_level":      project.RiskLevel,
+				"business_id":     project.BusinessID.String(),
+				"owner_id":        project.OwnerID.String(),
+				"cooperative_id":  project.CooperativeID.String(),
+				"created_at":      project.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			}
+
+			if project.ApprovedBy != nil {
+				projectMap["approved_by"] = project.ApprovedBy.String()
+			}
+			if project.ApprovedAt != nil {
+				projectMap["approved_at"] = project.ApprovedAt.Format("2006-01-02T15:04:05Z07:00")
+			}
+			if project.RejectedBy != nil {
+				projectMap["rejected_by"] = project.RejectedBy.String()
+			}
+			if project.RejectedAt != nil {
+				projectMap["rejected_at"] = project.RejectedAt.Format("2006-01-02T15:04:05Z07:00")
+			}
+			if project.RejectionReason != nil {
+				projectMap["rejection_reason"] = *project.RejectionReason
+			}
+			if project.ReviewerComments != nil {
+				projectMap["reviewer_comments"] = *project.ReviewerComments
+			}
+
+			filteredProjects = append(filteredProjects, projectMap)
 		}
 	}
 
 	// Apply pagination
 	total := len(filteredProjects)
-	start := (page - 1) * limit
+	start := offset
 	end := start + limit
 
 	if start > total {
@@ -522,13 +665,98 @@ func (c *ProjectController) GetProjects(ctx *gin.Context) {
 		"limit":    limit,
 		"total":    total,
 		"filters": map[string]interface{}{
-			"status":   status,
-			"category": category,
+			"status":          status,
+			"category":        category,
+			"approval_status": approvalStatus,
 		},
 		"message": "Projects retrieved successfully",
 	}
 
 	utils.SuccessResponse(ctx, http.StatusOK, "Projects retrieved successfully", response)
+}
+
+// GetProjectByID returns a single project by ID
+// @Summary Get project by ID
+// @Tags projects
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Project ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.ErrorResponseData
+// @Failure 404 {object} utils.ErrorResponseData
+// @Router /api/v1/projects/{id} [get]
+func (c *ProjectController) GetProjectByID(ctx *gin.Context) {
+	projectIDStr := ctx.Param("id")
+	projectID, err := uuid.Parse(projectIDStr)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid project ID", err)
+		return
+	}
+
+	// Fetch project from repository
+	project, err := c.projectRepo.GetByID(ctx, projectID)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusNotFound, "Project not found", err)
+		return
+	}
+
+	// Convert to map format
+	projectMap := map[string]interface{}{
+		"id":                project.ID.String(),
+		"title":             project.Title,
+		"description":       project.Description,
+		"target_amount":     project.TargetAmount,
+		"raised_amount":     project.RaisedAmount,
+		"min_investment":    project.MinInvestment,
+		"category":          project.Category,
+		"status":            project.Status,
+		"approval_status":   project.ApprovalStatus,
+		"risk_level":        project.RiskLevel,
+		"investment_period": project.InvestmentPeriod,
+		"expected_return":   project.ExpectedReturn,
+		"business_id":       project.BusinessID.String(),
+		"owner_id":          project.OwnerID.String(),
+		"cooperative_id":    project.CooperativeID.String(),
+		"created_at":        project.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		"updated_at":        project.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+	}
+
+	// Add optional fields
+	if project.ApprovedBy != nil {
+		projectMap["approved_by"] = project.ApprovedBy.String()
+	}
+	if project.ApprovedAt != nil {
+		projectMap["approved_at"] = project.ApprovedAt.Format("2006-01-02T15:04:05Z07:00")
+	}
+	if project.RejectedBy != nil {
+		projectMap["rejected_by"] = project.RejectedBy.String()
+	}
+	if project.RejectedAt != nil {
+		projectMap["rejected_at"] = project.RejectedAt.Format("2006-01-02T15:04:05Z07:00")
+	}
+	if project.RejectionReason != nil {
+		projectMap["rejection_reason"] = *project.RejectionReason
+	}
+	if project.ReviewerComments != nil {
+		projectMap["reviewer_comments"] = *project.ReviewerComments
+	}
+	if project.StartDate != nil {
+		projectMap["start_date"] = project.StartDate.Format("2006-01-02T15:04:05Z07:00")
+	}
+	if project.EndDate != nil {
+		projectMap["end_date"] = project.EndDate.Format("2006-01-02T15:04:05Z07:00")
+	}
+	if project.ProjectImage1 != nil {
+		projectMap["project_image_1"] = *project.ProjectImage1
+	}
+	if project.ProjectImage2 != nil {
+		projectMap["project_image_2"] = *project.ProjectImage2
+	}
+	if project.ProjectImage3 != nil {
+		projectMap["project_image_3"] = *project.ProjectImage3
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "Project retrieved successfully", projectMap)
 }
 
 // GetProjectsAvailableForInvestment returns projects available for investment

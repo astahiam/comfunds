@@ -1,0 +1,291 @@
+<!-- Hero Section -->
+<section class="hero-section-new position-relative overflow-hidden">
+    <div class="container">
+        <div class="row align-items-center min-vh-60 py-5">
+            <div class="col-lg-6 col-md-12 text-center text-lg-start mb-4 mb-lg-0">
+                <h1 class="hero-title mb-3">Tentang HajiFund</h1>
+                <p class="hero-subtitle mb-4">
+                    Platform crowdfunding syariah yang menghubungkan investor dengan pelaku UMKM melalui koperasi terpercaya
+                </p>
+            </div>
+            <div class="col-lg-6 col-md-12 position-relative">
+                <div class="hero-image-container">
+                    <img src="/static/images/hero/hero-person.png" 
+                         alt="HajiFund Team" 
+                         class="img-fluid hero-person-image">
+                    <!-- Decorative elements -->
+                    <div class="hero-decoration hero-decoration-1"></div>
+                    <div class="hero-decoration hero-decoration-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Mission & Vision -->
+<section class="py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="display-6 fw-bold mb-4">Misi & Visi Kami</h2>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-bullseye text-success display-4"></i>
+                        </div>
+                        <h4 class="text-center mb-3">Misi</h4>
+                        <p class="text-muted text-center">
+                            Menyediakan platform pendanaan syariah yang aman, transparan, dan mudah diakses untuk mendukung pertumbuhan UMKM Indonesia melalui koperasi syariah terpercaya.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-eye text-success display-4"></i>
+                        </div>
+                        <h4 class="text-center mb-3">Visi</h4>
+                        <p class="text-muted text-center">
+                            Menjadi platform crowdfunding syariah terdepan di Indonesia yang mendorong pertumbuhan ekonomi umat melalui investasi yang sesuai prinsip syariah.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Founders Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="display-6 fw-bold mb-3">Tim Pendiri</h2>
+                <p class="lead text-muted">
+                    Dibalik HajiFund ada tim profesional yang berkomitmen menghadirkan solusi pendanaan syariah terbaik
+                </p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            {{range .Founders}}
+            <div class="col-lg-6">
+                <div class="card founder-card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-4 text-center mb-3 mb-md-0">
+                                <div class="founder-avatar mx-auto">
+                                    <i class="fas fa-user-circle text-success display-1"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <h4 class="fw-bold mb-2">{{.name}}</h4>
+                                <h6 class="text-success mb-3">{{.title}}</h6>
+                                <p class="text-muted mb-0">{{.description}}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{end}}
+        </div>
+    </div>
+</section>
+
+<!-- Values Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="display-6 fw-bold mb-3">Nilai-Nilai Kami</h2>
+                <p class="lead text-muted">
+                    Prinsip-prinsip yang menjadi fondasi dalam setiap layanan yang kami berikan
+                </p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="value-icon mb-3">
+                        <i class="fas fa-mosque text-success display-4"></i>
+                    </div>
+                    <h5 class="mb-3">Kepatuhan Syariah</h5>
+                    <p class="text-muted">
+                        Setiap transaksi dan produk kami mengikuti prinsip-prinsip syariah yang ketat dan telah diverifikasi oleh dewan syariah.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="value-icon mb-3">
+                        <i class="fas fa-shield-alt text-success display-4"></i>
+                    </div>
+                    <h5 class="mb-3">Transparansi</h5>
+                    <p class="text-muted">
+                        Kami berkomitmen memberikan informasi yang jelas dan akurat tentang setiap proyek dan penggunaan dana investor.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="value-icon mb-3">
+                        <i class="fas fa-hands-helping text-success display-4"></i>
+                    </div>
+                    <h5 class="mb-3">Dampak Sosial</h5>
+                    <p class="text-muted">
+                        Kami percaya bahwa investasi yang baik tidak hanya menguntungkan secara finansial, tetapi juga memberikan dampak positif bagi masyarakat.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="display-6 fw-bold mb-3">Hubungi Kami</h2>
+                <p class="lead text-muted mb-4">
+                    Ada pertanyaan atau ingin berdiskusi lebih lanjut? Tim kami siap membantu Anda.
+                </p>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="contact-item">
+                            <i class="fas fa-envelope text-success display-6 mb-3"></i>
+                            <h6>Email</h6>
+                            <p class="text-muted">info@hajifund.id</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="contact-item">
+                            <i class="fas fa-phone text-success display-6 mb-3"></i>
+                            <h6>Telepon</h6>
+                            <p class="text-muted">+62 21 1234 5678</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="contact-item">
+                            <i class="fas fa-globe text-success display-6 mb-3"></i>
+                            <h6>Website</h6>
+                            <p class="text-muted">www.hajifund.id</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Hero Image Styling */
+.hero-image-container {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-person-image {
+    position: relative;
+    z-index: 2;
+    max-width: 100%;
+    height: auto;
+    filter: drop-shadow(0 10px 30px rgba(0,0,0,0.1));
+}
+
+.hero-decoration {
+    position: absolute;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.hero-decoration-1 {
+    width: 200px;
+    height: 200px;
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.2), rgba(32, 201, 151, 0.2));
+    top: -50px;
+    right: -30px;
+    animation: float 6s ease-in-out infinite;
+}
+
+.hero-decoration-2 {
+    width: 150px;
+    height: 150px;
+    background: linear-gradient(135deg, rgba(32, 201, 151, 0.15), rgba(40, 167, 69, 0.15));
+    bottom: -30px;
+    left: -20px;
+    animation: float 8s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+.founder-card {
+    transition: transform 0.3s ease;
+}
+
+.founder-card:hover {
+    transform: translateY(-5px);
+}
+
+.founder-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.value-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(40, 167, 69, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.contact-item {
+    padding: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+    .hero-person-image {
+        max-width: 80%;
+        margin: 0 auto;
+        display: block;
+    }
+    
+    .hero-decoration-1 {
+        width: 150px;
+        height: 150px;
+        top: -30px;
+        right: 10px;
+    }
+    
+    .hero-decoration-2 {
+        width: 100px;
+        height: 100px;
+        bottom: -20px;
+        left: 10px;
+    }
+}
+</style>

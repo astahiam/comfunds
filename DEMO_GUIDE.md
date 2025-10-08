@@ -23,16 +23,28 @@ cd /Users/alkha/Documents/project/comfunds
 ### 1. Business Owner Account
 - **Email**: `demo-business@example.com`
 - **Password**: `Password123!`
-- **Roles**: Business Owner, Investor
+- **Roles**: Member, Business Owner, Investor
 - **Cooperative**: Koperasi Haji
 
 ### 2. Investor Account  
 - **Email**: `frontendtest@example.com`
 - **Password**: `Password123!`
-- **Roles**: Business Owner
+- **Roles**: Member, Business Owner
 - **Cooperative**: Koperasi SIDANA
 
-### 3. Test Registration
+### 3. Member Account
+- **Email**: `member@hajifund.com`
+- **Password**: `password123`
+- **Roles**: Member, Investor
+- **Cooperative**: Koperasi Haji
+
+### 4. Admin Account
+- **Email**: `admin@hajifund.com`
+- **Password**: `admin123`
+- **Roles**: Member, Admin
+- **Cooperative**: Koperasi Haji
+
+### 5. Test Registration
 - Create new accounts with both cooperatives available
 - Multiple role selection supported
 

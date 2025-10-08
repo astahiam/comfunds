@@ -158,26 +158,26 @@ func (h *Handler) BusinessDetailPage(c *fiber.Ctx) error {
 
 	if data, ok := businessResp.Data.(map[string]interface{}); ok {
 		business = models.Business{
-			ID:             getStringValue(data["id"]),
-			Name:           getStringValue(data["name"]),
-			Type:           getStringValue(data["type"]),
-			Description:    getStringValue(data["description"]),
-			ApprovalStatus: getStringValue(data["approval_status"]),
-			OwnerID:        getStringValue(data["owner_id"]),
-			CooperativeID:  getStringValue(data["cooperative_id"]),
+			ID:                 getStringValue(data["id"]),
+			Name:               getStringValue(data["name"]),
+			Type:               getStringValue(data["type"]),
+			Description:        getStringValue(data["description"]),
+			ApprovalStatus:     getStringValue(data["approval_status"]),
+			OwnerID:            getStringValue(data["owner_id"]),
+			CooperativeID:      getStringValue(data["cooperative_id"]),
 			RegistrationNumber: getStringValue(data["registration_number"]),
-			LegalStructure: getStringValue(data["legal_structure"]),
-			Industry:       getStringValue(data["industry"]),
-			Address:        getStringValue(data["address"]),
-			Phone:          getStringValue(data["phone"]),
-			Email:          getStringValue(data["email"]),
-			Website:        getStringValue(data["website"]),
-			EstablishedDate: getStringValue(data["established_date"]),
-			EmployeeCount:  getIntValue(data["employee_count"]),
-			AnnualRevenue:  getFloatValue(data["annual_revenue"]),
-			Currency:       getStringValue(data["currency"]),
-			BankAccount:    getStringValue(data["bank_account"]),
-			BusinessLicense: getStringValue(data["business_license"]),
+			LegalStructure:     getStringValue(data["legal_structure"]),
+			Industry:           getStringValue(data["industry"]),
+			Address:            getStringValue(data["address"]),
+			Phone:              getStringValue(data["phone"]),
+			Email:              getStringValue(data["email"]),
+			Website:            getStringValue(data["website"]),
+			EstablishedDate:    getStringValue(data["established_date"]),
+			EmployeeCount:      getIntValue(data["employee_count"]),
+			AnnualRevenue:      getFloatValue(data["annual_revenue"]),
+			Currency:           getStringValue(data["currency"]),
+			BankAccount:        getStringValue(data["bank_account"]),
+			BusinessLicense:    getStringValue(data["business_license"]),
 		}
 	}
 
@@ -225,14 +225,28 @@ func (h *Handler) ProjectsPage(c *fiber.Ctx) error {
 				projects = make([]models.Project, len(projData))
 				for i, proj := range projData {
 					if pm, ok := proj.(map[string]interface{}); ok {
+						// Map all available fields
 						projects[i] = models.Project{
 							ID:             getStringValue(pm["id"]),
 							Title:          getStringValue(pm["title"]),
 							Description:    getStringValue(pm["description"]),
 							BusinessID:     getStringValue(pm["business_id"]),
 							ProjectType:    getStringValue(pm["project_type"]),
+							Category:       getStringValue(pm["category"]),
 							Status:         getStringValue(pm["status"]),
 							ApprovalStatus: getStringValue(pm["approval_status"]),
+							TargetAmount:   getFloatValue(pm["target_amount"]),
+							RaisedAmount:   getFloatValue(pm["raised_amount"]),
+							FundingGoal:    getFloatValue(pm["funding_goal"]),
+							CurrentFunding: getFloatValue(pm["current_funding"]),
+						}
+
+						// Handle legacy field mapping
+						if projects[i].TargetAmount == 0 && projects[i].FundingGoal > 0 {
+							projects[i].TargetAmount = projects[i].FundingGoal
+						}
+						if projects[i].RaisedAmount == 0 && projects[i].CurrentFunding > 0 {
+							projects[i].RaisedAmount = projects[i].CurrentFunding
 						}
 					}
 				}
@@ -261,9 +275,54 @@ func (h *Handler) ApproveCooperative(c *fiber.Ctx) error {
 }
 
 func (h *Handler) ApproveProject(c *fiber.Ctx) error {
+	projectID := c.Params("id")
+	authHeaders := utils.GetAuthHeaders(getTokenFromContext(c))
+
+	// Make API request to approve project
+	resp, err := utils.MakeAPIRequest("POST", "/api/v1/admin/projects/"+projectID+"/approve", nil, authHeaders)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to approve project",
+		})
+	}
+
 	return c.JSON(fiber.Map{
 		"status":  "success",
-		"message": "Project approved",
+		"message": "Project approved successfully",
+		"data":    resp.Data,
+	})
+}
+
+func (h *Handler) RejectProject(c *fiber.Ctx) error {
+	projectID := c.Params("id")
+	authHeaders := utils.GetAuthHeaders(getTokenFromContext(c))
+
+	var req struct {
+		Reason string `json:"reason"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Invalid request body",
+		})
+	}
+
+	// Make API request to reject project
+	resp, err := utils.MakeAPIRequest("POST", "/api/v1/admin/projects/"+projectID+"/reject", map[string]interface{}{
+		"reason": req.Reason,
+	}, authHeaders)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to reject project",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": "Project rejected successfully",
+		"data":    resp.Data,
 	})
 }
 

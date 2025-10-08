@@ -1,0 +1,242 @@
+<div class="container-fluid py-4">
+    <!-- Back Button -->
+    <div class="row mb-3">
+        <div class="col">
+            <a href="/projects" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-2"></i>Kembali ke Daftar Proyek
+            </a>
+        </div>
+    </div>
+
+    <!-- Project Header Card -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h2 class="mb-2">
+                                <i class="fas fa-rocket text-success me-2"></i>
+                                {{.Project.Title}}
+                            </h2>
+                            <p class="text-muted mb-0">
+                                {{if .Project.Description}}
+                                    {{.Project.Description}}
+                                {{else}}
+                                    -
+                                {{end}}
+                            </p>
+                        </div>
+                        <div>
+                            {{if eq .Project.ApprovalStatus "pending"}}
+                                <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                                    <i class="fas fa-clock me-1"></i>Menunggu Persetujuan
+                                </span>
+                            {{else if eq .Project.ApprovalStatus "approved"}}
+                                <span class="badge bg-success fs-6 px-3 py-2">
+                                    <i class="fas fa-check-circle me-1"></i>Disetujui
+                                </span>
+                            {{else if eq .Project.ApprovalStatus "rejected"}}
+                                <span class="badge bg-danger fs-6 px-3 py-2">
+                                    <i class="fas fa-times-circle me-1"></i>Ditolak
+                                </span>
+                            {{else}}
+                                <span class="badge bg-secondary fs-6 px-3 py-2">{{.Project.ApprovalStatus}}</span>
+                            {{end}}
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Project Details Grid -->
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-muted">
+                                    <i class="fas fa-bullseye text-primary me-2"></i>Target Dana
+                                </label>
+                                <p class="mb-0 fs-5 fw-bold text-success">
+                                    Rp {{printf "%.0f" .Project.TargetAmount}}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-muted">
+                                    <i class="fas fa-coins text-warning me-2"></i>Dana Terkumpul
+                                </label>
+                                <p class="mb-0 fs-5 fw-bold text-info">
+                                    Rp {{printf "%.0f" .Project.RaisedAmount}}
+                                </p>
+                            </div>
+                        </div>
+
+                        {{if .Project.Category}}
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-muted">
+                                    <i class="fas fa-tag text-info me-2"></i>Kategori
+                                </label>
+                                <p class="mb-0">
+                                    <span class="badge bg-primary">{{.Project.Category}}</span>
+                                </p>
+                            </div>
+                        </div>
+                        {{end}}
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-muted">
+                                    <i class="fas fa-chart-line text-success me-2"></i>Status Proyek
+                                </label>
+                                <p class="mb-0">
+                                    {{if .Project.Status}}
+                                        <span class="badge bg-info">{{.Project.Status}}</span>
+                                    {{else}}
+                                        <span class="badge bg-secondary">Draft</span>
+                                    {{end}}
+                                </p>
+                            </div>
+                        </div>
+
+                        {{if .Project.Business}}
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-muted">
+                                    <i class="fas fa-briefcase text-primary me-2"></i>Bisnis
+                                </label>
+                                <p class="mb-0">
+                                    <a href="/business/{{.Project.Business.ID}}" class="text-decoration-none">
+                                        {{.Project.Business.Name}}
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                        {{end}}
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-muted">
+                                    <i class="fas fa-fingerprint text-secondary me-2"></i>ID Proyek
+                                </label>
+                                <p class="mb-0">
+                                    <small class="font-monospace text-muted">{{.Project.ID}}</small>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-muted">
+                                    <i class="fas fa-users text-info me-2"></i>Jumlah Investor
+                                </label>
+                                <p class="mb-0 fs-5">
+                                    {{if .Investments}}
+                                        {{len .Investments}} Investor
+                                    {{else}}
+                                        0 Investor
+                                    {{end}}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-muted">
+                                    <i class="fas fa-calendar text-warning me-2"></i>Dibuat Pada
+                                </label>
+                                <p class="mb-0">
+                                    {{if .Project.CreatedAt}}
+                                        {{.Project.CreatedAt.Format "02 January 2006 15:04"}}
+                                    {{else}}
+                                        -
+                                    {{end}}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Investments List -->
+    {{if .Investments}}
+    {{if gt (len .Investments) 0}}
+    <div class="row">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-users text-primary me-2"></i>Daftar Investor
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="px-4">Investor</th>
+                                    <th>Jumlah Investasi</th>
+                                    <th>Status</th>
+                                    <th>Tanggal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range .Investments}}
+                                <tr>
+                                    <td class="px-4">
+                                        <i class="fas fa-user-circle text-muted me-2"></i>
+                                        <span class="font-monospace small">{{slice .InvestorID 0 8}}...</span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">Rp {{printf "%.0f" .Amount}}</strong>
+                                    </td>
+                                    <td>
+                                        {{if eq .Status "active"}}
+                                            <span class="badge bg-success">Aktif</span>
+                                        {{else if eq .Status "pending"}}
+                                            <span class="badge bg-warning text-dark">Menunggu</span>
+                                        {{else}}
+                                            <span class="badge bg-secondary">{{.Status}}</span>
+                                        {{end}}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{if .CreatedAt}}
+                                                {{.CreatedAt.Format "02 Jan 2006"}}
+                                            {{else}}
+                                                -
+                                            {{end}}
+                                        </small>
+                                    </td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{end}}
+    {{end}}
+
+    <!-- Action Buttons -->
+    <div class="row mt-4">
+        <div class="col text-end">
+            {{if eq .Project.ApprovalStatus "approved"}}
+            <a href="/projects/{{.Project.ID}}/invest" class="btn btn-success btn-lg">
+                <i class="fas fa-hand-holding-usd me-2"></i>Lihat Detail Investasi
+            </a>
+            {{end}}
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+</style>

@@ -37,23 +37,26 @@ type Project struct {
 }
 
 type CreateProjectRequest struct {
-	Title              string                 `json:"title"`
-	Description        string                 `json:"description"`
-	BusinessID         string                 `json:"business_id"`
-	FundingGoal        float64                `json:"funding_goal"`
-	MinimumFunding     float64                `json:"minimum_funding"`
-	FundingDeadline    string                 `json:"funding_deadline"`
-	ProfitSharingRatio map[string]interface{} `json:"profit_sharing_ratio"`
-	ProjectType        string                 `json:"project_type"`
-	Milestones         map[string]interface{} `json:"milestones"`
-	Documents          []string               `json:"documents"`
+	// Required fields
+	Title        string  `json:"title"`
+	Description  string  `json:"description"`
+	BusinessID   string  `json:"business_id"`
+	TargetAmount float64 `json:"target_amount"`
+	Category     string  `json:"category"`
+
+	// Optional fields
+	MinInvestment    *float64 `json:"min_investment,omitempty"`
+	RiskLevel        *string  `json:"risk_level,omitempty"`
+	InvestmentPeriod *int     `json:"investment_period,omitempty"`
+	ExpectedReturn   *string  `json:"expected_return,omitempty"`
+	StartDate        *string  `json:"start_date,omitempty"`
+	EndDate          *string  `json:"end_date,omitempty"`
 }
 
 type InvestmentRequest struct {
 	ProjectID string  `json:"project_id"`
 	Amount    float64 `json:"amount"`
 }
-
 
 type ProjectListResponse struct {
 	Status  string      `json:"status"`

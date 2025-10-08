@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"fmt"
+	"time"
+
 	"hajifund-frontend/models"
 	"hajifund-frontend/utils"
 
@@ -9,15 +12,25 @@ import (
 
 // UserProjectsPage renders user's projects page (FR-032, FR-036)
 func (h *Handler) UserProjectsPage(c *fiber.Ctx) error {
-	user := c.Locals("user").(*models.User)
-	if user == nil {
+	// Get user from context with proper type checking
+	userLocal := c.Locals("user")
+	if userLocal == nil {
 		return c.Redirect("/login")
 	}
 
-	// Get user's projects
-	projectsResp, err := utils.MakeAPIRequest("GET", "/api/v1/user/projects", nil, utils.GetAuthHeaders(getTokenFromContext(c)))
+	user, ok := userLocal.(*models.User)
+	if !ok || user == nil {
+		return c.Redirect("/login")
+	}
+
+	// Get user's projects from API - NO MOCK DATA, real database query filtered by owner_id
 	var userProjects []models.Project
-	if err == nil && projectsResp.Data != nil {
+
+	// Fetch user-specific projects from database
+	projectsResp, err := utils.MakeAPIRequest("GET", "/api/v1/user/projects", nil, utils.GetAuthHeaders(getTokenFromContext(c)))
+
+	// Parse the response
+	if err == nil && projectsResp != nil && projectsResp.Data != nil {
 		if data, ok := projectsResp.Data.(map[string]interface{}); ok {
 			if projectsData, ok := data["projects"].([]interface{}); ok {
 				userProjects = parseProjectsFromAPI(projectsData)
@@ -26,7 +39,7 @@ func (h *Handler) UserProjectsPage(c *fiber.Ctx) error {
 	}
 
 	return c.Render("projects/index", fiber.Map{
-		"Title":    "My Projects - HajiFund",
+		"Title":    "Proyek Saya - HajiFund",
 		"User":     user,
 		"Projects": userProjects,
 	}, "base")
@@ -41,7 +54,7 @@ func (h *Handler) CreateProjectPage(c *fiber.Ctx) error {
 		return c.Status(403).Render("error", fiber.Map{
 			"Code":    403,
 			"Message": "Business owner role required to create projects",
-		})
+		}, "base")
 	}
 
 	// Get user's businesses
@@ -76,20 +89,26 @@ func (h *Handler) CreateProject(c *fiber.Ctx) error {
 
 	var req models.CreateProjectRequest
 	if err := c.BodyParser(&req); err != nil {
+		fmt.Printf("ERROR: Body parser failed: %v\n", err)
 		return c.Status(400).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Invalid request body",
+			"message": "Invalid request body: " + err.Error(),
 		})
 	}
+
+	fmt.Printf("DEBUG: Parsed request: %+v\n", req)
 
 	// Make API request to backend
 	resp, err := utils.MakeAPIRequest("POST", "/api/v1/projects", req, utils.GetAuthHeaders(getTokenFromContext(c)))
 	if err != nil {
+		fmt.Printf("ERROR: Backend API call failed: %v\n", err)
 		return c.Status(400).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Failed to create project",
+			"message": "Failed to create project: " + err.Error(),
 		})
 	}
+
+	fmt.Printf("DEBUG: Backend response: %+v\n", resp)
 
 	return c.JSON(fiber.Map{
 		"status":   "success",
@@ -102,15 +121,15 @@ func (h *Handler) CreateProject(c *fiber.Ctx) error {
 // ProjectDetail renders project detail page (FR-036)
 func (h *Handler) ProjectDetail(c *fiber.Ctx) error {
 	projectID := c.Params("id")
-	user := c.Locals("user")
+	user := c.Locals("user").(*models.User)
 
 	// Get project details
 	projectResp, err := utils.MakeAPIRequest("GET", "/api/v1/projects/"+projectID, nil, utils.GetAuthHeaders(getTokenFromContext(c)))
-	if err != nil {
+	if err != nil || projectResp.Status != "success" {
 		return c.Status(404).Render("error", fiber.Map{
 			"Code":    404,
 			"Message": "Project not found",
-		})
+		}, "base")
 	}
 
 	var project models.Project
@@ -179,26 +198,57 @@ func parseProjectFromAPI(projectMap map[string]interface{}) models.Project {
 		Description:    getStringValueFromMap(projectMap, "description"),
 		BusinessID:     getStringValueFromMap(projectMap, "business_id"),
 		ProjectType:    getStringValueFromMap(projectMap, "project_type"),
+		Category:       getStringValueFromMap(projectMap, "category"),
 		Status:         getStringValueFromMap(projectMap, "status"),
 		ApprovalStatus: getStringValueFromMap(projectMap, "approval_status"),
 	}
 
-	// Handle funding amounts
+	// Handle funding amounts - support both old and new field names
 	if fundingGoal, ok := projectMap["funding_goal"].(float64); ok {
 		project.FundingGoal = fundingGoal
 		project.TargetAmount = fundingGoal
 	}
+	if targetAmount, ok := projectMap["target_amount"].(float64); ok {
+		project.TargetAmount = targetAmount
+		if project.FundingGoal == 0 {
+			project.FundingGoal = targetAmount
+		}
+	}
+
 	if currentFunding, ok := projectMap["current_funding"].(float64); ok {
 		project.CurrentFunding = currentFunding
 		project.RaisedAmount = currentFunding
 	}
+	if raisedAmount, ok := projectMap["raised_amount"].(float64); ok {
+		project.RaisedAmount = raisedAmount
+		if project.CurrentFunding == 0 {
+			project.CurrentFunding = raisedAmount
+		}
+	}
+
 	if minimumFunding, ok := projectMap["minimum_funding"].(float64); ok {
 		project.MinimumFunding = minimumFunding
 	}
 
 	// Calculate funding percentage
-	if project.FundingGoal > 0 {
-		project.FundingPercentage = (project.CurrentFunding / project.FundingGoal) * 100
+	targetForCalc := project.TargetAmount
+	if targetForCalc == 0 {
+		targetForCalc = project.FundingGoal
+	}
+	raisedForCalc := project.RaisedAmount
+	if raisedForCalc == 0 {
+		raisedForCalc = project.CurrentFunding
+	}
+
+	if targetForCalc > 0 {
+		project.FundingPercentage = (raisedForCalc / targetForCalc) * 100
+	}
+
+	// Parse timestamps
+	if createdAt, ok := projectMap["created_at"].(string); ok {
+		if t, err := parseProjectTime(createdAt); err == nil {
+			project.CreatedAt = t
+		}
 	}
 
 	// Parse business information if available
@@ -247,10 +297,33 @@ func parseInvestmentsFromAPI(investmentsData []interface{}) []models.Investment 
 			if returnAmount, ok := invMap["return_amount"].(float64); ok {
 				investment.ReturnAmount = returnAmount
 			}
+			// Parse created_at
+			if createdAt, ok := invMap["created_at"].(string); ok {
+				if t, err := parseProjectTime(createdAt); err == nil {
+					investment.CreatedAt = t
+				}
+			}
 			investments[i] = investment
 		}
 	}
 	return investments
+}
+
+func parseProjectTime(timeStr string) (time.Time, error) {
+	layouts := []string{
+		time.RFC3339,
+		"2006-01-02T15:04:05Z07:00",
+		"2006-01-02 15:04:05",
+		"2006-01-02",
+	}
+
+	for _, layout := range layouts {
+		if t, err := time.Parse(layout, timeStr); err == nil {
+			return t, nil
+		}
+	}
+
+	return time.Time{}, fmt.Errorf("unable to parse time: %s", timeStr)
 }
 
 func getStringValueFromMap(data map[string]interface{}, key string) string {

@@ -245,7 +245,7 @@ func (h *Handler) Profile(c *fiber.Ctx) error {
 	return c.Render("dashboard/profile", fiber.Map{
 		"Title": "Profile - HajiFund",
 		"User":  user,
-	})
+	}, "base")
 }
 
 // UpdateProfile handles profile updates

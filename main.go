@@ -53,6 +53,7 @@ func main() {
 	// Initialize repositories
 	userRepo := repositories.NewUserRepositorySharded(shardMgr)
 	cooperativeRepo := repositories.NewCooperativeRepository(shardMgr)
+	projectRepo := repositories.NewProjectRepository(shardMgr)
 
 	// Initialize audit repository and service
 	auditRepo := repositories.NewAuditRepository(shardMgr)
@@ -78,7 +79,7 @@ func main() {
 	// Initialize controllers
 	authController := controllers.NewAuthController(userService)
 	roleController := controllers.NewRoleController(userService)
-	projectController := controllers.NewProjectController()
+	projectController := controllers.NewProjectController(projectRepo)
 	userControllerWithAudit := controllers.NewUserControllerWithAudit(userServiceWithAudit)
 	cooperativeController := controllers.NewCooperativeController(cooperativeService)
 	businessController := controllers.NewBusinessController(businessManagementService)
@@ -266,7 +267,8 @@ func main() {
 			projects := protected.Group("/projects")
 			{
 				projects.GET("", projectController.GetProjects)                                                // Get all projects
-				projects.GET("/available-for-investment", projectController.GetProjectsAvailableForInvestment) // Get investment-ready projects
+				projects.GET("/available-for-investment", projectController.GetProjectsAvailableForInvestment) // Get investment-ready projects (must be before /:id)
+				projects.GET("/:id", projectController.GetProjectByID)                                         // Get project by ID (must be after specific routes)
 				projects.POST("", permissionMiddleware.RequirePermission(auth.PermissionCreateProject), projectController.CreateProject)
 			}
 

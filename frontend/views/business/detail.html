@@ -59,8 +59,20 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">Tanggal Dibuat</label>
-                            <p class="mb-0">{{.Business.CreatedAt.Format "02 Januari 2006"}}</p>
+                            <p class="mb-0">{{.Business.CreatedAt.Format "02 Januari 2006 15:04"}}</p>
                         </div>
+                        {{if .Business.ApprovedAt}}
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Disetujui Pada</label>
+                            <p class="mb-0 text-success">{{.Business.ApprovedAt.Format "02 Januari 2006 15:04"}}</p>
+                        </div>
+                        {{end}}
+                        {{if .Business.RejectedAt}}
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Ditolak Pada</label>
+                            <p class="mb-0 text-danger">{{.Business.RejectedAt.Format "02 Januari 2006 15:04"}}</p>
+                        </div>
+                        {{end}}
                         <div class="col-12 mb-3">
                             <label class="form-label fw-semibold">Deskripsi</label>
                             <p class="mb-0">{{.Business.Description}}</p>
@@ -95,12 +107,20 @@
                                 <i class="fas fa-plus me-2"></i>Buat Proyek Pendanaan
                             </a>
                         </div>
+                        {{else if eq .Business.ApprovalStatus "rejected"}}
+                        <div class="col-md-6">
+                            <button class="btn btn-warning w-100" onclick="editAndResubmitBusiness('{{.Business.ID}}')">
+                                <i class="fas fa-edit me-2"></i>Edit & Ajukan Ulang
+                            </button>
+                        </div>
                         {{end}}
+                        {{if ne .Business.ApprovalStatus "approved"}}
                         <div class="col-md-6">
                             <button class="btn btn-outline-primary w-100" onclick="editBusiness('{{.Business.ID}}')">
                                 <i class="fas fa-edit me-2"></i>Edit Bisnis
                             </button>
                         </div>
+                        {{end}}
                         <div class="col-md-6">
                             <button class="btn btn-outline-danger w-100" onclick="deleteBusiness('{{.Business.ID}}')">
                                 <i class="fas fa-trash me-2"></i>Hapus Bisnis
@@ -147,6 +167,21 @@
                         <p class="text-muted small mb-0">
                             Bisnis Anda ditolak. Silakan periksa kembali informasi dan ajukan ulang.
                         </p>
+                        {{if .Business.RejectionReason}}
+                        <div class="mt-3">
+                            <div class="alert alert-danger">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Alasan Penolakan
+                                </h6>
+                                <p class="mb-2">{{.Business.RejectionReason}}</p>
+                                {{if .Business.ReviewerComments}}
+                                <hr>
+                                <h6>Komentar Reviewer:</h6>
+                                <p class="mb-0">{{.Business.ReviewerComments}}</p>
+                                {{end}}
+                            </div>
+                        </div>
+                        {{end}}
                     </div>
                     {{else}}
                     <div class="text-center">
@@ -289,8 +324,16 @@ async function submitForApproval(businessId) {
 
 // Edit business
 function editBusiness(businessId) {
-    // For now, just redirect to edit page or show modal
-    showToast('Fitur edit bisnis akan segera tersedia', 'info');
+    // Redirect to edit page with business ID
+    window.location.href = '/business/' + businessId + '/edit';
+}
+
+// Edit and resubmit business
+function editAndResubmitBusiness(businessId) {
+    if (confirm('Apakah Anda yakin ingin mengedit dan mengajukan ulang bisnis ini?')) {
+        // Redirect to edit page with resubmit flag
+        window.location.href = '/business/' + businessId + '/edit?resubmit=true';
+    }
 }
 
 // Delete business

@@ -75,19 +75,68 @@
                         <!-- Project Type and Funding -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="project_type" class="form-label">Jenis Proyek <span class="text-danger">*</span></label>
+                                <label for="project_type" class="form-label">Kategori Proyek <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text">
                                         <i class="fas fa-list text-muted"></i>
                                     </span>
                                     <select class="form-select" id="project_type" name="project_type" required>
-                                        <option value="">Pilih Jenis Proyek</option>
-                                        <option value="startup">Startup - Bisnis Baru</option>
-                                        <option value="expansion">Ekspansi - Pengembangan Bisnis</option>
-                                        <option value="equipment">Peralatan - Pembelian Alat</option>
+                                        <option value="">Pilih Kategori</option>
+                                        <option value="Agriculture">Pertanian</option>
+                                        <option value="Technology">Teknologi</option>
+                                        <option value="Manufacturing">Manufaktur</option>
+                                        <option value="Retail">Ritel</option>
+                                        <option value="Services">Jasa</option>
+                                        <option value="Other">Lainnya</option>
                                     </select>
                                     <div class="invalid-feedback">
-                                        Pilih jenis proyek
+                                        Pilih kategori proyek
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="risk_level" class="form-label">Tingkat Risiko <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-exclamation-triangle text-muted"></i>
+                                    </span>
+                                    <select class="form-select" id="risk_level" name="risk_level" required>
+                                        <option value="">Pilih Tingkat Risiko</option>
+                                        <option value="Low">Rendah</option>
+                                        <option value="Medium" selected>Menengah</option>
+                                        <option value="High">Tinggi</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Pilih tingkat risiko
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="investment_period" class="form-label">Periode Investasi (Bulan) <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-calendar-alt text-muted"></i>
+                                    </span>
+                                    <input type="number" class="form-control" id="investment_period" name="investment_period" 
+                                           min="6" max="120" value="12" required>
+                                    <div class="invalid-feedback">
+                                        Masukkan periode investasi (6-120 bulan)
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="expected_return" class="form-label">Estimasi Return <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-percentage text-muted"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="expected_return" name="expected_return" 
+                                           placeholder="Contoh: 10-15%" required>
+                                    <div class="invalid-feedback">
+                                        Masukkan estimasi return
                                     </div>
                                 </div>
                             </div>
@@ -313,11 +362,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form submission
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
+        console.log('Form submitted!');
         if (!form.checkValidity()) {
             e.stopPropagation();
             form.classList.add('was-validated');
+            console.log('Form validation failed');
+            showToast('Mohon lengkapi semua field yang wajib diisi', 'error');
             return;
         }
+        console.log('Form validation passed');
 
         const submitBtn = document.getElementById('submitBtn');
         const originalText = submitBtn.innerHTML;
@@ -346,19 +399,33 @@ document.addEventListener('DOMContentLoaded', function() {
             business_share: parseInt(formData.get('business_share'))
         };
 
+        // Build project data with required and optional fields
         const projectData = {
+            // Required fields
             title: formData.get('title'),
             description: formData.get('description'),
+            target_amount: parseFloat(formData.get('funding_goal')),
+            category: formData.get('project_type'),
             business_id: formData.get('business_id'),
-            funding_goal: parseFloat(formData.get('funding_goal')),
-            minimum_funding: parseFloat(formData.get('minimum_funding')) || 0,
-            funding_deadline: formData.get('funding_deadline') + 'T23:59:59Z',
-            project_type: formData.get('project_type'),
-            profit_sharing_ratio: profitSharingRatio,
-            milestones: milestones,
-            documents: formData.get('documents') ? [formData.get('documents')] : []
+            
+            // Optional fields
+            min_investment: formData.get('minimum_funding') ? parseFloat(formData.get('minimum_funding')) : null,
+            risk_level: formData.get('risk_level') || null,
+            investment_period: formData.get('investment_period') ? parseInt(formData.get('investment_period')) : null,
+            expected_return: formData.get('expected_return') || null,
+            start_date: formData.get('funding_deadline') ? formData.get('funding_deadline') + 'T00:00:00Z' : null,
+            end_date: null
         };
+        
+        // Remove null values to keep payload clean
+        Object.keys(projectData).forEach(key => {
+            if (projectData[key] === null || projectData[key] === '') {
+                delete projectData[key];
+            }
+        });
 
+        console.log('Sending project data:', projectData);
+        
         try {
             const response = await fetch('/api/projects', {
                 method: 'POST',
@@ -368,19 +435,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify(projectData)
             });
 
+            console.log('Response status:', response.status);
             const result = await response.json();
+            console.log('Response data:', result);
+
+            if (response.status === 400) {
+                console.error('Validation error 400:', result);
+                const errorMsg = result.message || 'Validation failed';
+                const errorDetails = result.error ? ': ' + JSON.stringify(result.error) : '';
+                showToast('❌ ' + errorMsg + errorDetails, 'error');
+                return;
+            }
 
             if (result.status === 'success') {
-                showToast('Proyek berhasil dibuat dan menunggu persetujuan!', 'success');
+                showToast('✅ Proyek berhasil dibuat dan menunggu persetujuan!', 'success');
                 setTimeout(() => {
                     window.location.href = result.redirect || '/projects';
                 }, 2000);
             } else {
+                console.error('API error:', result);
                 showToast(result.message || 'Gagal membuat proyek', 'error');
             }
         } catch (error) {
             console.error('Create project error:', error);
-            showToast('Terjadi kesalahan saat membuat proyek', 'error');
+            showToast('❌ Terjadi kesalahan saat membuat proyek: ' + error.message, 'error');
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;

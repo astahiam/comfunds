@@ -1,0 +1,423 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-edit text-primary me-2"></i>Edit Bisnis
+                    </h2>
+                    <p class="text-muted mb-0">Perbarui informasi bisnis Anda</p>
+                </div>
+                <a href="/business/{{.Business.ID}}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Kembali ke Detail
+                </a>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-building me-2"></i>Informasi Bisnis
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="editBusinessForm">
+                                <input type="hidden" id="business_id" value="{{.Business.ID}}">
+                                
+                                <!-- Basic Information -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label for="name" class="form-label">Nama Bisnis <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="name" name="name" value="{{.Business.Name}}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="type" class="form-label">Jenis Bisnis <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="type" name="type" required>
+                                            <option value="">Pilih jenis bisnis</option>
+                                            <option value="micro" {{if eq .Business.Type "micro"}}selected{{end}}>Mikro</option>
+                                            <option value="small" {{if eq .Business.Type "small"}}selected{{end}}>Kecil</option>
+                                            <option value="medium" {{if eq .Business.Type "medium"}}selected{{end}}>Menengah</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="description" class="form-label">Deskripsi Bisnis <span class="text-danger">*</span></label>
+                                        <textarea class="form-control" id="description" name="description" rows="4" required>{{.Business.Description}}</textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Business Details -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label for="registration_number" class="form-label">Nomor Registrasi</label>
+                                        <input type="text" class="form-control" id="registration_number" name="registration_number" value="{{.Business.RegistrationNumber}}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="legal_structure" class="form-label">Bentuk Hukum</label>
+                                        <select class="form-select" id="legal_structure" name="legal_structure">
+                                            <option value="">Pilih bentuk hukum</option>
+                                            <option value="CV" {{if eq .Business.LegalStructure "CV"}}selected{{end}}>CV (Commanditaire Vennootschap)</option>
+                                            <option value="PT" {{if eq .Business.LegalStructure "PT"}}selected{{end}}>PT (Perseroan Terbatas)</option>
+                                            <option value="UD" {{if eq .Business.LegalStructure "UD"}}selected{{end}}>UD (Usaha Dagang)</option>
+                                            <option value="Firma" {{if eq .Business.LegalStructure "Firma"}}selected{{end}}>Firma</option>
+                                            <option value="Koperasi" {{if eq .Business.LegalStructure "Koperasi"}}selected{{end}}>Koperasi</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="industry" class="form-label">Industri</label>
+                                        <input type="text" class="form-control" id="industry" name="industry" value="{{.Business.Industry}}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="established_date" class="form-label">Tanggal Berdiri</label>
+                                        <input type="date" class="form-control" id="established_date" name="established_date" value="{{.Business.EstablishedDate}}">
+                                    </div>
+                                </div>
+
+                                <!-- Contact Information -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-12">
+                                        <label for="address" class="form-label">Alamat Lengkap <span class="text-danger">*</span></label>
+                                        <textarea class="form-control" id="address" name="address" rows="3" required>{{.Business.Address}}</textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="phone" class="form-label">Nomor Telepon</label>
+                                        <input type="tel" class="form-control" id="phone" name="phone" value="{{.Business.Phone}}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="email" class="form-label">Email Bisnis</label>
+                                        <input type="email" class="form-control" id="email" name="email" value="{{.Business.Email}}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="website" class="form-label">Website</label>
+                                        <input type="url" class="form-control" id="website" name="website" value="{{.Business.Website}}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="bank_account" class="form-label">Nomor Rekening Bank</label>
+                                        <input type="text" class="form-control" id="bank_account" name="bank_account" value="{{.Business.BankAccount}}">
+                                    </div>
+                                </div>
+
+                                <!-- Financial Information -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label for="employee_count" class="form-label">Jumlah Karyawan</label>
+                                        <input type="number" class="form-control" id="employee_count" name="employee_count" value="{{.Business.EmployeeCount}}" min="0">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="annual_revenue" class="form-label">Pendapatan Tahunan</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Rp</span>
+                                            <input type="number" class="form-control" id="annual_revenue" name="annual_revenue" value="{{.Business.AnnualRevenue}}" min="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="currency" class="form-label">Mata Uang</label>
+                                        <select class="form-select" id="currency" name="currency">
+                                            <option value="IDR" {{if eq .Business.Currency "IDR"}}selected{{end}}>IDR (Rupiah)</option>
+                                            <option value="USD" {{if eq .Business.Currency "USD"}}selected{{end}}>USD (Dollar)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="business_license" class="form-label">Nomor Izin Usaha</label>
+                                        <input type="text" class="form-control" id="business_license" name="business_license" value="{{.Business.BusinessLicense}}">
+                                    </div>
+                                </div>
+
+                                <!-- Risk Assessment Documents Section -->
+                                <div class="mb-4">
+                                    <h5 class="text-success mb-3">
+                                        <i class="fas fa-file-alt me-2"></i>Dokumen Penilaian Risiko
+                                    </h5>
+                                    <p class="text-muted mb-3">Update dokumen-dokumen berikut untuk membantu penilaian risiko bisnis Anda:</p>
+                                    
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label for="business_plan_url" class="form-label">Rencana Bisnis <span class="text-danger">*</span></label>
+                                            <input type="url" class="form-control" id="business_plan_url" name="business_plan_url" value="{{.Business.BusinessPlanURL}}" required placeholder="URL dokumen rencana bisnis">
+                                            <div class="form-text">
+                                                Dokumen rencana bisnis yang detail dan komprehensif
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="swot_analysis_url" class="form-label">Analisis SWOT</label>
+                                            <input type="url" class="form-control" id="swot_analysis_url" name="swot_analysis_url" value="{{.Business.SWOTAnalysisURL}}" placeholder="URL dokumen analisis SWOT">
+                                            <div class="form-text">
+                                                Analisis Strengths, Weaknesses, Opportunities, Threats
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="financial_statements_url" class="form-label">Laporan Keuangan <span class="text-danger">*</span></label>
+                                            <input type="url" class="form-control" id="financial_statements_url" name="financial_statements_url" value="{{.Business.FinancialStatementsURL}}" required placeholder="URL laporan keuangan">
+                                            <div class="form-text">
+                                                Laporan keuangan 2-3 tahun terakhir (Neraca, Laba Rugi, Arus Kas)
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="market_research_url" class="form-label">Riset Pasar</label>
+                                            <input type="url" class="form-control" id="market_research_url" name="market_research_url" value="{{.Business.MarketResearchURL}}" placeholder="URL dokumen riset pasar">
+                                            <div class="form-text">
+                                                Hasil riset pasar dan analisis kompetitor
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <label for="risk_assessment_url" class="form-label">Penilaian Risiko</label>
+                                            <input type="url" class="form-control" id="risk_assessment_url" name="risk_assessment_url" value="{{.Business.RiskAssessmentURL}}" placeholder="URL dokumen penilaian risiko">
+                                            <div class="form-text">
+                                                Dokumen penilaian risiko bisnis dan mitigasi risiko
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Submit Buttons -->
+                                <div class="d-flex justify-content-between">
+                                    <a href="/business/{{.Business.ID}}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times me-2"></i>Batal
+                                    </a>
+                                    <div>
+                                        <button type="button" class="btn btn-outline-primary me-2" onclick="saveDraft()">
+                                            <i class="fas fa-save me-2"></i>Simpan Draft
+                                        </button>
+                                        {{if eq .Business.ApprovalStatus "rejected"}}
+                                        <button type="button" class="btn btn-warning" onclick="updateAndResubmit()">
+                                            <i class="fas fa-paper-plane me-2"></i>Update & Ajukan Ulang
+                                        </button>
+                                        {{else}}
+                                        <button type="button" class="btn btn-primary" onclick="updateBusiness()">
+                                            <i class="fas fa-save me-2"></i>Update Bisnis
+                                        </button>
+                                        {{end}}
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Status Bisnis
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Status Persetujuan</label>
+                                <div>
+                                    {{if eq .Business.ApprovalStatus "approved"}}
+                                        <span class="badge bg-success">Disetujui</span>
+                                    {{else if eq .Business.ApprovalStatus "rejected"}}
+                                        <span class="badge bg-danger">Ditolak</span>
+                                    {{else if eq .Business.ApprovalStatus "pending"}}
+                                        <span class="badge bg-warning">Menunggu</span>
+                                    {{else}}
+                                        <span class="badge bg-secondary">Draft</span>
+                                    {{end}}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Status Bisnis</label>
+                                <div>
+                                    {{if eq .Business.Status "active"}}
+                                        <span class="badge bg-success">Aktif</span>
+                                    {{else}}
+                                        <span class="badge bg-secondary">Non-Aktif</span>
+                                    {{end}}
+                                </div>
+                            </div>
+                            {{if .Business.RejectionReason}}
+                            <div class="alert alert-danger">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Alasan Penolakan
+                                </h6>
+                                <p class="mb-2">{{.Business.RejectionReason}}</p>
+                                {{if .Business.ReviewerComments}}
+                                <hr>
+                                <h6>Komentar Reviewer:</h6>
+                                <p class="mb-0">{{.Business.ReviewerComments}}</p>
+                                {{end}}
+                            </div>
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Update business
+async function updateBusiness() {
+    const form = document.getElementById('editBusinessForm');
+    const formData = new FormData(form);
+    
+    const businessData = {
+        name: formData.get('name'),
+        type: formData.get('type'),
+        description: formData.get('description'),
+        registration_number: formData.get('registration_number') || '',
+        legal_structure: formData.get('legal_structure') || '',
+        industry: formData.get('industry') || '',
+        address: formData.get('address'),
+        phone: formData.get('phone') || '',
+        email: formData.get('email') || '',
+        website: formData.get('website') || '',
+        established_date: formData.get('established_date') + 'T00:00:00Z',
+        currency: formData.get('currency'),
+        bank_account: formData.get('bank_account') || '',
+        employee_count: parseInt(formData.get('employee_count')) || 0,
+        annual_revenue: parseFloat(formData.get('annual_revenue')) || 0,
+        business_license: formData.get('business_license') || '',
+        // Risk Assessment Documents
+        business_plan_url: formData.get('business_plan_url') || '',
+        swot_analysis_url: formData.get('swot_analysis_url') || '',
+        financial_statements_url: formData.get('financial_statements_url') || '',
+        market_research_url: formData.get('market_research_url') || '',
+        risk_assessment_url: formData.get('risk_assessment_url') || ''
+    };
+
+    try {
+        const response = await fetch('/api/business/' + document.getElementById('business_id').value, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(businessData)
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+            showToast('Bisnis berhasil diperbarui', 'success');
+            setTimeout(() => {
+                window.location.href = '/business/' + document.getElementById('business_id').value;
+            }, 1500);
+        } else {
+            showToast(result.message || 'Gagal memperbarui bisnis', 'error');
+        }
+    } catch (error) {
+        console.error('Update business error:', error);
+        showToast('Terjadi kesalahan', 'error');
+    }
+}
+
+// Update and resubmit business
+async function updateAndResubmit() {
+    if (confirm('Apakah Anda yakin ingin memperbarui dan mengajukan ulang bisnis ini?')) {
+        await updateBusiness();
+        
+        // After successful update, submit for approval
+        setTimeout(async () => {
+            try {
+                const response = await fetch('/api/business/' + document.getElementById('business_id').value + '/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showToast('Bisnis berhasil diperbarui dan diajukan ulang', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/business/' + document.getElementById('business_id').value;
+                    }, 1500);
+                } else {
+                    showToast(result.message || 'Gagal mengajukan ulang bisnis', 'error');
+                }
+            } catch (error) {
+                console.error('Resubmit error:', error);
+                showToast('Terjadi kesalahan saat mengajukan ulang', 'error');
+            }
+        }, 2000);
+    }
+}
+
+// Save as draft
+async function saveDraft() {
+    const form = document.getElementById('editBusinessForm');
+    const formData = new FormData(form);
+    
+    const businessData = {
+        name: formData.get('name'),
+        type: formData.get('type'),
+        description: formData.get('description'),
+        registration_number: formData.get('registration_number') || '',
+        legal_structure: formData.get('legal_structure') || '',
+        industry: formData.get('industry') || '',
+        address: formData.get('address'),
+        phone: formData.get('phone') || '',
+        email: formData.get('email') || '',
+        website: formData.get('website') || '',
+        established_date: formData.get('established_date') + 'T00:00:00Z',
+        currency: formData.get('currency'),
+        bank_account: formData.get('bank_account') || '',
+        employee_count: parseInt(formData.get('employee_count')) || 0,
+        annual_revenue: parseFloat(formData.get('annual_revenue')) || 0,
+        business_license: formData.get('business_license') || '',
+        status: 'draft',
+        // Risk Assessment Documents
+        business_plan_url: formData.get('business_plan_url') || '',
+        swot_analysis_url: formData.get('swot_analysis_url') || '',
+        financial_statements_url: formData.get('financial_statements_url') || '',
+        market_research_url: formData.get('market_research_url') || '',
+        risk_assessment_url: formData.get('risk_assessment_url') || ''
+    };
+
+    try {
+        const response = await fetch('/api/business/' + document.getElementById('business_id').value, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(businessData)
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+            showToast('Draft bisnis berhasil disimpan', 'success');
+        } else {
+            showToast(result.message || 'Gagal menyimpan draft', 'error');
+        }
+    } catch (error) {
+        console.error('Save draft error:', error);
+        showToast('Terjadi kesalahan', 'error');
+    }
+}
+
+// Toast notification function
+function showToast(message, type) {
+    const toastContainer = document.getElementById('toast-container') || createToastContainer();
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    toast.addEventListener('hidden.bs.toast', () => {
+        toast.remove();
+    });
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toast-container';
+    container.className = 'toast-container position-fixed top-0 end-0 p-3';
+    container.style.zIndex = '1055';
+    document.body.appendChild(container);
+    return container;
+}
+</script>

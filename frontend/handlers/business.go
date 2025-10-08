@@ -3,6 +3,7 @@ package handlers
 import (
 	"hajifund-frontend/models"
 	"hajifund-frontend/utils"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -10,6 +11,81 @@ import (
 // NewBusinessHandler creates a new business handler
 func NewBusinessHandler() *Handler {
 	return &Handler{}
+}
+
+// Helper functions
+func getTokenFromContext(c *fiber.Ctx) string {
+	return c.Cookies("auth_token")
+}
+
+func getBusinessStringValue(value interface{}) string {
+	if value == nil {
+		return ""
+	}
+	if str, ok := value.(string); ok {
+		return str
+	}
+	return ""
+}
+
+func getBusinessStringPointer(value interface{}) *string {
+	if value == nil {
+		return nil
+	}
+	if str, ok := value.(string); ok {
+		return &str
+	}
+	return nil
+}
+
+func getBusinessTimePointer(value interface{}) *time.Time {
+	if value == nil {
+		return nil
+	}
+	if str, ok := value.(string); ok && str != "" {
+		if t, err := time.Parse(time.RFC3339, str); err == nil {
+			return &t
+		}
+	}
+	return nil
+}
+
+func getBusinessTimeValue(value interface{}) time.Time {
+	if value == nil {
+		return time.Time{}
+	}
+	if str, ok := value.(string); ok && str != "" {
+		if t, err := time.Parse(time.RFC3339, str); err == nil {
+			return t
+		}
+	}
+	return time.Time{}
+}
+
+func getBusinessIntValue(value interface{}) int {
+	if value == nil {
+		return 0
+	}
+	if intVal, ok := value.(int); ok {
+		return intVal
+	}
+	if floatVal, ok := value.(float64); ok {
+		return int(floatVal)
+	}
+	return 0
+}
+
+func getBusinessFloatValue(value interface{}) float64 {
+	if value == nil {
+		return 0
+	}
+	if floatVal, ok := value.(float64); ok {
+		return floatVal
+	}
+	if intVal, ok := value.(int); ok {
+		return float64(intVal)
+	}
+	return 0
 }
 
 // BusinessPage renders the business management page
@@ -26,15 +102,27 @@ func (h *Handler) BusinessPage(c *fiber.Ctx) error {
 				for i, business := range businessData {
 					if businessMap, ok := business.(map[string]interface{}); ok {
 						businesses[i] = models.Business{
-							ID:             businessMap["id"].(string),
-							Name:           businessMap["name"].(string),
-							Description:    businessMap["description"].(string),
-							Type:           businessMap["type"].(string),
-							Address:        businessMap["address"].(string),
-							OwnerID:        businessMap["owner_id"].(string),
-							CooperativeID:  businessMap["cooperative_id"].(string),
-							Status:         businessMap["status"].(string),
-							ApprovalStatus: businessMap["approval_status"].(string),
+							ID:               getBusinessStringValue(businessMap["id"]),
+							Name:             getBusinessStringValue(businessMap["name"]),
+							Description:      getBusinessStringValue(businessMap["description"]),
+							Type:             getBusinessStringValue(businessMap["type"]),
+							Address:          getBusinessStringValue(businessMap["address"]),
+							OwnerID:          getBusinessStringValue(businessMap["owner_id"]),
+							CooperativeID:    getBusinessStringValue(businessMap["cooperative_id"]),
+							Status:           getBusinessStringValue(businessMap["status"]),
+							ApprovalStatus:   getBusinessStringValue(businessMap["approval_status"]),
+							ApprovedBy:       getBusinessStringPointer(businessMap["approved_by"]),
+							ApprovedAt:       getBusinessTimePointer(businessMap["approved_at"]),
+							RejectedBy:       getBusinessStringPointer(businessMap["rejected_by"]),
+							RejectedAt:       getBusinessTimePointer(businessMap["rejected_at"]),
+							RejectionReason:  getBusinessStringValue(businessMap["rejection_reason"]),
+							ReviewerComments: getBusinessStringValue(businessMap["reviewer_comments"]),
+							// Risk Assessment Documents
+							BusinessPlanURL:        getBusinessStringValue(businessMap["business_plan_url"]),
+							SWOTAnalysisURL:        getBusinessStringValue(businessMap["swot_analysis_url"]),
+							FinancialStatementsURL: getBusinessStringValue(businessMap["financial_statements_url"]),
+							MarketResearchURL:      getBusinessStringValue(businessMap["market_research_url"]),
+							RiskAssessmentURL:      getBusinessStringValue(businessMap["risk_assessment_url"]),
 						}
 					}
 				}
@@ -58,7 +146,7 @@ func (h *Handler) CreateBusinessPage(c *fiber.Ctx) error {
 		return c.Status(403).Render("error", fiber.Map{
 			"Code":    403,
 			"Message": "Business owner role required to create businesses",
-		})
+		}, "base")
 	}
 
 	// Get available cooperatives from public endpoint
@@ -73,7 +161,7 @@ func (h *Handler) CreateBusinessPage(c *fiber.Ctx) error {
 						cooperatives[i] = models.Cooperative{
 							ID:          coopMap["id"].(string),
 							Name:        coopMap["name"].(string),
-							Description: getStringValue(coopMap["description"]),
+							Description: getBusinessStringValue(coopMap["description"]),
 						}
 					}
 				}
@@ -132,25 +220,148 @@ func (h *Handler) BusinessDetail(c *fiber.Ctx) error {
 
 	// Get business details
 	businessResp, err := utils.MakeAPIRequest("GET", "/api/v1/businesses/"+businessID, nil, utils.GetAuthHeaders(getTokenFromContext(c)))
-	if err != nil {
+	if err != nil || businessResp.Status != "success" {
 		return c.Status(404).Render("error", fiber.Map{
 			"Code":    404,
 			"Message": "Business not found",
-		})
+		}, "base")
 	}
 
 	var business models.Business
 	if data, ok := businessResp.Data.(map[string]interface{}); ok {
 		business = models.Business{
-			ID:             data["id"].(string),
-			Name:           data["name"].(string),
-			Description:    data["description"].(string),
-			Type:           data["type"].(string),
-			Address:        data["address"].(string),
-			OwnerID:        data["owner_id"].(string),
-			CooperativeID:  data["cooperative_id"].(string),
-			Status:         data["status"].(string),
-			ApprovalStatus: data["approval_status"].(string),
+			ID:                 getBusinessStringValue(data["id"]),
+			Name:               getBusinessStringValue(data["name"]),
+			Description:        getBusinessStringValue(data["description"]),
+			Type:               getBusinessStringValue(data["type"]),
+			Address:            getBusinessStringValue(data["address"]),
+			OwnerID:            getBusinessStringValue(data["owner_id"]),
+			CooperativeID:      getBusinessStringValue(data["cooperative_id"]),
+			Status:             getBusinessStringValue(data["status"]),
+			ApprovalStatus:     getBusinessStringValue(data["approval_status"]),
+			RegistrationNumber: getBusinessStringValue(data["registration_number"]),
+			LegalStructure:     getBusinessStringValue(data["legal_structure"]),
+			Industry:           getBusinessStringValue(data["industry"]),
+			Phone:              getBusinessStringValue(data["phone"]),
+			Email:              getBusinessStringValue(data["email"]),
+			Website:            getBusinessStringValue(data["website"]),
+			EstablishedDate:    getBusinessStringValue(data["established_date"]),
+			EmployeeCount:      getBusinessIntValue(data["employee_count"]),
+			AnnualRevenue:      getBusinessFloatValue(data["annual_revenue"]),
+			Currency:           getBusinessStringValue(data["currency"]),
+			BankAccount:        getBusinessStringValue(data["bank_account"]),
+			BusinessLicense:    getBusinessStringValue(data["business_license"]),
+			CreatedAt:          getBusinessTimeValue(data["created_at"]),
+			UpdatedAt:          getBusinessTimeValue(data["updated_at"]),
+			// Risk Assessment Documents
+			BusinessPlanURL:        getBusinessStringValue(data["business_plan_url"]),
+			SWOTAnalysisURL:        getBusinessStringValue(data["swot_analysis_url"]),
+			FinancialStatementsURL: getBusinessStringValue(data["financial_statements_url"]),
+			MarketResearchURL:      getBusinessStringValue(data["market_research_url"]),
+			RiskAssessmentURL:      getBusinessStringValue(data["risk_assessment_url"]),
+			// Approval/Rejection fields
+			ApprovedBy:       getBusinessStringPointer(data["approved_by"]),
+			ApprovedAt:       getBusinessTimePointer(data["approved_at"]),
+			RejectedBy:       getBusinessStringPointer(data["rejected_by"]),
+			RejectedAt:       getBusinessTimePointer(data["rejected_at"]),
+			RejectionReason:  getBusinessStringValue(data["rejection_reason"]),
+			ReviewerComments: getBusinessStringValue(data["reviewer_comments"]),
+		}
+	}
+
+	// Check if user has access to this business
+	hasAccess := false
+
+	// Business owner can always access their own business
+	if business.OwnerID == user.ID {
+		hasAccess = true
+	}
+
+	// Cooperative members can view businesses in their cooperative
+	if !hasAccess && user.CooperativeID != nil && business.CooperativeID == *user.CooperativeID {
+		// Check if user has member, business_owner, investor, or admin role
+		for _, role := range user.Roles {
+			if role == "member" || role == "business_owner" || role == "investor" || role == "admin" {
+				hasAccess = true
+				break
+			}
+		}
+	}
+
+	// Admins can view all businesses
+	if !hasAccess {
+		for _, role := range user.Roles {
+			if role == "admin" {
+				hasAccess = true
+				break
+			}
+		}
+	}
+
+	if !hasAccess {
+		return c.Status(403).Render("error", fiber.Map{
+			"Code":    403,
+			"Message": "Access denied to this business",
+		}, "base")
+	}
+
+	return c.Render("business/detail", fiber.Map{
+		"Title":    "Business Details - HajiFund",
+		"User":     user,
+		"Business": business,
+	}, "base")
+}
+
+// EditBusinessPage renders the business edit page
+func (h *Handler) EditBusinessPage(c *fiber.Ctx) error {
+	user := c.Locals("user").(*models.User)
+	businessID := c.Params("id")
+
+	// Fetch business details
+	businessResp, err := utils.MakeAPIRequest("GET", "/api/v1/businesses/"+businessID, nil, utils.GetAuthHeaders(getTokenFromContext(c)))
+	if err != nil || businessResp.Status != "success" {
+		return c.Status(404).Render("error", fiber.Map{
+			"Code":    404,
+			"Message": "Business not found",
+		}, "base")
+	}
+
+	var business models.Business
+	if data, ok := businessResp.Data.(map[string]interface{}); ok {
+		business = models.Business{
+			ID:                 getBusinessStringValue(data["id"]),
+			Name:               getBusinessStringValue(data["name"]),
+			Description:        getBusinessStringValue(data["description"]),
+			Type:               getBusinessStringValue(data["type"]),
+			Address:            getBusinessStringValue(data["address"]),
+			OwnerID:            getBusinessStringValue(data["owner_id"]),
+			CooperativeID:      getBusinessStringValue(data["cooperative_id"]),
+			Status:             getBusinessStringValue(data["status"]),
+			ApprovalStatus:     getBusinessStringValue(data["approval_status"]),
+			RegistrationNumber: getBusinessStringValue(data["registration_number"]),
+			LegalStructure:     getBusinessStringValue(data["legal_structure"]),
+			Industry:           getBusinessStringValue(data["industry"]),
+			Phone:              getBusinessStringValue(data["phone"]),
+			Email:              getBusinessStringValue(data["email"]),
+			Website:            getBusinessStringValue(data["website"]),
+			EstablishedDate:    getBusinessStringValue(data["established_date"]),
+			EmployeeCount:      getBusinessIntValue(data["employee_count"]),
+			AnnualRevenue:      getBusinessFloatValue(data["annual_revenue"]),
+			Currency:           getBusinessStringValue(data["currency"]),
+			BankAccount:        getBusinessStringValue(data["bank_account"]),
+			BusinessLicense:    getBusinessStringValue(data["business_license"]),
+			ApprovedBy:         getBusinessStringPointer(data["approved_by"]),
+			ApprovedAt:         getBusinessTimePointer(data["approved_at"]),
+			RejectedBy:         getBusinessStringPointer(data["rejected_by"]),
+			RejectedAt:         getBusinessTimePointer(data["rejected_at"]),
+			RejectionReason:    getBusinessStringValue(data["rejection_reason"]),
+			ReviewerComments:   getBusinessStringValue(data["reviewer_comments"]),
+			// Risk Assessment Documents
+			BusinessPlanURL:        getBusinessStringValue(data["business_plan_url"]),
+			SWOTAnalysisURL:        getBusinessStringValue(data["swot_analysis_url"]),
+			FinancialStatementsURL: getBusinessStringValue(data["financial_statements_url"]),
+			MarketResearchURL:      getBusinessStringValue(data["market_research_url"]),
+			RiskAssessmentURL:      getBusinessStringValue(data["risk_assessment_url"]),
 		}
 	}
 
@@ -158,12 +369,12 @@ func (h *Handler) BusinessDetail(c *fiber.Ctx) error {
 	if business.OwnerID != user.ID {
 		return c.Status(403).Render("error", fiber.Map{
 			"Code":    403,
-			"Message": "Access denied to this business",
-		})
+			"Message": "Access denied",
+		}, "base")
 	}
 
-	return c.Render("business/detail", fiber.Map{
-		"Title":    "Business Details - HajiFund",
+	return c.Render("business/edit", fiber.Map{
+		"Title":    "Edit Bisnis - HajiFund",
 		"User":     user,
 		"Business": business,
 	}, "base")
@@ -217,9 +428,4 @@ func (h *Handler) SubmitBusinessForApproval(c *fiber.Ctx) error {
 		"redirect": "/business/" + businessID,
 		"data":     resp.Data,
 	})
-}
-
-// Helper functions
-func getTokenFromContext(c *fiber.Ctx) string {
-	return c.Cookies("auth_token")
 }

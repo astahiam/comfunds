@@ -1,0 +1,291 @@
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/dashboard" class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Portfolio Investasi</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-1">Portfolio Investasi Saya</h1>
+            <p class="text-muted mb-0">Pantau dan kelola investasi syariah Anda</p>
+        </div>
+    </div>
+
+    {{if .Portfolio}}
+    <!-- Portfolio Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-wallet fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="card-title mb-0">
+                                Rp {{if .Portfolio.total_invested}}{{.Portfolio.total_invested}}{{else}}0{{end}}
+                            </h5>
+                            <small>Total Investasi</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="card-title mb-0">
+                                Rp {{if .Portfolio.total_returns}}{{.Portfolio.total_returns}}{{else}}0{{end}}
+                            </h5>
+                            <small>Total Keuntungan</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-percentage fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="card-title mb-0">
+                                {{if .Portfolio.average_return}}{{.Portfolio.average_return}}%{{else}}0%{{end}}
+                            </h5>
+                            <small>Rata-rata Return</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-project-diagram fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="card-title mb-0">
+                                {{if .Portfolio.active_investments}}{{.Portfolio.active_investments}}{{else}}0{{end}}
+                            </h5>
+                            <small>Investasi Aktif</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Portfolio Chart -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mb-3">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-area me-2 text-primary"></i>Performa Portfolio
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="portfolioChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-3">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-pie-chart me-2 text-success"></i>Distribusi Investasi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="distributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profit Distributions -->
+    {{if .Distributions}}
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-money-bill-wave me-2 text-success"></i>Riwayat Bagi Hasil
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Proyek</th>
+                                    <th>Periode</th>
+                                    <th>Jumlah</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range .Distributions}}
+                                <tr>
+                                    <td><small>{{.distribution_date}}</small></td>
+                                    <td>{{.project_name}}</td>
+                                    <td><small>{{.period_start}} - {{.period_end}}</small></td>
+                                    <td><strong class="text-success">Rp {{.amount}}</strong></td>
+                                    <td><span class="badge bg-success">Dibayar</span></td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{end}}
+
+    <!-- Investment Opportunities -->
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-lightbulb me-2 text-warning"></i>Peluang Investasi Baru
+                    </h5>
+                    <a href="/projects/public" class="btn btn-sm btn-outline-primary">
+                        Lihat Semua <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Diversifikasi portfolio Anda dengan berinvestasi di proyek-proyek syariah yang tersedia.
+                    </div>
+                    <div class="text-center py-3">
+                        <a href="/projects/public" class="btn btn-success btn-lg">
+                            <i class="fas fa-search me-2"></i>Cari Proyek
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{else}}
+    <!-- Empty State -->
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-chart-line fa-4x text-muted"></i>
+            </div>
+            <h4 class="text-muted mb-3">Portfolio Anda masih kosong</h4>
+            <p class="text-muted mb-4">Mulai berinvestasi di proyek-proyek syariah dan bangun portfolio Anda</p>
+            
+            <div class="mt-4">
+                <a href="/projects/public" class="btn btn-success btn-lg">
+                    <i class="fas fa-search me-2"></i>Cari Proyek untuk Investasi
+                </a>
+            </div>
+
+            <!-- Info Alert -->
+            <div class="alert alert-info mx-auto mt-4" style="max-width: 600px;">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-info-circle me-2 mt-1"></i>
+                    <div class="text-start">
+                        <strong>Mengapa Berinvestasi di HajiFund?</strong><br>
+                        <small>
+                            • Investasi berbasis prinsip syariah<br>
+                            • Transparansi penuh dalam setiap proyek<br>
+                            • Potensi keuntungan yang kompetitif<br>
+                            • Mendukung pertumbuhan UMKM lokal
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{end}}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+// Portfolio Performance Chart
+{{if .Portfolio}}
+const portfolioCtx = document.getElementById('portfolioChart');
+if (portfolioCtx) {
+    new Chart(portfolioCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            datasets: [{
+                label: 'Nilai Portfolio',
+                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {{if .Portfolio.total_invested}}{{.Portfolio.total_invested}}{{else}}0{{end}}],
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'Rp ' + value.toLocaleString('id-ID');
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Distribution Chart
+const distributionCtx = document.getElementById('distributionChart');
+if (distributionCtx) {
+    new Chart(distributionCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Teknologi', 'Retail', 'Manufaktur', 'Lainnya'],
+            datasets: [{
+                data: [40, 30, 20, 10],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+}
+{{end}}
+</script>

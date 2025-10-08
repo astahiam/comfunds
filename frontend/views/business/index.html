@@ -113,10 +113,16 @@
                                     <td>
                                         {{if eq .ApprovalStatus "approved"}}
                                             <span class="badge bg-success">Disetujui</span>
+                                            {{if .ApprovedAt}}
+                                            <br><small class="text-muted">{{.ApprovedAt.Format "02 Jan 2006"}}</small>
+                                            {{end}}
                                         {{else if eq .ApprovalStatus "pending"}}
                                             <span class="badge bg-warning">Menunggu</span>
                                         {{else if eq .ApprovalStatus "rejected"}}
                                             <span class="badge bg-danger">Ditolak</span>
+                                            {{if .RejectedAt}}
+                                            <br><small class="text-muted">{{.RejectedAt.Format "02 Jan 2006"}}</small>
+                                            {{end}}
                                         {{else}}
                                             <span class="badge bg-info">Draft</span>
                                         {{end}}
@@ -148,35 +154,19 @@
             </div>
             {{else}}
             <!-- Empty State -->
-            <div class="text-center py-5">
-                <div class="mb-4">
-                    <i class="fas fa-briefcase fa-4x text-muted"></i>
-                </div>
-                <h4 class="text-muted mb-3">Belum Ada Bisnis Terdaftar</h4>
-                <p class="text-muted mb-4">Mulai dengan membuat bisnis pertama Anda untuk mendapatkan pendanaan syariah</p>
-                
-                <!-- Info Alert -->
-                <div class="alert alert-info mx-auto" style="max-width: 500px;">
-                    <div class="d-flex align-items-start">
-                        <i class="fas fa-info-circle me-2 mt-1"></i>
-                        <div class="text-start">
-                            <strong>Informasi:</strong><br>
-                            <small>
-                                • Jika Anda baru saja membuat bisnis, mungkin perlu beberapa saat untuk muncul<br>
-                                • Bisnis akan ditampilkan setelah diproses oleh sistem<br>
-                                • Refresh halaman ini dalam beberapa menit
-                            </small>
-                        </div>
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-briefcase fa-4x text-muted"></i>
                     </div>
-                </div>
-
-                <div class="mt-4">
-                    <a href="/business/create" class="btn btn-success btn-lg me-3">
-                        <i class="fas fa-plus me-2"></i>Buat Bisnis Baru
-                    </a>
-                    <button onclick="window.location.reload()" class="btn btn-outline-primary btn-lg">
-                        <i class="fas fa-sync-alt me-2"></i>Refresh
-                    </button>
+                    <h4 class="text-muted mb-3">Bisnis tidak ditemukan. Silakan tambah bisnis anda terlebih dahulu.</h4>
+                    <p class="text-muted mb-4">Mulai dengan membuat bisnis pertama Anda untuk mendapatkan pendanaan syariah</p>
+                    
+                    <div class="mt-4">
+                        <a href="/business/create" class="btn btn-success btn-lg">
+                            <i class="fas fa-plus me-2"></i>Buat Bisnis Baru
+                        </a>
+                    </div>
                 </div>
             </div>
             {{end}}
@@ -185,6 +175,25 @@
 </div>
 
 <script>
+// Toast notification function
+function showToast(message, type) {
+    const toastClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const toastHtml = `
+        <div class="alert ${toastClass} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3" role="alert" style="z-index: 9999;">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', toastHtml);
+    
+    setTimeout(() => {
+        const toast = document.querySelector('.alert');
+        if (toast) {
+            toast.remove();
+        }
+    }, 3000);
+}
+
 // Submit business for approval
 async function submitForApproval(businessId) {
     if (!confirm('Apakah Anda yakin ingin mengajukan bisnis ini untuk persetujuan?')) {

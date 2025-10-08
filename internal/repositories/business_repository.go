@@ -33,8 +33,9 @@ func NewBusinessRepository(shardMgr *database.ShardManager) BusinessRepository {
 
 // Helper function to scan a business row with all fields
 func scanBusinessRow(rows *sql.Rows) (*entities.BusinessExtended, error) {
+	fmt.Printf("DEBUG: scanBusinessRow called with updated function\n")
 	var business entities.BusinessExtended
-	var scannedDocumentsJSON []byte
+	var scannedDocumentsJSON, metadataJSON, performanceMetricsJSON, complianceStatusJSON []byte
 	var approvedBy, approvedAt, rejectionReason sql.NullString
 
 	err := rows.Scan(
@@ -46,7 +47,7 @@ func scanBusinessRow(rows *sql.Rows) (*entities.BusinessExtended, error) {
 		&business.EmployeeCount, &business.AnnualRevenue, &business.Currency,
 		&business.BankAccount, &business.BusinessLicense, &scannedDocumentsJSON,
 		&business.Status, &business.ApprovalStatus, &approvedBy, &approvedAt, &rejectionReason,
-		&business.Metadata, &business.PerformanceMetrics, &business.ComplianceStatus,
+		&metadataJSON, &performanceMetricsJSON, &complianceStatusJSON,
 		&business.IsActive, &business.CreatedAt, &business.UpdatedAt,
 	)
 	if err != nil {
@@ -56,6 +57,15 @@ func scanBusinessRow(rows *sql.Rows) (*entities.BusinessExtended, error) {
 	// Handle JSON fields
 	if len(scannedDocumentsJSON) > 0 {
 		json.Unmarshal(scannedDocumentsJSON, &business.Documents)
+	}
+	if len(metadataJSON) > 0 {
+		json.Unmarshal(metadataJSON, &business.Metadata)
+	}
+	if len(performanceMetricsJSON) > 0 {
+		json.Unmarshal(performanceMetricsJSON, &business.PerformanceMetrics)
+	}
+	if len(complianceStatusJSON) > 0 {
+		json.Unmarshal(complianceStatusJSON, &business.ComplianceStatus)
 	}
 
 	// Handle nullable UUID and timestamp fields
@@ -169,6 +179,7 @@ func (r *businessRepository) Create(ctx context.Context, business *entities.Busi
 }
 
 func (r *businessRepository) GetByID(ctx context.Context, id uuid.UUID) (*entities.BusinessExtended, error) {
+	fmt.Printf("DEBUG: GetByID called for business ID: %s\n", id.String())
 	_, shardIndex, err := r.shardMgr.GetShardByID(id.String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to get shard for business ID %s: %w", id.String(), err)

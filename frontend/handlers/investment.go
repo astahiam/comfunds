@@ -91,7 +91,7 @@ func (h *Handler) PortfolioPage(c *fiber.Ctx) error {
 		return c.Status(403).Render("error", fiber.Map{
 			"Code":    403,
 			"Message": "Investor role required to view portfolio",
-		})
+		}, "base")
 	}
 
 	// Get portfolio data
@@ -138,7 +138,7 @@ func (h *Handler) InvestmentDetailPage(c *fiber.Ctx) error {
 		return c.Status(404).Render("error", fiber.Map{
 			"Code":    404,
 			"Message": "Investment not found",
-		})
+		}, "base")
 	}
 
 	var investment models.Investment
@@ -165,7 +165,7 @@ func (h *Handler) ProjectInvestmentPage(c *fiber.Ctx) error {
 		return c.Status(403).Render("error", fiber.Map{
 			"Code":    403,
 			"Message": "Investor role required to make investments",
-		})
+		}, "base")
 	}
 
 	// Get project details
@@ -174,7 +174,7 @@ func (h *Handler) ProjectInvestmentPage(c *fiber.Ctx) error {
 		return c.Status(404).Render("error", fiber.Map{
 			"Code":    404,
 			"Message": "Project not found",
-		})
+		}, "base")
 	}
 
 	var project models.Project
@@ -189,7 +189,7 @@ func (h *Handler) ProjectInvestmentPage(c *fiber.Ctx) error {
 		return c.Status(403).Render("error", fiber.Map{
 			"Code":    403,
 			"Message": "This project is not currently accepting investments",
-		})
+		}, "base")
 	}
 
 	return c.Render("investments/invest", fiber.Map{

@@ -68,11 +68,12 @@
                                 
                                 {{if hasRole .User.Roles "business_owner"}}
                                 <li><a class="dropdown-item" href="/business"><i class="fas fa-briefcase me-2"></i>Bisnis Saya</a></li>
+                                <li><a class="dropdown-item" href="/projects"><i class="fas fa-rocket me-2"></i>Proyek Saya</a></li>
                                 {{end}}
                                 
                                 {{if hasRole .User.Roles "investor"}}
                                 <li><a class="dropdown-item" href="/portfolio"><i class="fas fa-wallet me-2"></i>Portfolio</a></li>
-                                <li><a class="dropdown-item" href="/projects"><i class="fas fa-search me-2"></i>Cari Proyek</a></li>
+                                <li><a class="dropdown-item" href="/projects/public"><i class="fas fa-search me-2"></i>Cari Proyek</a></li>
                                 {{end}}
                                 
                                 {{if hasRole .User.Roles "admin"}}

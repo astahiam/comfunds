@@ -34,6 +34,26 @@ func main() {
 		return false
 	})
 
+	// Add math functions for templates
+	engine.AddFunc("add", func(a, b int) int {
+		return a + b
+	})
+
+	engine.AddFunc("sub", func(a, b int) int {
+		return a - b
+	})
+
+	engine.AddFunc("mul", func(a, b float64) float64 {
+		return a * b
+	})
+
+	engine.AddFunc("div", func(a, b float64) float64 {
+		if b == 0 {
+			return 0
+		}
+		return a / b
+	})
+
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
 		Views: engine,
@@ -94,6 +114,10 @@ func main() {
 func setupRoutes(app *fiber.App, authHandler, dashboardHandler, adminHandler, cooperativeHandler, projectHandler, investmentHandler, businessHandler *handlers.Handler) {
 	// Public routes with optional authentication
 	app.Get("/", middleware.OptionalAuthMiddleware, handlers.LandingPage)
+	app.Get("/tentang-kami", middleware.OptionalAuthMiddleware, handlers.AboutPage)
+	app.Get("/info-pembiayaan", middleware.OptionalAuthMiddleware, handlers.InfoPembiayaanPage)
+	app.Get("/ajukan-pembiayaan", middleware.OptionalAuthMiddleware, handlers.AjukanPembiayaanPage)
+	app.Get("/kisah-sukses", middleware.OptionalAuthMiddleware, handlers.KisahSuksesPage)
 	app.Get("/login", middleware.OptionalAuthMiddleware, authHandler.LoginPage)
 	app.Get("/register", middleware.OptionalAuthMiddleware, authHandler.RegisterPage)
 	app.Post("/api/auth/login", authHandler.Login)
@@ -129,6 +153,7 @@ func setupRoutes(app *fiber.App, authHandler, dashboardHandler, adminHandler, co
 		protected.Get("/business/create", middleware.RequireBusinessOwner, businessHandler.CreateBusinessPage)
 		protected.Post("/api/businesses", middleware.RequireBusinessOwner, businessHandler.CreateBusiness)
 		protected.Get("/business/:id", businessHandler.BusinessDetail)
+		protected.Get("/business/:id/edit", middleware.RequireBusinessOwner, businessHandler.EditBusinessPage)
 		protected.Put("/api/businesses/:id", middleware.RequireBusinessOwner, businessHandler.UpdateBusiness)
 		protected.Post("/api/businesses/:id/submit-approval", middleware.RequireBusinessOwner, businessHandler.SubmitBusinessForApproval)
 	}
@@ -145,6 +170,7 @@ func setupRoutes(app *fiber.App, authHandler, dashboardHandler, adminHandler, co
 		admin.Get("/investments", adminHandler.InvestmentsPage)
 		admin.Post("/api/cooperatives/:id/approve", adminHandler.ApproveCooperative)
 		admin.Post("/api/projects/:id/approve", adminHandler.ApproveProject)
+		admin.Post("/api/projects/:id/reject", adminHandler.RejectProject)
 		admin.Post("/api/businesses/:id/approve", adminHandler.ApproveBusiness)
 		admin.Post("/api/businesses/:id/reject", adminHandler.RejectBusiness)
 		admin.Post("/api/investments/:id/approve", adminHandler.ApproveInvestment)

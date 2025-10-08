@@ -7,31 +7,36 @@ import (
 )
 
 type Project struct {
-	ID                uuid.UUID  `json:"id" db:"id"`
-	Title             string     `json:"title" db:"title"`
-	Description       string     `json:"description" db:"description"`
-	TargetAmount      float64    `json:"target_amount" db:"target_amount"`
-	RaisedAmount      float64    `json:"raised_amount" db:"raised_amount"`
-	MinInvestment     float64    `json:"min_investment" db:"min_investment"`
-	Category          string     `json:"category" db:"category"`
-	Status            string     `json:"status" db:"status"` // pending_approval, approved, active, completed, cancelled
-	RiskLevel         string     `json:"risk_level" db:"risk_level"` // Low, Medium, High
-	InvestmentPeriod  int        `json:"investment_period" db:"investment_period"` // months
-	ExpectedReturn    string     `json:"expected_return" db:"expected_return"`
-	ShariaCompliant   bool       `json:"sharia_compliant" db:"sharia_compliant"`
-	BusinessID        uuid.UUID  `json:"business_id" db:"business_id"`
-	OwnerID           uuid.UUID  `json:"owner_id" db:"owner_id"`
-	CooperativeID     uuid.UUID  `json:"cooperative_id" db:"cooperative_id"`
-	ApprovedBy        *uuid.UUID `json:"approved_by" db:"approved_by"`
-	ApprovedAt        *time.Time `json:"approved_at" db:"approved_at"`
-	StartDate         *time.Time `json:"start_date" db:"start_date"`
-	EndDate           *time.Time `json:"end_date" db:"end_date"`
-	ProjectImage1     *string    `json:"project_image_1" db:"project_image_1"`
-	ProjectImage2     *string    `json:"project_image_2" db:"project_image_2"`
-	ProjectImage3     *string    `json:"project_image_3" db:"project_image_3"`
-	IsActive          bool       `json:"is_active" db:"is_active"`
-	CreatedAt         time.Time  `json:"created_at" db:"created_at"`
-	UpdatedAt         time.Time  `json:"updated_at" db:"updated_at"`
+	ID               uuid.UUID  `json:"id" db:"id"`
+	Title            string     `json:"title" db:"title"`
+	Description      string     `json:"description" db:"description"`
+	TargetAmount     float64    `json:"target_amount" db:"target_amount"`
+	RaisedAmount     float64    `json:"raised_amount" db:"raised_amount"`
+	MinInvestment    float64    `json:"min_investment" db:"min_investment"`
+	Category         string     `json:"category" db:"category"`
+	Status           string     `json:"status" db:"status"`                       // draft, submitted, approved, active, completed, cancelled
+	ApprovalStatus   string     `json:"approval_status" db:"approval_status"`     // pending, approved, rejected
+	RiskLevel        string     `json:"risk_level" db:"risk_level"`               // Low, Medium, High
+	InvestmentPeriod int        `json:"investment_period" db:"investment_period"` // months
+	ExpectedReturn   string     `json:"expected_return" db:"expected_return"`
+	ShariaCompliant  bool       `json:"sharia_compliant" db:"sharia_compliant"`
+	BusinessID       uuid.UUID  `json:"business_id" db:"business_id"`
+	OwnerID          uuid.UUID  `json:"owner_id" db:"owner_id"`
+	CooperativeID    uuid.UUID  `json:"cooperative_id" db:"cooperative_id"`
+	ApprovedBy       *uuid.UUID `json:"approved_by" db:"approved_by"`
+	ApprovedAt       *time.Time `json:"approved_at" db:"approved_at"`
+	RejectedBy       *uuid.UUID `json:"rejected_by" db:"rejected_by"`
+	RejectedAt       *time.Time `json:"rejected_at" db:"rejected_at"`
+	RejectionReason  *string    `json:"rejection_reason" db:"rejection_reason"`
+	ReviewerComments *string    `json:"reviewer_comments" db:"reviewer_comments"`
+	StartDate        *time.Time `json:"start_date" db:"start_date"`
+	EndDate          *time.Time `json:"end_date" db:"end_date"`
+	ProjectImage1    *string    `json:"project_image_1" db:"project_image_1"`
+	ProjectImage2    *string    `json:"project_image_2" db:"project_image_2"`
+	ProjectImage3    *string    `json:"project_image_3" db:"project_image_3"`
+	IsActive         bool       `json:"is_active" db:"is_active"`
+	CreatedAt        time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt        time.Time  `json:"updated_at" db:"updated_at"`
 }
 
 type CreateProjectRequest struct {
@@ -85,16 +90,16 @@ const (
 
 // ProjectCategory constants
 const (
-	CategoryTechnology         = "Technology"
-	CategoryAgriculture        = "Agriculture"
-	CategoryFoodBeverage       = "Food & Beverage"
-	CategoryRenewableEnergy    = "Renewable Energy"
-	CategoryCommunityDev       = "Community Development"
-	CategoryEducation          = "Education"
-	CategoryHealthcare         = "Healthcare"
-	CategoryManufacturing      = "Manufacturing"
-	CategoryRetail             = "Retail"
-	CategoryServices           = "Services"
+	CategoryTechnology      = "Technology"
+	CategoryAgriculture     = "Agriculture"
+	CategoryFoodBeverage    = "Food & Beverage"
+	CategoryRenewableEnergy = "Renewable Energy"
+	CategoryCommunityDev    = "Community Development"
+	CategoryEducation       = "Education"
+	CategoryHealthcare      = "Healthcare"
+	CategoryManufacturing   = "Manufacturing"
+	CategoryRetail          = "Retail"
+	CategoryServices        = "Services"
 )
 
 // RiskLevel constants

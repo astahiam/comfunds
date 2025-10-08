@@ -1,0 +1,367 @@
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/dashboard" class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Profil Saya</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-1">Profil Saya</h1>
+            <p class="text-muted mb-0">Kelola informasi profil dan pengaturan akun Anda</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Profile Information Card -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <div class="position-relative d-inline-block">
+                            <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px; font-size: 2.5rem;">
+                                {{if .User.Name}}
+                                    {{slice .User.Name 0 1}}
+                                {{else}}
+                                    <i class="fas fa-user"></i>
+                                {{end}}
+                            </div>
+                        </div>
+                    </div>
+                    <h5 class="card-title mb-1">{{.User.Name}}</h5>
+                    <p class="text-muted mb-3">{{.User.Email}}</p>
+                    
+                    <!-- Roles Badges -->
+                    <div class="mb-3">
+                        {{range .User.Roles}}
+                            {{if eq . "admin"}}
+                                <span class="badge bg-danger me-1">Admin</span>
+                            {{else if eq . "business_owner"}}
+                                <span class="badge bg-success me-1">Pemilik Bisnis</span>
+                            {{else if eq . "investor"}}
+                                <span class="badge bg-primary me-1">Investor</span>
+                            {{else if eq . "cooperative_admin"}}
+                                <span class="badge bg-warning me-1">Admin Koperasi</span>
+                            {{else if eq . "member"}}
+                                <span class="badge bg-info me-1">Anggota</span>
+                            {{end}}
+                        {{end}}
+                    </div>
+
+                    <!-- KYC Status -->
+                    <div class="alert alert-sm {{if eq .User.KYCStatus "approved"}}alert-success{{else if eq .User.KYCStatus "pending"}}alert-warning{{else}}alert-info{{end}}">
+                        <small>
+                            <i class="fas fa-id-card me-1"></i>
+                            Status KYC: 
+                            {{if eq .User.KYCStatus "approved"}}
+                                <strong>Terverifikasi</strong>
+                            {{else if eq .User.KYCStatus "pending"}}
+                                <strong>Menunggu Verifikasi</strong>
+                            {{else}}
+                                <strong>Belum Diverifikasi</strong>
+                            {{end}}
+                        </small>
+                    </div>
+
+                    <!-- Account Status -->
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                        <small class="text-muted">Status Akun</small>
+                        <span class="badge bg-success">Aktif</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6 class="card-title mb-3">
+                        <i class="fas fa-bolt text-warning me-2"></i>Aksi Cepat
+                    </h6>
+                    <div class="d-grid gap-2">
+                        <a href="/dashboard" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-home me-2"></i>Dashboard
+                        </a>
+                        {{if .User.Roles}}
+                            {{range .User.Roles}}
+                                {{if eq . "business_owner"}}
+                                    <a href="/business" class="btn btn-outline-success btn-sm">
+                                        <i class="fas fa-briefcase me-2"></i>Bisnis Saya
+                                    </a>
+                                {{else if eq . "investor"}}
+                                    <a href="/portfolio" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-chart-line me-2"></i>Portfolio
+                                    </a>
+                                {{end}}
+                            {{end}}
+                        {{end}}
+                        <button class="btn btn-outline-danger btn-sm" onclick="showPasswordChangeModal()">
+                            <i class="fas fa-key me-2"></i>Ubah Password
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Details Form -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-edit me-2 text-success"></i>Informasi Profil
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="profileForm">
+                        <!-- Name -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{.User.Name}}" required>
+                            <div class="form-text">Nama lengkap sesuai KTP</div>
+                        </div>
+
+                        <!-- Email (Read-only) -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" value="{{.User.Email}}" disabled>
+                            <div class="form-text">Email tidak dapat diubah</div>
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Nomor Telepon</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" value="{{.User.Phone}}" placeholder="+62-xxx-xxxx-xxxx">
+                            <div class="form-text">Format: +62-xxx-xxxx-xxxx</div>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Alamat Lengkap</label>
+                            <textarea class="form-control" id="address" name="address" rows="3" placeholder="Masukkan alamat lengkap Anda">{{.User.Address}}</textarea>
+                            <div class="form-text">Alamat sesuai KTP atau tempat tinggal saat ini</div>
+                        </div>
+
+                        <!-- Cooperative (Read-only) -->
+                        {{if .User.CooperativeID}}
+                        <div class="mb-3">
+                            <label class="form-label">Koperasi</label>
+                            <div class="alert alert-info mb-0">
+                                <i class="fas fa-users me-2"></i>
+                                Anda terdaftar di: <strong>{{.User.CooperativeID}}</strong>
+                            </div>
+                        </div>
+                        {{end}}
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-2"></i>Simpan Perubahan
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                                <i class="fas fa-undo me-2"></i>Batal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Account Information -->
+            <div class="card mt-3">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2 text-primary"></i>Informasi Akun
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">ID Pengguna</label>
+                            <p class="mb-0 text-muted"><small>{{.User.ID}}</small></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Status Akun</label>
+                            <p class="mb-0">
+                                {{if .User.IsActive}}
+                                    <span class="badge bg-success">Aktif</span>
+                                {{else}}
+                                    <span class="badge bg-danger">Tidak Aktif</span>
+                                {{end}}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Security Notice -->
+                    <div class="alert alert-warning mt-3">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-shield-alt me-2 mt-1"></i>
+                            <div>
+                                <strong>Keamanan Akun</strong><br>
+                                <small>
+                                    • Jangan bagikan password Anda kepada siapapun<br>
+                                    • Gunakan password yang kuat dan unik<br>
+                                    • Aktifkan two-factor authentication jika tersedia
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Password Change Modal -->
+<div class="modal fade" id="passwordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-key me-2 text-success"></i>Ubah Password
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="passwordForm">
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">Password Lama <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="currentPassword" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">Password Baru <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="newPassword" required minlength="8">
+                        <div class="form-text">Minimal 8 karakter</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Konfirmasi Password Baru <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="confirmPassword" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-success" onclick="changePassword()">
+                    <i class="fas fa-save me-2"></i>Simpan Password
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Toast notification function
+function showToast(message, type) {
+    const toastClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const toastHtml = `
+        <div class="alert ${toastClass} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3" role="alert" style="z-index: 9999;">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', toastHtml);
+    
+    setTimeout(() => {
+        const toast = document.querySelector('.alert');
+        if (toast) {
+            toast.remove();
+        }
+    }, 3000);
+}
+
+// Handle profile form submission
+document.getElementById('profileForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = {
+        name: formData.get('name'),
+        phone: formData.get('phone'),
+        address: formData.get('address')
+    };
+
+    try {
+        const response = await fetch('/api/profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            showToast('Profil berhasil diperbarui', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showToast(result.message || 'Gagal memperbarui profil', 'error');
+        }
+    } catch (error) {
+        console.error('Update profile error:', error);
+        showToast('Terjadi kesalahan saat memperbarui profil', 'error');
+    }
+});
+
+// Reset form to original values
+function resetForm() {
+    document.getElementById('profileForm').reset();
+    showToast('Perubahan dibatalkan', 'info');
+}
+
+// Show password change modal
+function showPasswordChangeModal() {
+    const modal = new bootstrap.Modal(document.getElementById('passwordModal'));
+    modal.show();
+}
+
+// Change password
+async function changePassword() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    // Validation
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        showToast('Semua field harus diisi', 'error');
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        showToast('Password baru dan konfirmasi password tidak cocok', 'error');
+        return;
+    }
+
+    if (newPassword.length < 8) {
+        showToast('Password baru minimal 8 karakter', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/auth/change-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                current_password: currentPassword,
+                new_password: newPassword
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            showToast('Password berhasil diubah', 'success');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
+            modal.hide();
+            document.getElementById('passwordForm').reset();
+        } else {
+            showToast(result.message || 'Gagal mengubah password', 'error');
+        }
+    } catch (error) {
+        console.error('Change password error:', error);
+        showToast('Terjadi kesalahan saat mengubah password', 'error');
+    }
+}
+</script>
