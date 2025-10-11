@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"time"
+	
 	"hajifund-frontend/models"
 	"hajifund-frontend/utils"
 
@@ -248,6 +250,13 @@ func parseInvestmentFromAPI(investmentMap map[string]interface{}) models.Investm
 	}
 	if returnAmount, ok := investmentMap["return_amount"].(float64); ok {
 		investment.ReturnAmount = returnAmount
+	}
+
+	// Parse investment date
+	if investmentDateStr, ok := investmentMap["investment_date"].(string); ok && investmentDateStr != "" {
+		if t, err := time.Parse(time.RFC3339, investmentDateStr); err == nil {
+			investment.InvestmentDate = &t
+		}
 	}
 
 	// Parse project information if available

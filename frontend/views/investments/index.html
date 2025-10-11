@@ -1,0 +1,245 @@
+{{define "content"}}
+<div class="container py-5">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5 fw-bold text-success">
+                <i class="fas fa-chart-line me-3"></i>Investasi Saya
+            </h1>
+            <p class="lead text-muted">Kelola dan pantau investasi Anda</p>
+        </div>
+    </div>
+
+    <!-- Portfolio Summary Cards -->
+    <div class="row mb-5">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="display-6 text-primary mb-2">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <h3 class="fw-bold text-success mb-1">Rp {{printf "%.0f" .TotalInvested}}</h3>
+                    <p class="text-muted mb-0">Total Investasi</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="display-6 text-info mb-2">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="fw-bold text-info mb-1">Rp {{printf "%.0f" .TotalReturns}}</h3>
+                    <p class="text-muted mb-0">Total Return</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="display-6 text-warning mb-2">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h3 class="fw-bold text-warning mb-1">{{if .Investments}}{{len .Investments}}{{else}}0{{end}}</h3>
+                    <p class="text-muted mb-0">Proyek Aktif</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="display-6 text-success mb-2">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <h3 class="fw-bold text-success mb-1">
+                        {{if and .TotalInvested (gt .TotalInvested 0)}}
+                            {{printf "%.1f" (mul (div .TotalReturns .TotalInvested) 100)}}%
+                        {{else}}
+                            0.0%
+                        {{end}}
+                    </h3>
+                    <p class="text-muted mb-0">ROI</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex gap-3">
+                <a href="/projects/public" class="btn btn-success">
+                    <i class="fas fa-search me-2"></i>Cari Proyek Baru
+                </a>
+                <a href="/portfolio" class="btn btn-outline-primary">
+                    <i class="fas fa-chart-pie me-2"></i>Lihat Portfolio Detail
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Investments List -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+            <h3 class="mb-0">
+                <i class="fas fa-list me-2 text-success"></i>Daftar Investasi
+            </h3>
+        </div>
+        <div class="card-body">
+            {{if .Investments}}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Proyek</th>
+                                <th>Jumlah Investasi</th>
+                                <th>Tanggal</th>
+                                <th>Status</th>
+                                <th>Return</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{range .Investments}}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <i class="fas fa-project-diagram fa-2x text-primary"></i>
+                                        </div>
+                                        <div>
+                                            {{if .Project}}
+                                                <h6 class="mb-0">{{.Project.Title}}</h6>
+                                                <small class="text-muted">{{.Project.Category}}</small>
+                                            {{else}}
+                                                <h6 class="mb-0">Project ID: {{.ProjectID}}</h6>
+                                                <small class="text-muted">Loading...</small>
+                                            {{end}}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong class="text-success">Rp {{printf "%.0f" .Amount}}</strong>
+                                </td>
+                                <td>
+                                    <small>{{if .InvestmentDate}}{{.InvestmentDate.Format "02 Jan 2006"}}{{else}}-{{end}}</small>
+                                </td>
+                                <td>
+                                    {{if eq .Status "pending"}}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {{else if eq .Status "active"}}
+                                        <span class="badge bg-success">Aktif</span>
+                                    {{else if eq .Status "completed"}}
+                                        <span class="badge bg-info">Selesai</span>
+                                    {{else if eq .Status "cancelled"}}
+                                        <span class="badge bg-danger">Dibatalkan</span>
+                                    {{else}}
+                                        <span class="badge bg-secondary">{{.Status}}</span>
+                                    {{end}}
+                                </td>
+                                <td>
+                                    {{if .ReturnAmount}}
+                                        <span class="text-success">+Rp {{printf "%.0f" .ReturnAmount}}</span>
+                                    {{else}}
+                                        <span class="text-muted">-</span>
+                                    {{end}}
+                                </td>
+                                <td>
+                                    <a href="/investments/{{.ID}}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye me-1"></i>Detail
+                                    </a>
+                                </td>
+                            </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
+                </div>
+            {{else}}
+                <!-- Empty State -->
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-chart-line fa-5x text-muted"></i>
+                    </div>
+                    <h4 class="text-muted mb-3">Belum Ada Investasi</h4>
+                    <p class="text-muted mb-4">
+                        Mulai investasi Anda sekarang dan dapatkan keuntungan yang berkah!
+                    </p>
+                    <a href="/projects/public" class="btn btn-success btn-lg">
+                        <i class="fas fa-search me-2"></i>Cari Proyek untuk Diinvestasikan
+                    </a>
+                </div>
+            {{end}}
+        </div>
+    </div>
+
+    <!-- Investment Tips -->
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-success mb-3">
+                        <i class="fas fa-lightbulb fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold">Tips Investasi</h5>
+                    <p class="text-muted mb-0">Diversifikasi portfolio Anda dengan berinvestasi di beberapa proyek untuk mengurangi risiko.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-info mb-3">
+                        <i class="fas fa-shield-alt fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold">Investasi Syariah</h5>
+                    <p class="text-muted mb-0">Semua investasi di platform kami mengikuti prinsip syariah dengan akad Mudharabah.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-warning mb-3">
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold">Pantau Berkala</h5>
+                    <p class="text-muted mb-0">Pantau perkembangan investasi Anda secara berkala untuk memaksimalkan return.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.table tbody tr {
+    transition: background-color 0.2s;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+@media (max-width: 768px) {
+    .col-md-3 {
+        margin-bottom: 1rem;
+    }
+}
+</style>
+{{end}}
+

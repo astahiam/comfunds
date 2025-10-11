@@ -10,6 +10,7 @@ type Investment struct {
 	Currency       string     `json:"currency"`
 	Status         string     `json:"status"`
 	ApprovalStatus string     `json:"approval_status"`
+	InvestmentDate *time.Time `json:"investment_date"`
 	ReturnAmount   float64    `json:"return_amount"`
 	ReturnDate     *time.Time `json:"return_date"`
 	CreatedAt      time.Time  `json:"created_at"`
