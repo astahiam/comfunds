@@ -66,12 +66,22 @@ func (h *Handler) UserInvestmentsPage(c *fiber.Ctx) error {
 	// Get user's investments
 	investmentsResp, err := utils.MakeAPIRequest("GET", "/api/v1/investments/my-investments", nil, utils.GetAuthHeaders(getTokenFromContext(c)))
 	var userInvestments []models.Investment
-	if err == nil && investmentsResp.Data != nil {
+	if err != nil {
+		// Log error but continue to show empty state
+		println("Error fetching investments:", err.Error())
+	} else if investmentsResp != nil && investmentsResp.Data != nil {
 		if data, ok := investmentsResp.Data.(map[string]interface{}); ok {
 			if investmentData, ok := data["investments"].([]interface{}); ok {
 				userInvestments = parseInvestmentsFromAPI(investmentData)
+				println("Parsed", len(userInvestments), "investments")
+			} else {
+				println("No 'investments' array in response data")
 			}
+		} else {
+			println("Response data is not a map")
 		}
+	} else {
+		println("No response data")
 	}
 
 	// Calculate portfolio summary
@@ -233,6 +243,17 @@ func (h *Handler) GetInvestmentLimits(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(resp)
+}
+
+// Helper function to parse multiple investments from API
+func parseInvestmentsFromAPI(investmentsData []interface{}) []models.Investment {
+	investments := make([]models.Investment, 0, len(investmentsData))
+	for _, investmentData := range investmentsData {
+		if investmentMap, ok := investmentData.(map[string]interface{}); ok {
+			investments = append(investments, parseInvestmentFromAPI(investmentMap))
+		}
+	}
+	return investments
 }
 
 // Helper function to parse single investment from API

@@ -286,35 +286,6 @@ func parseBusinessesFromAPI(businessesData []interface{}) []models.Business {
 	return businesses
 }
 
-func parseInvestmentsFromAPI(investmentsData []interface{}) []models.Investment {
-	investments := make([]models.Investment, len(investmentsData))
-	for i, inv := range investmentsData {
-		if invMap, ok := inv.(map[string]interface{}); ok {
-			investment := models.Investment{
-				ID:         getStringValueFromMap(invMap, "id"),
-				ProjectID:  getStringValueFromMap(invMap, "project_id"),
-				InvestorID: getStringValueFromMap(invMap, "investor_id"),
-				Status:     getStringValueFromMap(invMap, "status"),
-				Currency:   getStringValueFromMap(invMap, "currency"),
-			}
-			if amount, ok := invMap["amount"].(float64); ok {
-				investment.Amount = amount
-			}
-			if returnAmount, ok := invMap["return_amount"].(float64); ok {
-				investment.ReturnAmount = returnAmount
-			}
-			// Parse created_at
-			if createdAt, ok := invMap["created_at"].(string); ok {
-				if t, err := parseProjectTime(createdAt); err == nil {
-					investment.CreatedAt = t
-				}
-			}
-			investments[i] = investment
-		}
-	}
-	return investments
-}
-
 func parseProjectTime(timeStr string) (time.Time, error) {
 	layouts := []string{
 		time.RFC3339,
