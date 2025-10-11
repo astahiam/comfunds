@@ -34,7 +34,7 @@
 
     <!-- Search and Filter -->
     <div class="row mb-4">
-        <div class="col-lg-8 mx-auto">
+        <div class="col-lg-10 mx-auto">
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     <div class="row g-3">
@@ -51,6 +51,7 @@
                             <select class="form-select" id="filterCategory">
                                 <option value="">Semua Kategori</option>
                                 <option value="Technology">Teknologi</option>
+                                <option value="Manufacturing">Manufaktur</option>
                                 <option value="Agriculture">Pertanian</option>
                                 <option value="Retail">Retail</option>
                                 <option value="Food">Makanan & Minuman</option>
@@ -78,27 +79,22 @@
         <div class="col-lg-4 col-md-6 mb-4 project-card" 
              data-category="{{.Category}}" 
              data-target="{{.TargetAmount}}"
-             data-title="{{.Title}}"
-             data-description="{{.Description}}">
+             data-title="{{.Title}}">
             <div class="card h-100 border-0 shadow-sm hover-lift">
-                <div class="card-body d-flex flex-column">
+                <div class="card-body">
                     <!-- Category Badge -->
                     <div class="mb-3">
                         <span class="badge bg-success">{{.Category}}</span>
-                        {{if eq .ApprovalStatus "approved"}}
                         <span class="badge bg-primary">
                             <i class="fas fa-check-circle me-1"></i>Disetujui
                         </span>
-                        {{end}}
                     </div>
 
                     <!-- Title -->
                     <h5 class="card-title mb-3">{{.Title}}</h5>
                     
                     <!-- Description -->
-                    <p class="card-text text-muted mb-3" style="min-height: 60px;">
-                        {{.Description}}
-                    </p>
+                    <p class="card-text text-muted mb-3">{{.Description}}</p>
 
                     <!-- Progress Bar -->
                     <div class="mb-3">
@@ -130,11 +126,9 @@
                     </div>
 
                     <!-- Action Button -->
-                    <div class="mt-auto">
-                        <a href="/projects/{{.ID}}" class="btn btn-success w-100">
-                            <i class="fas fa-eye me-2"></i>Lihat Detail
-                        </a>
-                    </div>
+                    <a href="/projects/{{.ID}}" class="btn btn-success w-100">
+                        <i class="fas fa-eye me-2"></i>Lihat Detail
+                    </a>
                 </div>
             </div>
         </div>
@@ -151,33 +145,17 @@
                         Proyek investasi akan muncul di sini setelah disetujui oleh admin.<br>
                         Silakan cek kembali nanti atau hubungi kami untuk informasi lebih lanjut.
                     </p>
-                    {{if .User}}
-                        {{if hasRole .User.Roles "business_owner"}}
-                        <a href="/projects/create" class="btn btn-success btn-lg">
-                            <i class="fas fa-plus me-2"></i>Buat Proyek Pertama
-                        </a>
-                        {{end}}
-                    {{else}}
-                    <div>
-                        <a href="/register" class="btn btn-primary me-2">
-                            <i class="fas fa-user-plus me-2"></i>Daftar Sebagai Investor
-                        </a>
-                        <a href="/login" class="btn btn-outline-primary">
-                            <i class="fas fa-sign-in-alt me-2"></i>Masuk
-                        </a>
-                    </div>
-                    {{end}}
                 </div>
             </div>
         </div>
         {{end}}
     </div>
 
-    <!-- Call to Action -->
+    <!-- Call to Action for Guests -->
     {{if not .User}}
     <div class="row mt-5">
         <div class="col-lg-8 mx-auto">
-            <div class="card border-0 shadow-lg bg-gradient text-white" 
+            <div class="card border-0 shadow-lg text-white" 
                  style="background: linear-gradient(135deg, #059669, #10b981);">
                 <div class="card-body text-center py-5">
                     <h3 class="mb-3">Siap Memulai Investasi Syariah?</h3>
@@ -208,18 +186,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const projectCards = document.querySelectorAll('.project-card');
 
     function filterProjects() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const selectedCategory = categoryFilter.value;
-        const selectedTarget = targetFilter.value;
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const selectedCategory = categoryFilter ? categoryFilter.value : '';
+        const selectedTarget = targetFilter ? targetFilter.value : '';
 
         projectCards.forEach(card => {
-            const title = card.dataset.title.toLowerCase();
-            const description = card.dataset.description.toLowerCase();
-            const category = card.dataset.category;
-            const target = parseFloat(card.dataset.target);
+            const title = card.dataset.title ? card.dataset.title.toLowerCase() : '';
+            const category = card.dataset.category || '';
+            const target = parseFloat(card.dataset.target) || 0;
 
             // Search filter
-            const matchesSearch = title.includes(searchTerm) || description.includes(searchTerm);
+            const matchesSearch = !searchTerm || title.includes(searchTerm);
 
             // Category filter
             const matchesCategory = !selectedCategory || category === selectedCategory;
@@ -241,9 +218,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Event listeners
-    searchInput.addEventListener('input', filterProjects);
-    categoryFilter.addEventListener('change', filterProjects);
-    targetFilter.addEventListener('change', filterProjects);
+    if (searchInput) searchInput.addEventListener('input', filterProjects);
+    if (categoryFilter) categoryFilter.addEventListener('change', filterProjects);
+    if (targetFilter) targetFilter.addEventListener('change', filterProjects);
 });
 </script>
 
@@ -256,10 +233,6 @@ document.addEventListener('DOMContentLoaded', function() {
 .hover-lift:hover {
     transform: translateY(-8px);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15) !important;
-}
-
-.bg-gradient {
-    background: linear-gradient(135deg, #059669, #10b981);
 }
 
 .form-control:focus,
@@ -281,4 +254,3 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 </style>
 {{end}}
-
