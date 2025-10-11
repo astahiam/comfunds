@@ -43,26 +43,28 @@ func LandingPage(c *fiber.Ctx) error {
 							ProjectType:    getStringValue(projectMap["project_type"]),
 							Status:         getStringValue(projectMap["status"]),
 							ApprovalStatus: getStringValue(projectMap["approval_status"]),
+							Category:       getStringValue(projectMap["category"]),
 						}
 
-						// Handle funding amounts
-						if fundingGoal, ok := projectMap["funding_goal"]; ok {
-							if goal, ok := fundingGoal.(float64); ok {
-								project.FundingGoal = goal
-								project.TargetAmount = goal // backward compatibility
+						// Handle target amount (primary field from database)
+						if targetAmount, ok := projectMap["target_amount"]; ok {
+							if amount, ok := targetAmount.(float64); ok {
+								project.TargetAmount = amount
+								project.FundingGoal = amount // backward compatibility
 							}
 						}
 
-						if currentFunding, ok := projectMap["current_funding"]; ok {
-							if current, ok := currentFunding.(float64); ok {
-								project.CurrentFunding = current
-								project.RaisedAmount = current // backward compatibility
+						// Handle raised amount (primary field from database)
+						if raisedAmount, ok := projectMap["raised_amount"]; ok {
+							if amount, ok := raisedAmount.(float64); ok {
+								project.RaisedAmount = amount
+								project.CurrentFunding = amount // backward compatibility
 							}
 						}
 
 						// Calculate funding percentage
-						if project.FundingGoal > 0 {
-							project.FundingPercentage = (project.CurrentFunding / project.FundingGoal) * 100
+						if project.TargetAmount > 0 {
+							project.FundingPercentage = (project.RaisedAmount / project.TargetAmount) * 100
 						}
 
 						// Parse business information if available
