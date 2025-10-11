@@ -31,6 +31,7 @@ type Project struct {
 	Category      string    `json:"category"`
 	TargetAmount  float64   `json:"target_amount"`
 	RaisedAmount  float64   `json:"raised_amount"`
+	MinInvestment float64   `json:"min_investment"`
 	CooperativeID string    `json:"cooperative_id"`
 	StartDate     time.Time `json:"start_date"`
 	EndDate       time.Time `json:"end_date"`

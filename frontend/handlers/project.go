@@ -229,6 +229,12 @@ func parseProjectFromAPI(projectMap map[string]interface{}) models.Project {
 	if minimumFunding, ok := projectMap["minimum_funding"].(float64); ok {
 		project.MinimumFunding = minimumFunding
 	}
+	if minInvestment, ok := projectMap["min_investment"].(float64); ok {
+		project.MinInvestment = minInvestment
+		if project.MinimumFunding == 0 {
+			project.MinimumFunding = minInvestment
+		}
+	}
 
 	// Calculate funding percentage
 	targetForCalc := project.TargetAmount

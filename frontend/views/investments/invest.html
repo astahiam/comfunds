@@ -84,7 +84,7 @@
                                        required>
                             </div>
                             <div class="form-text">
-                                Minimum investasi: <strong id="minAmountDisplay">Rp {{printf "%.0f" .Project.MinInvestment}}</strong>
+                                Minimum investasi: <strong id="minAmountDisplay">Rp {{if .Project.MinInvestment}}{{printf "%.0f" .Project.MinInvestment}}{{else}}{{printf "%.0f" .Project.MinimumFunding}}{{end}}</strong>
                             </div>
                         </div>
 
@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         
         const amount = parseFormattedNumber(amountInput.value);
-        const minAmount = {{.Project.MinInvestment}};
+        const minAmount = {{if .Project.MinInvestment}}{{.Project.MinInvestment}}{{else}}{{.Project.MinimumFunding}}{{end}};
         const signature = document.getElementById('investorSignature').value.trim();
         const date = document.getElementById('signatureDate').value;
         
