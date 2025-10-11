@@ -7,14 +7,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// Helper function to get token from context
-func getTokenFromContext(c *fiber.Ctx) string {
-	if token := c.Get("Authorization"); token != "" {
-		return token
-	}
-	return ""
-}
-
 // Invest handles investment in a project (FR-041 to FR-045)
 func (h *Handler) Invest(c *fiber.Ctx) error {
 	user := c.Locals("user").(*models.User)
