@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"hajifund-frontend/models"
 	"hajifund-frontend/utils"
 
@@ -120,27 +121,56 @@ func (h *Handler) Register(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Invalid request body",
+			"message": "Invalid request body: " + err.Error(),
 		})
 	}
 
+	// Prepare backend request payload
+	backendReq := map[string]interface{}{
+		"name":     req.Name,
+		"email":    req.Email,
+		"password": req.Password,
+		"phone":    req.Phone,
+		"address":  req.Address,
+		"roles":    req.Roles,
+	}
+
+	// Handle cooperative_id conversion (string to UUID or null)
+	if req.CooperativeID != nil && *req.CooperativeID != "" {
+		backendReq["cooperative_id"] = *req.CooperativeID
+	} else {
+		backendReq["cooperative_id"] = nil
+	}
+
 	// Make API request to backend
-	resp, err := utils.MakeAPIRequest("POST", "/api/v1/auth/register", req, nil)
+	resp, err := utils.MakeAPIRequest("POST", "/api/v1/auth/register", backendReq, nil)
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Registration failed",
+			"message": "Registration failed: " + err.Error(),
+		})
+	}
+
+	// Check if backend returned an error
+	if resp.Status != "success" {
+		return c.Status(400).JSON(fiber.Map{
+			"status":  "error",
+			"message": resp.Message,
 		})
 	}
 
 	// Extract user data
 	var authResp models.AuthResponse
 	if data, ok := resp.Data.(map[string]interface{}); ok {
-		authResp.AccessToken = data["access_token"].(string)
-		authResp.User = &models.User{
-			ID:    data["user"].(map[string]interface{})["id"].(string),
-			Email: data["user"].(map[string]interface{})["email"].(string),
-			Name:  data["user"].(map[string]interface{})["name"].(string),
+		if accessToken, ok := data["access_token"].(string); ok {
+			authResp.AccessToken = accessToken
+		}
+		if userData, ok := data["user"].(map[string]interface{}); ok {
+			authResp.User = &models.User{
+				ID:    getStringValue(userData["id"]),
+				Email: getStringValue(userData["email"]),
+				Name:  getStringValue(userData["name"]),
+			}
 		}
 	}
 
@@ -160,6 +190,17 @@ func (h *Handler) Register(c *fiber.Ctx) error {
 		"message":  "Registration successful",
 		"redirect": "/dashboard",
 	})
+}
+
+// Helper function to safely get string values
+func getStringValue(v interface{}) string {
+	if v == nil {
+		return ""
+	}
+	if str, ok := v.(string); ok {
+		return str
+	}
+	return fmt.Sprintf("%v", v)
 }
 
 // Logout handles user logout
