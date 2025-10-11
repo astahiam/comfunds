@@ -97,11 +97,7 @@
                     
                     <!-- Description -->
                     <p class="card-text text-muted mb-3" style="min-height: 60px;">
-                        {{if gt (len .Description) 100}}
-                            {{slice .Description 0 100}}...
-                        {{else}}
-                            {{.Description}}
-                        {{end}}
+                        {{.Description}}
                     </p>
 
                     <!-- Progress Bar -->
