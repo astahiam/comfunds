@@ -595,5 +595,5 @@ footer a:hover {
 .hf-step-number { position: absolute; top: -14px; left: -14px; width: 36px; height: 36px; border-radius: 50%; background: var(--primary-green); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
 .hf-testimonial { background: #fff; border: 1px solid var(--light-gray); border-radius: 16px; padding: 24px; }
 .hf-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--light-gray); }
-.hf-partner-logo { width: 120px; height: 28px; background: #E2E8F0; border-radius: 4px; opacity: .9; }
+.hf-partner-logo { width: 120px; height: 28px; opacity: .9; }
 .hf-cta { background: linear-gradient(135deg, var(--primary-green-dark), var(--primary-green)); }
