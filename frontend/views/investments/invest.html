@@ -76,80 +76,171 @@
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text">Rp</span>
-                                <input type="number" 
+                                <input type="text" 
                                        class="form-control form-control-lg" 
                                        id="amount" 
                                        name="amount"
-                                       min="{{.Project.MinInvestment}}"
-                                       step="100000"
                                        placeholder="Masukkan jumlah investasi"
                                        required>
                             </div>
                             <div class="form-text">
-                                Minimum investasi: <strong>Rp {{printf "%.0f" .Project.MinInvestment}}</strong>
+                                Minimum investasi: <strong id="minAmountDisplay">Rp {{printf "%.0f" .Project.MinInvestment}}</strong>
                             </div>
                         </div>
 
-                        <!-- Investment Terms -->
+                        <!-- Investment Crowdfunding Agreement -->
                         <div class="mb-4">
-                            <h5 class="mb-3">
-                                <i class="fas fa-file-contract text-primary me-2"></i>Ketentuan Investasi
-                            </h5>
+                            <h4 class="mb-4 text-center">
+                                <i class="fas fa-file-contract text-primary me-2"></i>
+                                Investment Crowdfunding Agreement
+                            </h4>
                             
-                            <div class="card bg-light">
+                            <div class="card border">
                                 <div class="card-body">
-                                    <h6 class="card-title">Prinsip Syariah - Profit Sharing</h6>
-                                    <ul class="list-unstyled mb-3">
-                                        <li><i class="fas fa-check text-success me-2"></i>Investasi berdasarkan prinsip <strong>Mudharabah</strong></li>
-                                        <li><i class="fas fa-check text-success me-2"></i>Pembagian keuntungan sesuai kesepakatan</li>
-                                        <li><i class="fas fa-check text-success me-2"></i>Transparansi penuh dalam laporan keuangan</li>
-                                        <li><i class="fas fa-check text-success me-2"></i>Kepatuhan terhadap fatwa DSN-MUI</li>
-                                    </ul>
-                                    
-                                    <h6 class="card-title">Risiko Investasi</h6>
-                                    <ul class="list-unstyled">
-                                        <li><i class="fas fa-exclamation-triangle text-warning me-2"></i>Investasi mengandung risiko kerugian</li>
-                                        <li><i class="fas fa-exclamation-triangle text-warning me-2"></i>Nilai investasi dapat turun atau naik</li>
-                                        <li><i class="fas fa-exclamation-triangle text-warning me-2"></i>Past performance tidak menjamin hasil masa depan</li>
-                                    </ul>
+                                    <!-- I. Project Information -->
+                                    <div class="mb-4">
+                                        <h5 class="text-primary mb-3">I. Project Information</h5>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-2">
+                                                    <strong>Project Name:</strong> <span id="agreementProjectName">{{.Project.Title}}</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-2">
+                                                    <strong>Funding Goal:</strong> <span id="agreementFundingGoal">Rp {{printf "%.0f" .Project.TargetAmount}}</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-2">
+                                                    <strong>Investment Type:</strong> <span class="text-success">Equity (Mudharabah)</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-2">
+                                                    <strong>Price per Share:</strong> <span class="text-success">Rp 100.000</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- II. Investor Information -->
+                                    <div class="mb-4">
+                                        <h5 class="text-primary mb-3">II. Investor Information</h5>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-2">
+                                                    <strong>Investor Name:</strong> <span id="agreementInvestorName">{{.User.Name}}</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-2">
+                                                    <strong>Email:</strong> <span id="agreementInvestorEmail">{{.User.Email}}</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="mb-2">
+                                                    <strong>Address:</strong> <span id="agreementInvestorAddress">{{.User.Address}}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- III. Investment Details -->
+                                    <div class="mb-4">
+                                        <h5 class="text-primary mb-3">III. Investment Details</h5>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="mb-2">
+                                                    <strong>Amount Invested:</strong> <span id="agreementAmount" class="text-success">Rp 0</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-2">
+                                                    <strong>Number of Shares:</strong> <span id="agreementShares" class="text-info">0</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-2">
+                                                    <strong>Price per Share:</strong> <span class="text-success">Rp 100.000</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- IV. Acknowledgement and Signature -->
+                                    <div class="mb-4">
+                                        <h5 class="text-primary mb-3">IV. Acknowledgement and Signature</h5>
+                                        <div class="mb-3">
+                                            <p class="mb-2">
+                                                I acknowledge that this investment is subject to risks, including the potential loss of my entire investment. 
+                                                This investment follows Islamic principles (Mudharabah) and is compliant with Sharia law.
+                                            </p>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="investorSignature" class="form-label fw-semibold">Investor Signature:</label>
+                                                    <input type="text" 
+                                                           class="form-control" 
+                                                           id="investorSignature" 
+                                                           placeholder="Enter your full name as signature"
+                                                           required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="signatureDate" class="form-label fw-semibold">Date:</label>
+                                                    <input type="date" 
+                                                           class="form-control" 
+                                                           id="signatureDate" 
+                                                           required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Agreement Checkboxes -->
+                                    <div class="border-top pt-3">
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                                            <label class="form-check-label" for="agreeTerms">
+                                                Saya menyetujui <a href="/syarat-ketentuan" target="_blank" class="text-success">Syarat dan Ketentuan</a> 
+                                                serta <a href="/kebijakan-privasi" target="_blank" class="text-success">Kebijakan Privasi</a> HajiFund
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="agreeInvestment" required>
+                                            <label class="form-check-label" for="agreeInvestment">
+                                                Saya memahami dan menyetujui ketentuan investasi syariah dengan prinsip profit sharing (Mudharabah)
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="agreeRisk" required>
+                                            <label class="form-check-label" for="agreeRisk">
+                                                Saya memahami bahwa investasi mengandung risiko dan saya siap menanggung risiko tersebut
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Investment Agreement -->
-                        <div class="mb-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="agreeTerms" required>
-                                <label class="form-check-label" for="agreeTerms">
-                                    Saya menyetujui <a href="/syarat-ketentuan" target="_blank" class="text-success">Syarat dan Ketentuan</a> 
-                                    serta <a href="/kebijakan-privasi" target="_blank" class="text-success">Kebijakan Privasi</a> HajiFund
-                                </label>
+                        <!-- Submit Buttons -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-outline-secondary btn-lg w-100" onclick="window.history.back()">
+                                    <i class="fas fa-arrow-left me-2"></i>Kembali
+                                </button>
                             </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="agreeInvestment" required>
-                                <label class="form-check-label" for="agreeInvestment">
-                                    Saya memahami dan menyetujui ketentuan investasi syariah dengan prinsip profit sharing (Mudharabah)
-                                </label>
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-success btn-lg w-100" id="submitBtn">
+                                    <i class="fas fa-hand-holding-usd me-2"></i>Konfirmasi Investasi
+                                </button>
                             </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="agreeRisk" required>
-                                <label class="form-check-label" for="agreeRisk">
-                                    Saya memahami bahwa investasi mengandung risiko dan saya siap menanggung risiko tersebut
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
-                                <i class="fas fa-hand-holding-usd me-2"></i>Konfirmasi Investasi
-                            </button>
                         </div>
                     </form>
                 </div>
@@ -205,25 +296,71 @@ document.addEventListener('DOMContentLoaded', function() {
     const summaryTotal = document.getElementById('summaryTotal');
     const form = document.getElementById('investmentForm');
     const submitBtn = document.getElementById('submitBtn');
+    const agreementAmount = document.getElementById('agreementAmount');
+    const agreementShares = document.getElementById('agreementShares');
+    const signatureDate = document.getElementById('signatureDate');
 
-    // Update summary when amount changes
+    // Set today's date as default
+    signatureDate.value = new Date().toISOString().split('T')[0];
+
+    // Format number with Indonesian format (100.000)
+    function formatNumber(num) {
+        return new Intl.NumberFormat('id-ID').format(num);
+    }
+
+    // Parse number from formatted string
+    function parseFormattedNumber(str) {
+        return parseFloat(str.replace(/\./g, '')) || 0;
+    }
+
+    // Update amount input with formatting
     amountInput.addEventListener('input', function() {
-        const amount = parseFloat(this.value) || 0;
-        const formattedAmount = new Intl.NumberFormat('id-ID').format(amount);
-        
-        summaryAmount.textContent = `Rp ${formattedAmount}`;
-        summaryTotal.textContent = `Rp ${formattedAmount}`;
+        let value = this.value.replace(/[^\d]/g, ''); // Remove non-digits
+        if (value) {
+            const numValue = parseFloat(value);
+            this.value = formatNumber(numValue);
+            updateInvestmentDetails(numValue);
+        } else {
+            this.value = '';
+            updateInvestmentDetails(0);
+        }
     });
+
+    // Update investment details in agreement
+    function updateInvestmentDetails(amount) {
+        const sharePrice = 100000; // Rp 100.000 per share
+        const numberOfShares = Math.floor(amount / sharePrice);
+        
+        // Update summary sidebar
+        summaryAmount.textContent = `Rp ${formatNumber(amount)}`;
+        summaryTotal.textContent = `Rp ${formatNumber(amount)}`;
+        
+        // Update agreement section
+        agreementAmount.textContent = `Rp ${formatNumber(amount)}`;
+        agreementShares.textContent = numberOfShares;
+    }
 
     // Form submission
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const amount = parseFloat(amountInput.value);
+        const amount = parseFormattedNumber(amountInput.value);
         const minAmount = {{.Project.MinInvestment}};
+        const signature = document.getElementById('investorSignature').value.trim();
+        const date = document.getElementById('signatureDate').value;
         
         if (amount < minAmount) {
-            alert(`Jumlah investasi minimum adalah Rp ${new Intl.NumberFormat('id-ID').format(minAmount)}`);
+            alert(`Jumlah investasi minimum adalah Rp ${formatNumber(minAmount)}`);
+            return;
+        }
+
+        if (!signature) {
+            alert('Silakan masukkan tanda tangan investor');
+            return;
+        }
+
+        if (!date) {
+            alert('Silakan pilih tanggal');
             return;
         }
 
