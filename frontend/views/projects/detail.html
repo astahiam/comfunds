@@ -227,9 +227,21 @@
     <div class="row mt-4">
         <div class="col text-end">
             {{if eq .Project.ApprovalStatus "approved"}}
-            <a href="/projects/{{.Project.ID}}/invest" class="btn btn-success btn-lg">
-                <i class="fas fa-hand-holding-usd me-2"></i>Lihat Detail Investasi
-            </a>
+                {{if .User}}
+                    {{if hasRole .User.Roles "investor"}}
+                        <a href="/projects/{{.Project.ID}}/invest" class="btn btn-success btn-lg">
+                            <i class="fas fa-hand-holding-usd me-2"></i>Investasi di Proyek Ini
+                        </a>
+                    {{else}}
+                        <a href="/projects/{{.Project.ID}}/invest" class="btn btn-outline-success btn-lg">
+                            <i class="fas fa-info-circle me-2"></i>Lihat Detail Investasi
+                        </a>
+                    {{end}}
+                {{else}}
+                    <a href="/login" class="btn btn-outline-success btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login untuk Investasi
+                    </a>
+                {{end}}
             {{end}}
         </div>
     </div>

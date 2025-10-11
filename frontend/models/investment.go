@@ -19,9 +19,10 @@ type Investment struct {
 }
 
 type CreateInvestmentRequest struct {
-	ProjectID string  `json:"project_id" validate:"required"`
-	Amount    float64 `json:"amount" validate:"required,gt=0"`
-	Currency  string  `json:"currency" validate:"required"`
+	ProjectID      string  `json:"project_id" validate:"required"`
+	Amount         float64 `json:"amount" validate:"required,gt=0"`
+	Currency       string  `json:"currency" validate:"required"`
+	InvestmentType string  `json:"investment_type" validate:"required"`
 }
 
 type InvestmentListResponse struct {

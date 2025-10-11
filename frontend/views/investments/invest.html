@@ -1,0 +1,312 @@
+<div class="container py-5">
+    <!-- Back Button -->
+    <div class="row mb-4">
+        <div class="col">
+            <a href="/projects/{{.Project.ID}}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Kembali ke Detail Proyek
+            </a>
+        </div>
+    </div>
+
+    <!-- Project Summary Card -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-2">
+                                <i class="fas fa-rocket text-success me-2"></i>
+                                {{.Project.Title}}
+                            </h2>
+                            <p class="text-muted mb-3">{{.Project.Description}}</p>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <div class="fs-4 fw-bold text-success">Rp {{printf "%.0f" .Project.TargetAmount}}</div>
+                                        <small class="text-muted">Target Dana</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <div class="fs-4 fw-bold text-info">Rp {{printf "%.0f" .Project.RaisedAmount}}</div>
+                                        <small class="text-muted">Terkumpul</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <div class="fs-4 fw-bold text-warning">{{printf "%.1f" .Project.FundingPercentage}}%</div>
+                                        <small class="text-muted">Progress</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="progress mb-3" style="height: 20px;">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {{.Project.FundingPercentage}}%">
+                                    {{printf "%.1f" .Project.FundingPercentage}}%
+                                </div>
+                            </div>
+                            <span class="badge bg-success fs-6 px-3 py-2">
+                                <i class="fas fa-check-circle me-1"></i>Disetujui untuk Investasi
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Investment Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-hand-holding-usd me-2"></i>Formulir Investasi
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form id="investmentForm">
+                        <!-- Investment Amount -->
+                        <div class="mb-4">
+                            <label for="amount" class="form-label fw-semibold">
+                                <i class="fas fa-coins text-warning me-2"></i>Jumlah Investasi
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="number" 
+                                       class="form-control form-control-lg" 
+                                       id="amount" 
+                                       name="amount"
+                                       min="{{.Project.MinInvestment}}"
+                                       step="100000"
+                                       placeholder="Masukkan jumlah investasi"
+                                       required>
+                            </div>
+                            <div class="form-text">
+                                Minimum investasi: <strong>Rp {{printf "%.0f" .Project.MinInvestment}}</strong>
+                            </div>
+                        </div>
+
+                        <!-- Investment Terms -->
+                        <div class="mb-4">
+                            <h5 class="mb-3">
+                                <i class="fas fa-file-contract text-primary me-2"></i>Ketentuan Investasi
+                            </h5>
+                            
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Prinsip Syariah - Profit Sharing</h6>
+                                    <ul class="list-unstyled mb-3">
+                                        <li><i class="fas fa-check text-success me-2"></i>Investasi berdasarkan prinsip <strong>Mudharabah</strong></li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Pembagian keuntungan sesuai kesepakatan</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Transparansi penuh dalam laporan keuangan</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Kepatuhan terhadap fatwa DSN-MUI</li>
+                                    </ul>
+                                    
+                                    <h6 class="card-title">Risiko Investasi</h6>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-exclamation-triangle text-warning me-2"></i>Investasi mengandung risiko kerugian</li>
+                                        <li><i class="fas fa-exclamation-triangle text-warning me-2"></i>Nilai investasi dapat turun atau naik</li>
+                                        <li><i class="fas fa-exclamation-triangle text-warning me-2"></i>Past performance tidak menjamin hasil masa depan</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Investment Agreement -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                                <label class="form-check-label" for="agreeTerms">
+                                    Saya menyetujui <a href="/syarat-ketentuan" target="_blank" class="text-success">Syarat dan Ketentuan</a> 
+                                    serta <a href="/kebijakan-privasi" target="_blank" class="text-success">Kebijakan Privasi</a> HajiFund
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="agreeInvestment" required>
+                                <label class="form-check-label" for="agreeInvestment">
+                                    Saya memahami dan menyetujui ketentuan investasi syariah dengan prinsip profit sharing (Mudharabah)
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="agreeRisk" required>
+                                <label class="form-check-label" for="agreeRisk">
+                                    Saya memahami bahwa investasi mengandung risiko dan saya siap menanggung risiko tersebut
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
+                                <i class="fas fa-hand-holding-usd me-2"></i>Konfirmasi Investasi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Investment Summary -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 2rem;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calculator me-2"></i>Ringkasan Investasi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Jumlah Investasi:</span>
+                            <span id="summaryAmount" class="fw-bold">Rp 0</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Biaya Admin:</span>
+                            <span class="text-success">Gratis</span>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold">Total:</span>
+                            <span id="summaryTotal" class="fw-bold text-success">Rp 0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="fas fa-info-circle me-1"></i>
+                            Investasi akan diproses setelah konfirmasi dan verifikasi data investor.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const amountInput = document.getElementById('amount');
+    const summaryAmount = document.getElementById('summaryAmount');
+    const summaryTotal = document.getElementById('summaryTotal');
+    const form = document.getElementById('investmentForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Update summary when amount changes
+    amountInput.addEventListener('input', function() {
+        const amount = parseFloat(this.value) || 0;
+        const formattedAmount = new Intl.NumberFormat('id-ID').format(amount);
+        
+        summaryAmount.textContent = `Rp ${formattedAmount}`;
+        summaryTotal.textContent = `Rp ${formattedAmount}`;
+    });
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const amount = parseFloat(amountInput.value);
+        const minAmount = {{.Project.MinInvestment}};
+        
+        if (amount < minAmount) {
+            alert(`Jumlah investasi minimum adalah Rp ${new Intl.NumberFormat('id-ID').format(minAmount)}`);
+            return;
+        }
+
+        if (!document.getElementById('agreeTerms').checked ||
+            !document.getElementById('agreeInvestment').checked ||
+            !document.getElementById('agreeRisk').checked) {
+            alert('Silakan centang semua persetujuan terlebih dahulu');
+            return;
+        }
+
+        // Disable submit button
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Memproses...';
+
+        // Prepare investment data
+        const investmentData = {
+            project_id: '{{.Project.ID}}',
+            amount: amount,
+            currency: 'IDR',
+            investment_type: 'full'
+        };
+
+        // Submit investment
+        fetch('/api/investments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(investmentData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Investasi berhasil diajukan! Anda akan diarahkan ke halaman investasi Anda.');
+                window.location.href = '/investments';
+            } else {
+                alert('Gagal mengajukan investasi: ' + (data.message || 'Terjadi kesalahan'));
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-hand-holding-usd me-2"></i>Konfirmasi Investasi';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat mengajukan investasi');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-hand-holding-usd me-2"></i>Konfirmasi Investasi';
+        });
+    });
+});
+</script>
+
+<style>
+.sticky-top {
+    position: sticky;
+    top: 2rem;
+}
+
+.form-control:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+.card-header.bg-success {
+    background-color: #28a745 !important;
+}
+
+.card-header.bg-primary {
+    background-color: #007bff !important;
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+    color: #0c5460;
+}
+</style>
