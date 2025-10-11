@@ -27,39 +27,61 @@ func NewInvestmentFundingController(investmentFundingService services.Investment
 
 // CreateInvestment handles FR-041: Cooperative members can invest in approved projects
 func (c *InvestmentFundingController) CreateInvestment(ctx *gin.Context) {
-	var req entities.CreateInvestmentExtendedRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request body", nil)
+	// First, bind to a flexible struct to handle string project_id
+	var reqBody struct {
+		ProjectID      string  `json:"project_id"`
+		Amount         float64 `json:"amount"`
+		Currency       string  `json:"currency"`
+		InvestmentType string  `json:"investment_type"`
+	}
+
+	if err := ctx.ShouldBindJSON(&reqBody); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request body", err)
 		return
+	}
+
+	// Parse project_id from string to UUID
+	projectUUID, err := uuid.Parse(reqBody.ProjectID)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid project ID format", err)
+		return
+	}
+
+	// Create the proper request
+	req := entities.CreateInvestmentExtendedRequest{
+		ProjectID:      projectUUID,
+		Amount:         reqBody.Amount,
+		Currency:       reqBody.Currency,
+		InvestmentType: reqBody.InvestmentType,
 	}
 
 	// Validate request
 	if err := utils.ValidateStruct(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Validation failed"})
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Validation failed", err)
 		return
 	}
 
 	// Get investor ID from context (authenticated user)
 	investorID, exists := ctx.Get("user_id")
 	if !exists {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "User not authenticated", nil)
 		return
 	}
 
 	investorUUID, ok := investorID.(uuid.UUID)
 	if !ok {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Invalid user ID format", nil)
 		return
 	}
 
 	// Create investment
 	investment, err := c.investmentFundingService.CreateInvestment(ctx, &req, investorUUID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create investment"})
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Failed to create investment", err)
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"message": "Investment created successfully", "data": investment})
+	utils.SuccessResponse(ctx, http.StatusCreated, "Investment created successfully", investment)
 }
 
 // ValidateInvestmentEligibility handles FR-042: Validate investor eligibility and funds availability

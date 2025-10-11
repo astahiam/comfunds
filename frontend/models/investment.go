@@ -3,19 +3,19 @@ package models
 import "time"
 
 type Investment struct {
-	ID              string    `json:"id"`
-	ProjectID       string    `json:"project_id"`
-	InvestorID      string    `json:"investor_id"`
-	Amount          float64   `json:"amount"`
-	Currency        string    `json:"currency"`
-	Status          string    `json:"status"`
-	ApprovalStatus  string    `json:"approval_status"`
-	ReturnAmount    float64   `json:"return_amount"`
-	ReturnDate      *time.Time `json:"return_date"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
-	Project         *Project  `json:"project,omitempty"`
-	Investor        *User     `json:"investor,omitempty"`
+	ID             string     `json:"id"`
+	ProjectID      string     `json:"project_id"`
+	InvestorID     string     `json:"investor_id"`
+	Amount         float64    `json:"amount"`
+	Currency       string     `json:"currency"`
+	Status         string     `json:"status"`
+	ApprovalStatus string     `json:"approval_status"`
+	ReturnAmount   float64    `json:"return_amount"`
+	ReturnDate     *time.Time `json:"return_date"`
+	CreatedAt      time.Time  `json:"created_at"`
+	UpdatedAt      time.Time  `json:"updated_at"`
+	Project        *Project   `json:"project,omitempty"`
+	Investor       *User      `json:"investor,omitempty"`
 }
 
 type CreateInvestmentRequest struct {

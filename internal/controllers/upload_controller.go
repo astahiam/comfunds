@@ -207,4 +207,3 @@ func (c *UploadController) DeleteBusinessDocument(ctx *gin.Context) {
 		"file_path": fileURL,
 	})
 }
-

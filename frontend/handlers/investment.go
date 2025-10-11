@@ -27,13 +27,22 @@ func (h *Handler) Invest(c *fiber.Ctx) error {
 		})
 	}
 
+	// Debug: Check token
+	token := getTokenFromContext(c)
+	if token == "" {
+		return c.Status(401).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Authentication token not found",
+		})
+	}
+
 	// Validate investment eligibility and funds (FR-042)
 	// Make API request to backend
-	resp, err := utils.MakeAPIRequest("POST", "/api/v1/investments", req, utils.GetAuthHeaders(getTokenFromContext(c)))
+	resp, err := utils.MakeAPIRequest("POST", "/api/v1/investments", req, utils.GetAuthHeaders(token))
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Investment failed",
+			"message": "Investment failed: " + err.Error(),
 		})
 	}
 
@@ -197,6 +206,31 @@ func (h *Handler) ProjectInvestmentPage(c *fiber.Ctx) error {
 		"User":    user,
 		"Project": project,
 	}, "base")
+}
+
+// GetInvestmentLimits gets investment limits for a project
+func (h *Handler) GetInvestmentLimits(c *fiber.Ctx) error {
+	projectID := c.Params("id")
+
+	// Get token for authenticated request
+	token := getTokenFromContext(c)
+	if token == "" {
+		return c.Status(401).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Authentication required",
+		})
+	}
+
+	// Make API request to backend
+	resp, err := utils.MakeAPIRequest("GET", "/api/v1/investments/project/"+projectID+"/limits", nil, utils.GetAuthHeaders(token))
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to get investment limits: " + err.Error(),
+		})
+	}
+
+	return c.JSON(resp)
 }
 
 // Helper function to parse single investment from API

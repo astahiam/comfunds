@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"comfunds/internal/entities"
@@ -179,16 +180,20 @@ func (s *investmentFundingService) CheckFundsAvailability(ctx context.Context, i
 	// 2. Available credit limit
 	// 3. Pending transactions
 
-	// Mock available funds
-	availableFunds := 10000.0 // Mock value
+	// Mock available funds (set to a high value for demo purposes)
+	availableFunds := 100000000.0 // 100 million IDR - sufficient for testing
 	return availableFunds >= amount, availableFunds, nil
 }
 
 // ValidateInvestmentAmount validates investment amount against project limits
 func (s *investmentFundingService) ValidateInvestmentAmount(ctx context.Context, projectID uuid.UUID, amount float64) (bool, float64, float64, error) {
 	// Mock implementation - in real system would get from project settings
-	minInvestment := 100.0  // Mock minimum
-	maxInvestment := 5000.0 // Mock maximum
+	minInvestment := 100000.0   // 100,000 IDR minimum (realistic for Indonesia)
+	maxInvestment := 50000000.0 // 50 million IDR maximum (realistic for crowdfunding)
+
+	// Debug logging
+	log.Printf("DEBUG: ValidateInvestmentAmount - Amount: %.2f, Min: %.2f, Max: %.2f, Valid: %v",
+		amount, minInvestment, maxInvestment, amount >= minInvestment && amount <= maxInvestment)
 
 	return amount >= minInvestment && amount <= maxInvestment, minInvestment, maxInvestment, nil
 }
@@ -299,8 +304,10 @@ func (s *investmentFundingService) SetProjectInvestmentLimits(ctx context.Contex
 
 // GetProjectInvestmentLimits gets project investment limits
 func (s *investmentFundingService) GetProjectInvestmentLimits(ctx context.Context, projectID uuid.UUID) (float64, float64, error) {
-	// Mock implementation
-	return 100.0, 5000.0, nil
+	// Mock implementation - should match ValidateInvestmentAmount
+	minInvestment := 100000.0   // 100,000 IDR minimum (realistic for Indonesia)
+	maxInvestment := 50000000.0 // 50 million IDR maximum (realistic for crowdfunding)
+	return minInvestment, maxInvestment, nil
 }
 
 // GetInvestment gets investment by ID

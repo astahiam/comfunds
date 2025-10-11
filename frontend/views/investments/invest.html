@@ -69,8 +69,43 @@
                 </div>
                 <div class="card-body">
                     <form id="investmentForm">
-                        <!-- Investment Amount -->
+                        <!-- Investment Limits Info -->
+                        <div class="alert alert-info mb-4" role="alert">
+                            <div class="row text-center">
+                                <div class="col-md-6">
+                                    <i class="fas fa-arrow-down text-info me-2"></i>
+                                    <strong>Minimum Investasi:</strong>
+                                    <div class="fs-5 fw-bold text-primary mt-1" id="minInvestmentDisplay">
+                                        <span class="spinner-border spinner-border-sm" role="status"></span> Loading...
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <i class="fas fa-arrow-up text-info me-2"></i>
+                                    <strong>Maximum Investasi:</strong>
+                                    <div class="fs-5 fw-bold text-primary mt-1" id="maxInvestmentDisplay">
+                                        <span class="spinner-border spinner-border-sm" role="status"></span> Loading...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Investment Type Selection -->
                         <div class="mb-4">
+                            <label for="investmentType" class="form-label fw-semibold">
+                                <i class="fas fa-chart-pie text-info me-2"></i>Tipe Investasi
+                            </label>
+                            <select class="form-select form-select-lg" id="investmentType" name="investmentType" required>
+                                <option value="full" selected>Full Investment - Investasi penuh dengan jumlah bebas</option>
+                                <option value="partial">Partial Investment - Investasi berdasarkan jumlah saham</option>
+                            </select>
+                            <div class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Pilih tipe investasi sesuai kebutuhan Anda
+                            </div>
+                        </div>
+
+                        <!-- Full Investment Amount (shown when type is "full") -->
+                        <div class="mb-4" id="fullInvestmentSection">
                             <label for="amount" class="form-label fw-semibold">
                                 <i class="fas fa-coins text-warning me-2"></i>Jumlah Investasi
                             </label>
@@ -83,8 +118,29 @@
                                        placeholder="Masukkan jumlah investasi"
                                        required>
                             </div>
-                            <div class="form-text">
-                                Minimum investasi: <strong id="minAmountDisplay">Rp {{if .Project.MinInvestment}}{{printf "%.0f" .Project.MinInvestment}}{{else}}{{printf "%.0f" .Project.MinimumFunding}}{{end}}</strong>
+                            <div class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Masukkan jumlah antara batas minimum dan maximum di atas
+                            </div>
+                        </div>
+
+                        <!-- Partial Investment (shown when type is "partial") -->
+                        <div class="mb-4" id="partialInvestmentSection" style="display: none;">
+                            <label for="shareCount" class="form-label fw-semibold">
+                                <i class="fas fa-chart-bar text-success me-2"></i>Jumlah Saham
+                            </label>
+                            <div class="input-group">
+                                <input type="number" 
+                                       class="form-control form-control-lg" 
+                                       id="shareCount" 
+                                       name="shareCount"
+                                       placeholder="Masukkan jumlah saham (contoh: 30)"
+                                       min="1">
+                                <span class="input-group-text">saham @ Rp 100.000</span>
+                            </div>
+                            <div class="form-text text-muted">
+                                <i class="fas fa-calculator me-1"></i>
+                                Total: <strong id="partialAmountDisplay">Rp 0</strong>
                             </div>
                         </div>
 
@@ -150,17 +206,22 @@
                                     <div class="mb-4">
                                         <h5 class="text-primary mb-3">III. Investment Details</h5>
                                         <div class="row">
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
+                                                <div class="mb-2">
+                                                    <strong>Investment Type:</strong> <span id="agreementType" class="text-info">Full</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
                                                 <div class="mb-2">
                                                     <strong>Amount Invested:</strong> <span id="agreementAmount" class="text-success">Rp 0</span>
                                                 </div>
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
                                                 <div class="mb-2">
                                                     <strong>Number of Shares:</strong> <span id="agreementShares" class="text-info">0</span>
                                                 </div>
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
                                                 <div class="mb-2">
                                                     <strong>Price per Share:</strong> <span class="text-success">Rp 100.000</span>
                                                 </div>
@@ -298,10 +359,49 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitBtn = document.getElementById('submitBtn');
     const agreementAmount = document.getElementById('agreementAmount');
     const agreementShares = document.getElementById('agreementShares');
+    const agreementType = document.getElementById('agreementType');
     const signatureDate = document.getElementById('signatureDate');
+    const minInvestmentDisplay = document.getElementById('minInvestmentDisplay');
+    const maxInvestmentDisplay = document.getElementById('maxInvestmentDisplay');
+    const investmentTypeSelect = document.getElementById('investmentType');
+    const fullInvestmentSection = document.getElementById('fullInvestmentSection');
+    const partialInvestmentSection = document.getElementById('partialInvestmentSection');
+    const shareCountInput = document.getElementById('shareCount');
+    const partialAmountDisplay = document.getElementById('partialAmountDisplay');
+
+    // Share price constant
+    const SHARE_PRICE = 100000; // Rp 100,000 per share
 
     // Set today's date as default
     signatureDate.value = new Date().toISOString().split('T')[0];
+
+    // Global variables for validation
+    let minInvestmentAmount = {{if .Project.MinInvestment}}{{.Project.MinInvestment}}{{else}}100000{{end}};
+    let maxInvestmentAmount = 50000000;
+
+    // Fetch investment limits from backend
+    fetch('/api/investments/project/{{.Project.ID}}/limits')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success' && data.data) {
+                minInvestmentAmount = data.data.min_amount || minInvestmentAmount;
+                maxInvestmentAmount = data.data.max_amount || maxInvestmentAmount;
+                
+                // Update display
+                minInvestmentDisplay.innerHTML = 'Rp ' + formatNumber(minInvestmentAmount);
+                maxInvestmentDisplay.innerHTML = 'Rp ' + formatNumber(maxInvestmentAmount);
+            } else {
+                // Use fallback values
+                minInvestmentDisplay.innerHTML = 'Rp ' + formatNumber(minInvestmentAmount);
+                maxInvestmentDisplay.innerHTML = 'Rp ' + formatNumber(maxInvestmentAmount);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching investment limits:', error);
+            // Use fallback values
+            minInvestmentDisplay.innerHTML = 'Rp ' + formatNumber(minInvestmentAmount);
+            maxInvestmentDisplay.innerHTML = 'Rp ' + formatNumber(maxInvestmentAmount);
+        });
 
     // Format number with Indonesian format (100.000)
     function formatNumber(num) {
@@ -312,6 +412,42 @@ document.addEventListener('DOMContentLoaded', function() {
     function parseFormattedNumber(str) {
         return parseFloat(str.replace(/\./g, '')) || 0;
     }
+
+    // Handle investment type change
+    investmentTypeSelect.addEventListener('change', function() {
+        const selectedType = this.value;
+        
+        if (selectedType === 'full') {
+            fullInvestmentSection.style.display = 'block';
+            partialInvestmentSection.style.display = 'none';
+            amountInput.required = true;
+            shareCountInput.required = false;
+            shareCountInput.value = '';
+            agreementType.textContent = 'Full Investment';
+        } else if (selectedType === 'partial') {
+            fullInvestmentSection.style.display = 'none';
+            partialInvestmentSection.style.display = 'block';
+            amountInput.required = false;
+            shareCountInput.required = true;
+            amountInput.value = '';
+            agreementType.textContent = 'Partial Investment (Share-based)';
+        }
+        
+        // Reset agreement display
+        updateInvestmentDetails(0);
+    });
+
+    // Handle share count input for partial investment
+    shareCountInput.addEventListener('input', function() {
+        const shareCount = parseInt(this.value) || 0;
+        const totalAmount = shareCount * SHARE_PRICE;
+        
+        // Update partial amount display
+        partialAmountDisplay.textContent = 'Rp ' + formatNumber(totalAmount);
+        
+        // Update agreement details
+        updateInvestmentDetails(totalAmount);
+    });
 
     // Update amount input with formatting
     amountInput.addEventListener('input', function() {
@@ -343,14 +479,44 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form submission
     form.addEventListener('submit', function(e) {
         e.preventDefault();
+
+        // Get investment type and amount
+        const investmentType = investmentTypeSelect.value;
+        let amount = 0;
         
-        const amount = parseFormattedNumber(amountInput.value);
-        const minAmount = {{if .Project.MinInvestment}}{{.Project.MinInvestment}}{{else}}{{.Project.MinimumFunding}}{{end}};
+        if (investmentType === 'full') {
+            amount = parseFormattedNumber(amountInput.value);
+            console.log('Full investment - Raw value:', amountInput.value, 'Parsed amount:', amount);
+        } else if (investmentType === 'partial') {
+            const shareCount = parseInt(shareCountInput.value) || 0;
+            amount = shareCount * SHARE_PRICE;
+            console.log('Partial investment - Share count:', shareCount, 'Amount:', amount);
+            
+            if (shareCount <= 0) {
+                alert('Silakan masukkan jumlah saham yang valid (minimal 1 saham)');
+                return;
+            }
+        }
+
         const signature = document.getElementById('investorSignature').value.trim();
         const date = document.getElementById('signatureDate').value;
-        
-        if (amount < minAmount) {
-            alert(`Jumlah investasi minimum adalah Rp ${formatNumber(minAmount)}`);
+
+        console.log('Investment validation - Amount:', amount, 'Min:', minInvestmentAmount, 'Max:', maxInvestmentAmount);
+
+        // Validate amount
+        if (!amount || amount <= 0) {
+            alert('Silakan masukkan jumlah investasi yang valid');
+            return;
+        }
+
+        // Validate amount against fetched limits
+        if (amount < minInvestmentAmount) {
+            alert(`Jumlah investasi minimum adalah Rp ${formatNumber(minInvestmentAmount)}\nAnda memasukkan: Rp ${formatNumber(amount)}`);
+            return;
+        }
+
+        if (amount > maxInvestmentAmount) {
+            alert(`Jumlah investasi maximum adalah Rp ${formatNumber(maxInvestmentAmount)}\nAnda memasukkan: Rp ${formatNumber(amount)}`);
             return;
         }
 
@@ -380,8 +546,10 @@ document.addEventListener('DOMContentLoaded', function() {
             project_id: '{{.Project.ID}}',
             amount: amount,
             currency: 'IDR',
-            investment_type: 'full'
+            investment_type: investmentType
         };
+
+        console.log('Sending investment data:', JSON.stringify(investmentData, null, 2));
 
         // Submit investment
         fetch('/api/investments', {

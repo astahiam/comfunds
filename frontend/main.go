@@ -65,18 +65,18 @@ func main() {
 		if t == nil {
 			return ""
 		}
-		
+
 		// Type assertion to time.Time
 		var timeVal interface{}
 		timeVal = t
-		
+
 		switch v := timeVal.(type) {
 		case interface{ IsZero() bool }:
 			if v.IsZero() {
 				return ""
 			}
 		}
-		
+
 		// Format the date
 		formatted := ""
 		if layout == "date" {
@@ -89,7 +89,7 @@ func main() {
 			// Custom format
 			formatted = t.(interface{ Format(string) string }).Format(layout)
 		}
-		
+
 		// Replace English month names with Indonesian
 		monthMap := map[string]string{
 			"January":   "Januari",
@@ -105,13 +105,13 @@ func main() {
 			"November":  "November",
 			"December":  "Desember",
 		}
-		
+
 		for eng, ind := range monthMap {
 			if len(formatted) > 0 {
 				formatted = replaceString(formatted, eng, ind)
 			}
 		}
-		
+
 		return formatted
 	})
 
@@ -211,6 +211,7 @@ func setupRoutes(app *fiber.App, authHandler, dashboardHandler, adminHandler, co
 		protected.Get("/portfolio", middleware.RequireInvestor, investmentHandler.PortfolioPage)
 		protected.Get("/projects/:id/invest", middleware.RequireInvestor, investmentHandler.ProjectInvestmentPage)
 		protected.Post("/api/investments", middleware.RequireInvestor, investmentHandler.Invest)
+		protected.Get("/api/investments/project/:id/limits", middleware.RequireInvestor, investmentHandler.GetInvestmentLimits)
 
 		// Business routes (FR-024 to FR-031)
 		protected.Get("/business", middleware.RequireCooperativeMember, businessHandler.BusinessPage)

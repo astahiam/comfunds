@@ -215,4 +215,3 @@ func (h *Handler) DeleteBusinessDocument(c *fiber.Ctx) error {
 
 	return c.JSON(result)
 }
-

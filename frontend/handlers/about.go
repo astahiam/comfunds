@@ -26,7 +26,7 @@ func AboutPage(c *fiber.Ctx) error {
 		},
 		{
 			"name":        "Dr(c). Ryan K Rakhmat, S.Kom. M.M",
-			"title":       "Co-Founder & CTO", 
+			"title":       "Co-Founder & CTO",
 			"description": "Spesialis teknologi informasi dan sistem keuangan syariah dengan fokus pada inovasi fintech Islami.",
 			"image":       "/static/images/founders/pak-ryan.jpg",
 		},
