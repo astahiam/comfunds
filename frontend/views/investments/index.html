@@ -51,7 +51,7 @@
                         <i class="fas fa-percentage"></i>
                     </div>
                     <h3 class="fw-bold text-success mb-1">
-                        {{if and .TotalInvested (gt .TotalInvested 0)}}
+                        {{if gt .TotalInvested 0.0}}
                             {{printf "%.1f" (mul (div .TotalReturns .TotalInvested) 100)}}%
                         {{else}}
                             0.0%
