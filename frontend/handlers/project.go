@@ -165,26 +165,14 @@ func (h *Handler) PublicProjectsPage(c *fiber.Ctx) error {
 	// Get approved public projects
 	projectsResp, err := utils.MakeAPIRequest("GET", "/api/v1/public/projects", nil, nil)
 	var projects []models.Project
-	if err != nil {
-		fmt.Printf("ERROR fetching public projects: %v\n", err)
-	}
-	
-	if projectsResp != nil && projectsResp.Data != nil {
+	if err == nil && projectsResp != nil && projectsResp.Data != nil {
 		if data, ok := projectsResp.Data.(map[string]interface{}); ok {
 			if projectsData, ok := data["projects"].([]interface{}); ok {
 				projects = parseProjectsFromAPI(projectsData)
-				fmt.Printf("DEBUG: Found %d approved projects\n", len(projects))
-			} else {
-				fmt.Printf("DEBUG: No projects array in response\n")
 			}
-		} else {
-			fmt.Printf("DEBUG: Response data is not a map\n")
 		}
-	} else {
-		fmt.Printf("DEBUG: projectsResp is nil or has no data\n")
 	}
 
-	fmt.Printf("DEBUG: Rendering page with %d projects\n", len(projects))
 	return c.Render("projects/public", fiber.Map{
 		"Title":    "Peluang Investasi - HajiFund",
 		"User":     user,
