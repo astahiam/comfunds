@@ -118,6 +118,8 @@ func setupRoutes(app *fiber.App, authHandler, dashboardHandler, adminHandler, co
 	app.Get("/info-pembiayaan", middleware.OptionalAuthMiddleware, handlers.InfoPembiayaanPage)
 	app.Get("/ajukan-pembiayaan", middleware.OptionalAuthMiddleware, handlers.AjukanPembiayaanPage)
 	app.Get("/kisah-sukses", middleware.OptionalAuthMiddleware, handlers.KisahSuksesPage)
+	app.Get("/syarat-ketentuan", middleware.OptionalAuthMiddleware, handlers.SyaratKetentuanPage)
+	app.Get("/kebijakan-privasi", middleware.OptionalAuthMiddleware, handlers.KebijakanPrivasiPage)
 	app.Get("/login", middleware.OptionalAuthMiddleware, authHandler.LoginPage)
 	app.Get("/register", middleware.OptionalAuthMiddleware, authHandler.RegisterPage)
 	app.Post("/api/auth/login", authHandler.Login)

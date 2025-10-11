@@ -79,3 +79,35 @@ func KisahSuksesPage(c *fiber.Ctx) error {
 		"User":           currentUser,
 	}, "base")
 }
+
+// SyaratKetentuanPage renders the terms and conditions page
+func SyaratKetentuanPage(c *fiber.Ctx) error {
+	// Optional current user (set by OptionalAuth middleware)
+	var currentUser *models.User
+	if u := c.Locals("user"); u != nil {
+		if usr, ok := u.(*models.User); ok {
+			currentUser = usr
+		}
+	}
+
+	return c.Render("syarat-ketentuan", fiber.Map{
+		"Title": "Syarat dan Ketentuan - HajiFund",
+		"User":  currentUser,
+	}, "base")
+}
+
+// KebijakanPrivasiPage renders the privacy policy page
+func KebijakanPrivasiPage(c *fiber.Ctx) error {
+	// Optional current user (set by OptionalAuth middleware)
+	var currentUser *models.User
+	if u := c.Locals("user"); u != nil {
+		if usr, ok := u.(*models.User); ok {
+			currentUser = usr
+		}
+	}
+
+	return c.Render("kebijakan-privasi", fiber.Map{
+		"Title": "Kebijakan Privasi - HajiFund",
+		"User":  currentUser,
+	}, "base")
+}
