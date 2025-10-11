@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"hajifund-frontend/models"
 	"hajifund-frontend/utils"
 	"time"
@@ -52,9 +53,15 @@ func getBusinessTimePointer(value interface{}) *time.Time {
 
 func getBusinessTimeValue(value interface{}) time.Time {
 	if value == nil {
+		fmt.Printf("DEBUG getBusinessTimeValue: value is nil\n")
 		return time.Time{}
 	}
+	
+	// Log the actual value and type
+	fmt.Printf("DEBUG getBusinessTimeValue: value=%v, type=%T\n", value, value)
+	
 	if str, ok := value.(string); ok && str != "" {
+		fmt.Printf("DEBUG getBusinessTimeValue: attempting to parse string: %s\n", str)
 		// Try multiple date formats
 		formats := []string{
 			time.RFC3339,
@@ -67,9 +74,13 @@ func getBusinessTimeValue(value interface{}) time.Time {
 		
 		for _, format := range formats {
 			if t, err := time.Parse(format, str); err == nil {
+				fmt.Printf("DEBUG getBusinessTimeValue: successfully parsed with format %s, result: %v\n", format, t)
 				return t
 			}
 		}
+		fmt.Printf("DEBUG getBusinessTimeValue: failed to parse with any format\n")
+	} else {
+		fmt.Printf("DEBUG getBusinessTimeValue: value is not a string or is empty\n")
 	}
 	return time.Time{}
 }
@@ -129,6 +140,8 @@ func (h *Handler) BusinessPage(c *fiber.Ctx) error {
 							RejectedAt:       getBusinessTimePointer(businessMap["rejected_at"]),
 							RejectionReason:  getBusinessStringValue(businessMap["rejection_reason"]),
 							ReviewerComments: getBusinessStringValue(businessMap["reviewer_comments"]),
+							CreatedAt:        getBusinessTimeValue(businessMap["created_at"]),
+							UpdatedAt:        getBusinessTimeValue(businessMap["updated_at"]),
 							// Risk Assessment Documents
 							BusinessPlanURL:        getBusinessStringValue(businessMap["business_plan_url"]),
 							SWOTAnalysisURL:        getBusinessStringValue(businessMap["swot_analysis_url"]),
