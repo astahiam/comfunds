@@ -55,8 +55,20 @@ func getBusinessTimeValue(value interface{}) time.Time {
 		return time.Time{}
 	}
 	if str, ok := value.(string); ok && str != "" {
-		if t, err := time.Parse(time.RFC3339, str); err == nil {
-			return t
+		// Try multiple date formats
+		formats := []string{
+			time.RFC3339,
+			time.RFC3339Nano,
+			"2006-01-02T15:04:05Z07:00",
+			"2006-01-02T15:04:05Z",
+			"2006-01-02 15:04:05",
+			"2006-01-02",
+		}
+		
+		for _, format := range formats {
+			if t, err := time.Parse(format, str); err == nil {
+				return t
+			}
 		}
 	}
 	return time.Time{}
