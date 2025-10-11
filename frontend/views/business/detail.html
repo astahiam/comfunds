@@ -59,18 +59,18 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">Tanggal Dibuat</label>
-                            <p class="mb-0">{{.Business.CreatedAt.Format "02 Januari 2006 15:04"}}</p>
+                            <p class="mb-0">{{formatDateID .Business.CreatedAt "datetime"}}</p>
                         </div>
                         {{if .Business.ApprovedAt}}
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">Disetujui Pada</label>
-                            <p class="mb-0 text-success">{{.Business.ApprovedAt.Format "02 Januari 2006 15:04"}}</p>
+                            <p class="mb-0 text-success">{{formatDateID .Business.ApprovedAt "datetime"}}</p>
                         </div>
                         {{end}}
                         {{if .Business.RejectedAt}}
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">Ditolak Pada</label>
-                            <p class="mb-0 text-danger">{{.Business.RejectedAt.Format "02 Januari 2006 15:04"}}</p>
+                            <p class="mb-0 text-danger">{{formatDateID .Business.RejectedAt "datetime"}}</p>
                         </div>
                         {{end}}
                         <div class="col-12 mb-3">

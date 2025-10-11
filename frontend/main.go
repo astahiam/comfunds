@@ -5,6 +5,7 @@ import (
 	"hajifund-frontend/middleware"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -13,6 +14,11 @@ import (
 	"github.com/gofiber/template/html/v2"
 	"github.com/joho/godotenv"
 )
+
+// Helper function for string replacement
+func replaceString(s, old, new string) string {
+	return strings.ReplaceAll(s, old, new)
+}
 
 func main() {
 	// Load environment variables
@@ -52,6 +58,61 @@ func main() {
 			return 0
 		}
 		return a / b
+	})
+
+	// Add Indonesian date formatting function
+	engine.AddFunc("formatDateID", func(t interface{}, layout string) string {
+		if t == nil {
+			return ""
+		}
+		
+		// Type assertion to time.Time
+		var timeVal interface{}
+		timeVal = t
+		
+		switch v := timeVal.(type) {
+		case interface{ IsZero() bool }:
+			if v.IsZero() {
+				return ""
+			}
+		}
+		
+		// Format the date
+		formatted := ""
+		if layout == "date" {
+			// Format: "11 Oktober 2025"
+			formatted = t.(interface{ Format(string) string }).Format("02 January 2006")
+		} else if layout == "datetime" {
+			// Format: "11 Oktober 2025 13:22"
+			formatted = t.(interface{ Format(string) string }).Format("02 January 2006 15:04")
+		} else {
+			// Custom format
+			formatted = t.(interface{ Format(string) string }).Format(layout)
+		}
+		
+		// Replace English month names with Indonesian
+		monthMap := map[string]string{
+			"January":   "Januari",
+			"February":  "Februari",
+			"March":     "Maret",
+			"April":     "April",
+			"May":       "Mei",
+			"June":      "Juni",
+			"July":      "Juli",
+			"August":    "Agustus",
+			"September": "September",
+			"October":   "Oktober",
+			"November":  "November",
+			"December":  "Desember",
+		}
+		
+		for eng, ind := range monthMap {
+			if len(formatted) > 0 {
+				formatted = replaceString(formatted, eng, ind)
+			}
+		}
+		
+		return formatted
 	})
 
 	// Create Fiber app
