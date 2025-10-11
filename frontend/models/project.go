@@ -55,8 +55,10 @@ type CreateProjectRequest struct {
 }
 
 type InvestmentRequest struct {
-	ProjectID string  `json:"project_id"`
-	Amount    float64 `json:"amount"`
+	ProjectID      string  `json:"project_id"`
+	Amount         float64 `json:"amount"`
+	Currency       string  `json:"currency"`
+	InvestmentType string  `json:"investment_type"`
 }
 
 type ProjectListResponse struct {
