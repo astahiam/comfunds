@@ -1,0 +1,191 @@
+{{define "content"}}
+<div class="container-fluid px-4 py-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="/business">Bisnis</a></li>
+            <li class="breadcrumb-item active">Akses Terbatas</li>
+        </ol>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body text-center py-5">
+                    <!-- Icon -->
+                    <div class="mb-4">
+                        <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center" 
+                             style="width: 120px; height: 120px;">
+                            <i class="fas fa-lock text-warning" style="font-size: 60px;"></i>
+                        </div>
+                    </div>
+
+                    <!-- Title -->
+                    <h2 class="mb-3 fw-bold text-dark">Akses Terbatas</h2>
+                    
+                    <!-- Message -->
+                    <p class="text-muted fs-5 mb-4">
+                        Maaf, halaman ini hanya dapat diakses oleh pengguna dengan peran 
+                        <strong class="text-primary">{{.RequiredRole}}</strong>.
+                    </p>
+
+                    <!-- Current Role Info -->
+                    <div class="alert alert-info d-inline-block mx-auto mb-4" style="max-width: 500px;">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <div class="text-start">
+                                <small class="d-block fw-semibold mb-1">Peran Anda Saat Ini:</small>
+                                <div>
+                                    {{range $index, $role := .CurrentRoles}}
+                                        {{if eq $role "investor"}}
+                                            <span class="badge bg-success me-1">Investor</span>
+                                        {{else if eq $role "business_owner"}}
+                                            <span class="badge bg-primary me-1">Pemilik Bisnis</span>
+                                        {{else if eq $role "member"}}
+                                            <span class="badge bg-info me-1">Anggota Koperasi</span>
+                                        {{else if eq $role "admin"}}
+                                            <span class="badge bg-danger me-1">Administrator</span>
+                                        {{else}}
+                                            <span class="badge bg-secondary me-1">{{$role}}</span>
+                                        {{end}}
+                                    {{end}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <hr class="my-4">
+
+                    <!-- What to do next -->
+                    <div class="text-start" style="max-width: 600px; margin: 0 auto;">
+                        <h5 class="mb-3 fw-semibold">
+                            <i class="fas fa-lightbulb text-warning me-2"></i>
+                            Apa yang Bisa Saya Lakukan?
+                        </h5>
+                        
+                        <div class="d-grid gap-3 mb-4">
+                            <!-- Option 1 -->
+                            <div class="card border-start border-primary border-4">
+                                <div class="card-body">
+                                    <h6 class="fw-semibold mb-2">
+                                        <i class="fas fa-user-plus text-primary me-2"></i>
+                                        Daftar sebagai Pemilik Bisnis
+                                    </h6>
+                                    <p class="text-muted small mb-2">
+                                        Jika Anda memiliki bisnis dan ingin mendapatkan pendanaan syariah, 
+                                        Anda dapat mengajukan permohonan untuk menjadi Pemilik Bisnis.
+                                    </p>
+                                    <a href="/dashboard" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-envelope me-1"></i>
+                                        Hubungi Administrator
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Option 2 -->
+                            <div class="card border-start border-success border-4">
+                                <div class="card-body">
+                                    <h6 class="fw-semibold mb-2">
+                                        <i class="fas fa-hand-holding-usd text-success me-2"></i>
+                                        Jelajahi Proyek untuk Investasi
+                                    </h6>
+                                    <p class="text-muted small mb-2">
+                                        Lihat proyek-proyek bisnis yang tersedia untuk investasi syariah 
+                                        dan mulai berinvestasi sesuai prinsip Islam.
+                                    </p>
+                                    <a href="/projects/public" class="btn btn-sm btn-success">
+                                        <i class="fas fa-search me-1"></i>
+                                        Lihat Proyek
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Option 3 -->
+                            <div class="card border-start border-info border-4">
+                                <div class="card-body">
+                                    <h6 class="fw-semibold mb-2">
+                                        <i class="fas fa-home text-info me-2"></i>
+                                        Kembali ke Dashboard
+                                    </h6>
+                                    <p class="text-muted small mb-2">
+                                        Kembali ke halaman utama untuk melihat ringkasan akun Anda 
+                                        dan fitur-fitur yang tersedia.
+                                    </p>
+                                    <a href="/dashboard" class="btn btn-sm btn-info">
+                                        <i class="fas fa-arrow-left me-1"></i>
+                                        Ke Dashboard
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Help Section -->
+                    <div class="bg-light rounded p-4 mt-4" style="max-width: 600px; margin: 0 auto;">
+                        <h6 class="fw-semibold mb-2">
+                            <i class="fas fa-question-circle text-primary me-2"></i>
+                            Butuh Bantuan?
+                        </h6>
+                        <p class="text-muted small mb-3">
+                            Jika Anda memiliki pertanyaan tentang peran pengguna atau cara mengakses fitur tertentu, 
+                            silakan hubungi tim dukungan kami.
+                        </p>
+                        <div class="d-flex gap-2 justify-content-center flex-wrap">
+                            <a href="mailto:support@hajifund.com" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-envelope me-1"></i>
+                                Email Support
+                            </a>
+                            <a href="/tentang-kami" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Tentang HajiFund
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Animation for the lock icon */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.rounded-circle {
+    animation: fadeInScale 0.5s ease-out;
+}
+
+/* Hover effects for cards */
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Button hover effects */
+.btn {
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+</style>
+{{end}}
+

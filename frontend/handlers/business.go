@@ -54,7 +54,7 @@ func getBusinessTimeValue(value interface{}) time.Time {
 	if value == nil {
 		return time.Time{}
 	}
-	
+
 	if str, ok := value.(string); ok && str != "" {
 		// Try multiple date formats
 		formats := []string{
@@ -163,9 +163,11 @@ func (h *Handler) CreateBusinessPage(c *fiber.Ctx) error {
 
 	// Check if user has business_owner role
 	if !utils.HasRole(user.Roles, "business_owner") {
-		return c.Status(403).Render("error", fiber.Map{
-			"Code":    403,
-			"Message": "Business owner role required to create businesses",
+		return c.Render("business/no-access", fiber.Map{
+			"Title":        "Akses Terbatas - HajiFund",
+			"User":         user,
+			"RequiredRole": "Pemilik Bisnis",
+			"CurrentRoles": user.Roles,
 		}, "base")
 	}
 
