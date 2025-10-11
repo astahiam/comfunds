@@ -61,15 +61,20 @@ func getBusinessTimeValue(value interface{}) time.Time {
 		formats := []string{
 			time.RFC3339,
 			time.RFC3339Nano,
+			"2006-01-02T15:04:05.999999999Z07:00",
+			"2006-01-02T15:04:05.999999999Z",
 			"2006-01-02T15:04:05Z07:00",
 			"2006-01-02T15:04:05Z",
+			"2006-01-02 15:04:05.999999999",
 			"2006-01-02 15:04:05",
 			"2006-01-02",
 		}
-		
+
 		for _, format := range formats {
 			if t, err := time.Parse(format, str); err == nil {
-				return t
+				// Convert to WIB (UTC+7) timezone
+				wib := time.FixedZone("WIB", 7*60*60)
+				return t.In(wib)
 			}
 		}
 	}
