@@ -85,3 +85,13 @@ func getEnv(key, defaultValue string) string {
 	}
 	return defaultValue
 }
+
+// ParseJSON parses JSON bytes into interface
+func ParseJSON(data []byte, v interface{}) error {
+	return json.Unmarshal(data, v)
+}
+
+// GetBackendURL returns the backend API base URL
+func GetBackendURL() string {
+	return APIBaseURL
+}

@@ -86,6 +86,7 @@ func main() {
 	investmentFundingController := controllers.NewInvestmentFundingController(investmentFundingService)
 	fundManagementController := controllers.NewFundManagementController(fundManagementService)
 	profitSharingController := controllers.NewProfitSharingController(profitSharingService)
+	uploadController := controllers.NewUploadController()
 
 	// Initialize permission middleware
 	permissionMiddleware := auth.NewPermissionMiddleware()
@@ -121,6 +122,9 @@ func main() {
 		}
 	}
 	router.Use(middleware.RateLimitMiddleware(generalRPM, generalBurst))
+
+	// Serve uploaded files (with authentication check)
+	router.Static("/uploads", "./uploads")
 
 	// API routes
 	v1 := router.Group("/api/v1")
@@ -380,6 +384,13 @@ func main() {
 
 				// FR-020: Project approval/rejection
 				cooperatives.POST("/:id/projects/:project_id/approve", permissionMiddleware.RequireAdminRole(), cooperativeController.ApproveProject)
+			}
+
+			// File Upload Routes
+			upload := protected.Group("/upload")
+			{
+				upload.POST("/business-document", uploadController.UploadBusinessDocument)
+				upload.DELETE("/business-document", uploadController.DeleteBusinessDocument)
 			}
 
 			// FR-024 to FR-031: Business Management

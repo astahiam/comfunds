@@ -89,6 +89,7 @@ func main() {
 	projectHandler := handlers.NewProjectHandler()
 	investmentHandler := handlers.NewInvestmentHandler()
 	businessHandler := handlers.NewBusinessHandler()
+	uploadHandler := handlers.NewUploadHandler()
 
 	// Test route
 	app.Get("/test", func(c *fiber.Ctx) error {
@@ -99,7 +100,7 @@ func main() {
 	})
 
 	// Routes
-	setupRoutes(app, authHandler, dashboardHandler, adminHandler, cooperativeHandler, projectHandler, investmentHandler, businessHandler)
+	setupRoutes(app, authHandler, dashboardHandler, adminHandler, cooperativeHandler, projectHandler, investmentHandler, businessHandler, uploadHandler)
 
 	// Start server
 	port := os.Getenv("PORT")
@@ -111,7 +112,7 @@ func main() {
 	log.Fatal(app.Listen(":" + port))
 }
 
-func setupRoutes(app *fiber.App, authHandler, dashboardHandler, adminHandler, cooperativeHandler, projectHandler, investmentHandler, businessHandler *handlers.Handler) {
+func setupRoutes(app *fiber.App, authHandler, dashboardHandler, adminHandler, cooperativeHandler, projectHandler, investmentHandler, businessHandler, uploadHandler *handlers.Handler) {
 	// Public routes with optional authentication
 	app.Get("/", middleware.OptionalAuthMiddleware, handlers.LandingPage)
 	app.Get("/tentang-kami", middleware.OptionalAuthMiddleware, handlers.AboutPage)
@@ -158,6 +159,10 @@ func setupRoutes(app *fiber.App, authHandler, dashboardHandler, adminHandler, co
 		protected.Get("/business/:id/edit", middleware.RequireBusinessOwner, businessHandler.EditBusinessPage)
 		protected.Put("/api/businesses/:id", middleware.RequireBusinessOwner, businessHandler.UpdateBusiness)
 		protected.Post("/api/businesses/:id/submit-approval", middleware.RequireBusinessOwner, businessHandler.SubmitBusinessForApproval)
+
+		// Upload routes
+		protected.Post("/api/upload/business-document", uploadHandler.UploadBusinessDocument)
+		protected.Delete("/api/upload/business-document", uploadHandler.DeleteBusinessDocument)
 	}
 
 	// Admin routes (require admin role)

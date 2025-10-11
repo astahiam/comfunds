@@ -228,12 +228,34 @@
                             <h5 class="text-success mb-3">
                                 <i class="fas fa-file-alt me-2"></i>Dokumen Penilaian Risiko
                             </h5>
-                            <p class="text-muted mb-3">Upload dokumen-dokumen berikut untuk membantu penilaian risiko bisnis Anda:</p>
+                            <p class="text-muted mb-3">Upload dokumen-dokumen berikut untuk membantu penilaian risiko bisnis Anda (Max 10MB, Format: PDF, DOC, DOCX, XLS, XLSX):</p>
                             
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label for="business_plan_url" class="form-label">Rencana Bisnis <span class="text-danger">*</span></label>
-                                    <input type="url" class="form-control" id="business_plan_url" name="business_plan_url" required placeholder="URL dokumen rencana bisnis">
+                                    <label for="business_plan" class="form-label">Rencana Bisnis <span class="text-danger">*</span></label>
+                                    <div class="upload-area" id="business_plan_area" data-doc-type="business_plan">
+                                        <input type="file" class="form-control d-none" id="business_plan" accept=".pdf,.doc,.docx,.xls,.xlsx">
+                                        <input type="hidden" id="business_plan_url" name="business_plan_url" required>
+                                        <div class="upload-placeholder">
+                                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-2"></i>
+                                            <p class="mb-1">Klik atau drag file ke sini</p>
+                                            <small class="text-muted">PDF, DOC, DOCX (Max 10MB)</small>
+                                        </div>
+                                        <div class="upload-progress d-none">
+                                            <div class="progress mb-2">
+                                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                                            </div>
+                                            <small class="text-muted">Uploading...</small>
+                                        </div>
+                                        <div class="upload-success d-none">
+                                            <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+                                            <p class="mb-1 fw-bold file-name"></p>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button type="button" class="btn btn-outline-primary btn-view" title="View"><i class="fas fa-eye"></i></button>
+                                                <button type="button" class="btn btn-outline-danger btn-delete" title="Delete"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="form-text">
                                         Dokumen rencana bisnis yang detail dan komprehensif
                                     </div>
@@ -498,5 +520,247 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // File Upload Functionality
+    function initializeFileUpload(uploadArea) {
+        const docType = uploadArea.dataset.docType;
+        const fileInput = uploadArea.querySelector('input[type="file"]');
+        const hiddenInput = uploadArea.querySelector('input[type="hidden"]');
+        const placeholder = uploadArea.querySelector('.upload-placeholder');
+        const progress = uploadArea.querySelector('.upload-progress');
+        const success = uploadArea.querySelector('.upload-success');
+        const progressBar = progress.querySelector('.progress-bar');
+
+        // Click to upload
+        uploadArea.addEventListener('click', (e) => {
+            if (!e.target.closest('.btn-delete') && !e.target.closest('.btn-view')) {
+                if (!success.classList.contains('d-none')) return;
+                fileInput.click();
+            }
+        });
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0], docType, uploadArea);
+            }
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0], docType, uploadArea);
+            }
+        });
+
+        // Delete button
+        const deleteBtn = success.querySelector('.btn-delete');
+        deleteBtn.addEventListener('click', () => {
+            if (confirm('Hapus file ini?')) {
+                const fileUrl = hiddenInput.value;
+                if (fileUrl) {
+                    deleteFile(fileUrl, uploadArea);
+                }
+            }
+        });
+
+        // View button
+        const viewBtn = success.querySelector('.btn-view');
+        viewBtn.addEventListener('click', () => {
+            const fileUrl = hiddenInput.value;
+            if (fileUrl) {
+                window.open('http://localhost:8080' + fileUrl, '_blank');
+            }
+        });
+    }
+
+    async function handleFileUpload(file, docType, uploadArea) {
+        const hiddenInput = uploadArea.querySelector('input[type="hidden"]');
+        const placeholder = uploadArea.querySelector('.upload-placeholder');
+        const progress = uploadArea.querySelector('.upload-progress');
+        const success = uploadArea.querySelector('.upload-success');
+        const progressBar = progress.querySelector('.progress-bar');
+        const fileName = success.querySelector('.file-name');
+
+        // Validate file size (10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            showToast('Ukuran file maksimal 10MB', 'error');
+            return;
+        }
+
+        // Validate file type
+        const allowedTypes = ['.pdf', '.doc', '.docx', '.xls', '.xlsx'];
+        const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+        if (!allowedTypes.includes(fileExt)) {
+            showToast('Tipe file tidak didukung. Gunakan PDF, DOC, DOCX, XLS, atau XLSX', 'error');
+            return;
+        }
+
+        // Show progress
+        placeholder.classList.add('d-none');
+        progress.classList.remove('d-none');
+        success.classList.add('d-none');
+
+        // Prepare form data
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('document_type', docType);
+
+        try {
+            // Upload file with progress tracking
+            const xhr = new XMLHttpRequest();
+
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percentComplete = (e.loaded / e.total) * 100;
+                    progressBar.style.width = percentComplete + '%';
+                }
+            });
+
+            xhr.addEventListener('load', () => {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.status === 'success') {
+                        // Set hidden input value
+                        hiddenInput.value = response.data.file_url;
+                        
+                        // Show success
+                        progress.classList.add('d-none');
+                        success.classList.remove('d-none');
+                        fileName.textContent = file.name;
+                        
+                        showToast('File berhasil diupload', 'success');
+                    } else {
+                        throw new Error(response.message || 'Upload gagal');
+                    }
+                } else {
+                    throw new Error('Upload gagal dengan status: ' + xhr.status);
+                }
+            });
+
+            xhr.addEventListener('error', () => {
+                throw new Error('Upload gagal');
+            });
+
+            xhr.open('POST', '/api/upload/business-document');
+            xhr.send(formData);
+
+        } catch (error) {
+            console.error('Upload error:', error);
+            showToast('Gagal mengupload file: ' + error.message, 'error');
+            
+            // Reset to placeholder
+            progress.classList.add('d-none');
+            placeholder.classList.remove('d-none');
+            progressBar.style.width = '0%';
+        }
+    }
+
+    async function deleteFile(fileUrl, uploadArea) {
+        const hiddenInput = uploadArea.querySelector('input[type="hidden"]');
+        const placeholder = uploadArea.querySelector('.upload-placeholder');
+        const success = uploadArea.querySelector('.upload-success');
+
+        try {
+            const response = await fetch(`/api/upload/business-document?file_path=${encodeURIComponent(fileUrl)}`, {
+                method: 'DELETE'
+            });
+
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                // Reset to placeholder
+                success.classList.add('d-none');
+                placeholder.classList.remove('d-none');
+                hiddenInput.value = '';
+                
+                showToast('File berhasil dihapus', 'success');
+            } else {
+                throw new Error(result.message || 'Gagal menghapus file');
+            }
+        } catch (error) {
+            console.error('Delete error:', error);
+            showToast('Gagal menghapus file: ' + error.message, 'error');
+        }
+    }
+
+    // Initialize all upload areas
+    document.querySelectorAll('.upload-area').forEach(uploadArea => {
+        initializeFileUpload(uploadArea);
+    });
 });
 </script>
+
+<style>
+.upload-area {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.upload-area:hover {
+    border-color: #28a745;
+    background-color: #e8f5e9;
+}
+
+.upload-area.drag-over {
+    border-color: #28a745;
+    background-color: #d4edda;
+    transform: scale(1.02);
+}
+
+.upload-placeholder i {
+    color: #6c757d;
+}
+
+.upload-progress {
+    width: 100%;
+}
+
+.upload-success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.upload-success .file-name {
+    font-size: 0.9rem;
+    color: #495057;
+    word-break: break-all;
+    max-width: 100%;
+}
+
+.upload-success .btn-group {
+    margin-top: 0.5rem;
+}
+
+.upload-area .btn {
+    transition: all 0.2s ease;
+}
+
+.upload-area .btn:hover {
+    transform: translateY(-2px);
+}
+</style>
