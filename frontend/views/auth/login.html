@@ -1,8 +1,8 @@
 {{ define "auth/login" }}
-<div class="container-fluid vh-100">
-    <div class="row h-100">
+<div class="container-fluid">
+    <div class="row min-vh-100">
         <!-- Left Side - Branding -->
-        <div class="col-lg-6 d-none d-lg-block bg-gradient-primary d-flex align-items-center justify-content-center">
+        <div class="col-lg-6 d-none d-lg-block bg-gradient-primary d-flex align-items-center justify-content-center" style="position: sticky; top: 0; height: 100vh;">
             <div class="text-center text-white">
                 <div class="mb-4">
                     <div class="kaaba-icon mx-auto mb-3" style="width: 80px; height: 80px;">
@@ -29,7 +29,7 @@
         </div>
 
         <!-- Right Side - Login Form -->
-        <div class="col-lg-6 d-flex align-items-center justify-content-center p-5">
+        <div class="col-lg-6 d-flex align-items-center justify-content-center p-5" style="min-height: 100vh;">
             <div class="w-100" style="max-width: 400px;">
                 <!-- Mobile Logo -->
                 <div class="text-center mb-4 d-lg-none">
@@ -194,4 +194,41 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 });
 </script>
+
+<style>
+/* Fix for login page layout */
+.container-fluid {
+    padding: 0;
+}
+
+/* Ensure the left sidebar stays in viewport while allowing right side to scroll */
+@media (min-width: 992px) {
+    .bg-gradient-primary {
+        position: sticky;
+        top: 0;
+        max-height: 100vh;
+        overflow: hidden;
+    }
+    
+    /* Allow the right side to scroll naturally */
+    .row.min-vh-100 {
+        display: flex;
+        flex-wrap: nowrap;
+    }
+}
+
+/* Ensure form content doesn't get cut off on smaller screens */
+@media (max-width: 991px) {
+    .col-lg-6.d-flex {
+        min-height: auto !important;
+        padding: 2rem 1rem !important;
+    }
+}
+
+/* Override any conflicting vh-100 styles */
+.row.min-vh-100 {
+    min-height: 100vh;
+    height: auto !important;
+}
+</style>
 {{ end }}
