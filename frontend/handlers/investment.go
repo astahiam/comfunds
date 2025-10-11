@@ -66,22 +66,42 @@ func (h *Handler) UserInvestmentsPage(c *fiber.Ctx) error {
 	// Get user's investments
 	investmentsResp, err := utils.MakeAPIRequest("GET", "/api/v1/investments/my-investments", nil, utils.GetAuthHeaders(getTokenFromContext(c)))
 	var userInvestments []models.Investment
+	
 	if err != nil {
 		// Log error but continue to show empty state
-		println("Error fetching investments:", err.Error())
-	} else if investmentsResp != nil && investmentsResp.Data != nil {
-		if data, ok := investmentsResp.Data.(map[string]interface{}); ok {
-			if investmentData, ok := data["investments"].([]interface{}); ok {
-				userInvestments = parseInvestmentsFromAPI(investmentData)
-				println("Parsed", len(userInvestments), "investments")
+		println("❌ Error fetching investments:", err.Error())
+	} else if investmentsResp != nil {
+		println("✅ Got response from API")
+		println("Status:", investmentsResp.Status)
+		println("Message:", investmentsResp.Message)
+		
+		if investmentsResp.Data != nil {
+			println("✅ Response has data")
+			
+			// Try to parse as map
+			if data, ok := investmentsResp.Data.(map[string]interface{}); ok {
+				println("✅ Data is a map, keys:", len(data))
+				
+				// Check for investments array
+				if investmentData, ok := data["investments"].([]interface{}); ok {
+					println("✅ Found investments array, count:", len(investmentData))
+					userInvestments = parseInvestmentsFromAPI(investmentData)
+					println("✅ Parsed", len(userInvestments), "investments successfully")
+				} else {
+					println("❌ No 'investments' array in response data")
+					// Print what keys are available
+					for key := range data {
+						println("  Available key:", key)
+					}
+				}
 			} else {
-				println("No 'investments' array in response data")
+				println("❌ Response data is not a map, type:", investmentsResp.Data)
 			}
 		} else {
-			println("Response data is not a map")
+			println("❌ Response data is nil")
 		}
 	} else {
-		println("No response data")
+		println("❌ No response from API")
 	}
 
 	// Calculate portfolio summary
