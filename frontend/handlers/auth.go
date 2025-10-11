@@ -223,16 +223,6 @@ func (h *Handler) Logout(c *fiber.Ctx) error {
 }
 
 // Helper functions
-func getStringValue(value interface{}) string {
-	if value == nil {
-		return ""
-	}
-	if str, ok := value.(string); ok {
-		return str
-	}
-	return ""
-}
-
 func getStringPointer(value interface{}) *string {
 	if value == nil {
 		return nil
