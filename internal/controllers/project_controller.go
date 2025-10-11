@@ -43,37 +43,20 @@ func (c *ProjectController) GetPublicProjects(ctx *gin.Context) {
 		limit = 10
 	}
 
-	// Mock data for now - this would come from a project service
-	projects := []map[string]interface{}{
-		{
-			"id":            uuid.New(),
-			"title":         "Tech Startup Funding",
-			"description":   "Innovative tech startup seeking investment for expansion",
-			"target_amount": 100000,
-			"raised_amount": 25000,
-			"status":        "active",
-			"category":      "Technology",
-			"created_at":    "2024-01-15T10:00:00Z",
-		},
-		{
-			"id":            uuid.New(),
-			"title":         "Sustainable Agriculture Project",
-			"description":   "Organic farming initiative for community development",
-			"target_amount": 50000,
-			"raised_amount": 15000,
-			"status":        "active",
-			"category":      "Agriculture",
-			"created_at":    "2024-01-10T09:00:00Z",
-		},
+	// Get approved projects from database
+	projects, total, err := c.projectRepo.GetApprovedProjects(ctx.Request.Context(), page, limit)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to fetch projects", err)
+		return
 	}
 
 	response := map[string]interface{}{
 		"projects":     projects,
 		"page":         page,
 		"limit":        limit,
-		"total":        len(projects),
+		"total":        total,
 		"access_level": "public",
-		"message":      "Public projects visible to all users",
+		"message":      "Public approved projects available for investment",
 	}
 
 	utils.SuccessResponse(ctx, http.StatusOK, "Public projects retrieved successfully", response)

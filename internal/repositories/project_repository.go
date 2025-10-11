@@ -16,6 +16,7 @@ type ProjectRepository interface {
 	GetAll(ctx context.Context, limit, offset int) ([]*entities.Project, error)
 	GetByOwnerID(ctx context.Context, ownerID uuid.UUID, limit, offset int) ([]*entities.Project, error)
 	GetByApprovalStatus(ctx context.Context, status string, limit, offset int) ([]*entities.Project, error)
+	GetApprovedProjects(ctx context.Context, page, limit int) ([]*entities.Project, int, error)
 	Update(ctx context.Context, id uuid.UUID, project *entities.Project) (*entities.Project, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	Count(ctx context.Context) (int, error)
@@ -346,4 +347,72 @@ func (r *projectRepository) Count(ctx context.Context) (int, error) {
 	}
 
 	return total, nil
+}
+
+// GetApprovedProjects returns all approved projects available for public investment
+func (r *projectRepository) GetApprovedProjects(ctx context.Context, page, limit int) ([]*entities.Project, int, error) {
+	shards, err := r.shardMgr.GetAllShards()
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to get shards: %w", err)
+	}
+
+	offset := (page - 1) * limit
+
+	// Query to get approved projects from all shards
+	query := `
+		SELECT id, title, description, target_amount, raised_amount, min_investment, category,
+		       status, approval_status, risk_level, investment_period, expected_return,
+		       business_id, owner_id, cooperative_id, start_date, end_date,
+		       project_image_1, project_image_2, project_image_3, created_at, updated_at
+		FROM projects
+		WHERE approval_status = 'approved'
+		ORDER BY created_at DESC
+		LIMIT $1 OFFSET $2
+	`
+
+	// Count query for approved projects
+	countQuery := `SELECT COUNT(*) FROM projects WHERE approval_status = 'approved'`
+
+	var allProjects []*entities.Project
+	totalCount := 0
+
+	// Query each shard
+	for _, shard := range shards {
+		if shard == nil {
+			continue
+		}
+
+		// Get count from this shard
+		var count int
+		err := shard.QueryRowContext(ctx, countQuery).Scan(&count)
+		if err == nil {
+			totalCount += count
+		}
+
+		// Get projects from this shard
+		rows, err := shard.QueryContext(ctx, query, limit, offset)
+		if err != nil {
+			continue
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var project entities.Project
+			err := rows.Scan(
+				&project.ID, &project.Title, &project.Description, &project.TargetAmount,
+				&project.RaisedAmount, &project.MinInvestment, &project.Category,
+				&project.Status, &project.ApprovalStatus, &project.RiskLevel,
+				&project.InvestmentPeriod, &project.ExpectedReturn, &project.BusinessID,
+				&project.OwnerID, &project.CooperativeID, &project.StartDate, &project.EndDate,
+				&project.ProjectImage1, &project.ProjectImage2, &project.ProjectImage3,
+				&project.CreatedAt, &project.UpdatedAt,
+			)
+			if err != nil {
+				continue
+			}
+			allProjects = append(allProjects, &project)
+		}
+	}
+
+	return allProjects, totalCount, nil
 }
