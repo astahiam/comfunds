@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"time"
-	
+
 	"hajifund-frontend/models"
 	"hajifund-frontend/utils"
 
@@ -66,7 +66,7 @@ func (h *Handler) UserInvestmentsPage(c *fiber.Ctx) error {
 	// Get user's investments
 	investmentsResp, err := utils.MakeAPIRequest("GET", "/api/v1/investments/my-investments", nil, utils.GetAuthHeaders(getTokenFromContext(c)))
 	var userInvestments []models.Investment
-	
+
 	if err != nil {
 		// Log error but continue to show empty state
 		println("❌ Error fetching investments:", err.Error())
@@ -74,14 +74,14 @@ func (h *Handler) UserInvestmentsPage(c *fiber.Ctx) error {
 		println("✅ Got response from API")
 		println("Status:", investmentsResp.Status)
 		println("Message:", investmentsResp.Message)
-		
+
 		if investmentsResp.Data != nil {
 			println("✅ Response has data")
-			
+
 			// Try to parse as map
 			if data, ok := investmentsResp.Data.(map[string]interface{}); ok {
 				println("✅ Data is a map, keys:", len(data))
-				
+
 				// Check for investments array
 				if investmentData, ok := data["investments"].([]interface{}); ok {
 					println("✅ Found investments array, count:", len(investmentData))
@@ -226,7 +226,7 @@ func (h *Handler) ProjectInvestmentPage(c *fiber.Ctx) error {
 	}
 
 	// Check if project is eligible for investment (approved status)
-	if project.ApprovalStatus != "approved" || project.Status != "active" {
+	if project.ApprovalStatus != "approved" || (project.Status != "active" && project.Status != "approved") {
 		return c.Status(403).Render("error", fiber.Map{
 			"Code":    403,
 			"Message": "This project is not currently accepting investments",
@@ -293,10 +293,18 @@ func parseInvestmentFromAPI(investmentMap map[string]interface{}) models.Investm
 		investment.ReturnAmount = returnAmount
 	}
 
-	// Parse investment date
-	if investmentDateStr, ok := investmentMap["investment_date"].(string); ok && investmentDateStr != "" {
-		if t, err := time.Parse(time.RFC3339, investmentDateStr); err == nil {
-			investment.InvestmentDate = &t
+	// Parse investment date - try multiple formats
+	investment.InvestmentDate = parseTimeFromMap(investmentMap, "investment_date")
+
+	// Parse other date fields
+	if createdAtStr, ok := investmentMap["created_at"].(string); ok && createdAtStr != "" {
+		if t := parseTimeString(createdAtStr); t != nil {
+			investment.CreatedAt = *t
+		}
+	}
+	if updatedAtStr, ok := investmentMap["updated_at"].(string); ok && updatedAtStr != "" {
+		if t := parseTimeString(updatedAtStr); t != nil {
+			investment.UpdatedAt = *t
 		}
 	}
 
@@ -314,4 +322,34 @@ func parseInvestmentFromAPI(investmentMap map[string]interface{}) models.Investm
 	}
 
 	return investment
+}
+
+// Helper function to parse time from map
+func parseTimeFromMap(m map[string]interface{}, key string) *time.Time {
+	if timeStr, ok := m[key].(string); ok && timeStr != "" {
+		return parseTimeString(timeStr)
+	}
+	return nil
+}
+
+// Helper function to parse time string with multiple formats
+func parseTimeString(timeStr string) *time.Time {
+	dateFormats := []string{
+		time.RFC3339,
+		time.RFC3339Nano,
+		"2006-01-02T15:04:05Z07:00",
+		"2006-01-02T15:04:05.999999999Z07:00",
+		"2006-01-02 15:04:05",
+		"2006-01-02",
+	}
+
+	for _, format := range dateFormats {
+		if t, err := time.Parse(format, timeStr); err == nil {
+			return &t
+		}
+	}
+
+	// Debug: print if parsing failed
+	println("⚠️  Failed to parse time string:", timeStr)
+	return nil
 }

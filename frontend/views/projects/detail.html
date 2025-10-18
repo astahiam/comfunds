@@ -161,6 +161,212 @@
         </div>
     </div>
 
+    <!-- Admin Review Section (Only visible to admins) -->
+    {{if hasRole .User.Roles "admin"}}
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm border-start border-4 border-warning">
+                <div class="card-header bg-warning bg-opacity-10 border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shield-alt text-warning me-2"></i>Panel Review Admin
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Document Review Section -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-file-alt text-primary me-2"></i>Dokumen Pendukung
+                        </h6>
+                        {{if .Project.Documents}}
+                            {{if gt (len .Project.Documents) 0}}
+                                <div class="list-group">
+                                    {{range $index, $doc := .Project.Documents}}
+                                    <a href="{{$doc}}" target="_blank" class="list-group-item list-group-item-action">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <i class="fas fa-file-pdf text-danger me-2"></i>
+                                                <span class="fw-semibold">Dokumen Pendukung {{add $index 1}}</span>
+                                                <br>
+                                                <small class="text-muted">{{$doc}}</small>
+                                            </div>
+                                            <i class="fas fa-external-link-alt text-muted"></i>
+                                        </div>
+                                    </a>
+                                    {{end}}
+                                </div>
+                            {{else}}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Tidak ada dokumen pendukung yang diupload
+                                </div>
+                            {{end}}
+                        {{else}}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Tidak ada dokumen pendukung yang diupload
+                            </div>
+                        {{end}}
+                    </div>
+
+                    <!-- Risk Assessment -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-exclamation-circle text-danger me-2"></i>Penilaian Risiko
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="border rounded p-3">
+                                    <label class="form-label text-muted small mb-1">Tingkat Risiko</label>
+                                    <p class="mb-0 fs-5">
+                                        {{if eq .Project.RiskLevel "Low"}}
+                                            <span class="badge bg-success fs-6">
+                                                <i class="fas fa-shield-alt me-1"></i>Risiko Rendah
+                                            </span>
+                                        {{else if eq .Project.RiskLevel "Medium"}}
+                                            <span class="badge bg-warning text-dark fs-6">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>Risiko Menengah
+                                            </span>
+                                        {{else if eq .Project.RiskLevel "High"}}
+                                            <span class="badge bg-danger fs-6">
+                                                <i class="fas fa-exclamation-circle me-1"></i>Risiko Tinggi
+                                            </span>
+                                        {{else}}
+                                            <span class="badge bg-secondary">{{.Project.RiskLevel}}</span>
+                                        {{end}}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border rounded p-3">
+                                    <label class="form-label text-muted small mb-1">Periode Investasi</label>
+                                    <p class="mb-0 fs-5">
+                                        <i class="fas fa-clock text-info me-1"></i>
+                                        {{if .Project.InvestmentPeriod}}
+                                            {{.Project.InvestmentPeriod}} Bulan
+                                        {{else}}
+                                            -
+                                        {{end}}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Expected Return -->
+                    {{if .Project.ExpectedReturn}}
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-chart-line text-success me-2"></i>Expected Return
+                        </h6>
+                        <div class="alert alert-success">
+                            <i class="fas fa-percentage me-2"></i>
+                            <strong>{{.Project.ExpectedReturn}}</strong>
+                        </div>
+                    </div>
+                    {{end}}
+
+                    <!-- Sharia Compliance -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>Kepatuhan Syariah
+                        </h6>
+                        {{if .Project.ShariaCompliant}}
+                            <div class="alert alert-success mb-0">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Proyek ini telah memenuhi prinsip syariah
+                            </div>
+                        {{else}}
+                            <div class="alert alert-danger mb-0">
+                                <i class="fas fa-times-circle me-2"></i>
+                                Status kepatuhan syariah belum diverifikasi
+                            </div>
+                        {{end}}
+                    </div>
+
+                    <!-- Edit Actions -->
+                    {{if .User}}
+                        {{if or (hasRole .User.Roles "admin") (eq .User.ID .Project.OwnerID)}}
+                        <hr class="my-4">
+                        <div class="d-flex gap-3 justify-content-start mb-4">
+                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProjectModal">
+                                <i class="fas fa-edit me-2"></i>Edit Proyek
+                            </button>
+                            {{if hasRole .User.Roles "admin"}}
+                            <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#adminEditModal">
+                                <i class="fas fa-user-shield me-2"></i>Admin Edit
+                            </button>
+                            {{end}}
+                        </div>
+                        {{end}}
+                    {{end}}
+
+                    <!-- Admin Actions -->
+                    <hr class="my-4">
+                    <div class="d-flex gap-3 justify-content-end">
+                        {{if eq .Project.ApprovalStatus "pending"}}
+                            <!-- Reject Button with Modal -->
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                                <i class="fas fa-times-circle me-2"></i>Tolak Proyek
+                            </button>
+                            
+                            <!-- Approve Button -->
+                            <button type="button" class="btn btn-success" onclick="approveProject('{{.Project.ID}}')">
+                                <i class="fas fa-check-circle me-2"></i>Setujui Proyek
+                            </button>
+                        {{else if eq .Project.ApprovalStatus "approved"}}
+                            <div class="alert alert-success mb-0">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Proyek ini telah disetujui
+                                {{if .Project.ApprovedAt}}
+                                    pada {{formatDateID .Project.ApprovedAt "datetime"}}
+                                {{end}}
+                            </div>
+                        {{else if eq .Project.ApprovalStatus "rejected"}}
+                            <div class="alert alert-danger mb-0">
+                                <i class="fas fa-times-circle me-2"></i>
+                                Proyek ini ditolak
+                                {{if .Project.RejectionReason}}
+                                    <br><small>Alasan: {{.Project.RejectionReason}}</small>
+                                {{end}}
+                            </div>
+                        {{end}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Modal -->
+    <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="rejectModalLabel">
+                        <i class="fas fa-times-circle me-2"></i>Tolak Proyek
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Anda akan menolak proyek: <strong>{{.Project.Title}}</strong></p>
+                    <div class="mb-3">
+                        <label for="rejectionReason" class="form-label">Alasan Penolakan <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="rejectionReason" rows="4" placeholder="Jelaskan alasan penolakan proyek..."></textarea>
+                        <div class="form-text">Alasan ini akan dikirimkan ke pemilik proyek</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Batal
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="rejectProject('{{.Project.ID}}')">
+                        <i class="fas fa-check me-2"></i>Konfirmasi Penolakan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{end}}
+
     <!-- Investments List -->
     {{if .Investments}}
     {{if gt (len .Investments) 0}}
@@ -252,3 +458,335 @@
     transition: transform 0.2s, box-shadow 0.2s;
 }
 </style>
+
+<script>
+// Approve project function
+async function approveProject(projectId) {
+    if (!confirm('Apakah Anda yakin ingin menyetujui proyek ini?')) {
+        return;
+    }
+
+    try {
+        // Call frontend proxy endpoint (include credentials to send HTTPOnly cookie)
+        const response = await fetch(`/admin/api/projects/${projectId}/approve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin' // Important: include cookies in request
+        });
+
+        const data = await response.json();
+
+        console.log('Approve response:', data); // Debug log
+
+        if (data.status === 'success') {
+            // Show success message
+            showToast('Sukses', 'Proyek berhasil disetujui!', 'success');
+            
+            // Reload page after short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            console.error('Approval failed:', data);
+            showToast('Error', data.message || 'Gagal menyetujui proyek', 'error');
+        }
+    } catch (error) {
+        console.error('Error approving project:', error);
+        showToast('Error', 'Terjadi kesalahan saat menyetujui proyek', 'error');
+    }
+}
+
+// Reject project function
+async function rejectProject(projectId) {
+    const reason = document.getElementById('rejectionReason').value.trim();
+    
+    if (!reason) {
+        alert('Alasan penolakan harus diisi!');
+        return;
+    }
+
+    try {
+        // Call frontend proxy endpoint (include credentials to send HTTPOnly cookie)
+        const response = await fetch(`/admin/api/projects/${projectId}/reject`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin', // Important: include cookies in request
+            body: JSON.stringify({ reason: reason })
+        });
+
+        const data = await response.json();
+
+        console.log('Reject response:', data); // Debug log
+
+        if (data.status === 'success') {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('rejectModal'));
+            if (modal) {
+                modal.hide();
+            }
+            
+            // Show success message
+            showToast('Sukses', 'Proyek berhasil ditolak', 'success');
+            
+            // Reload page after short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            console.error('Rejection failed:', data);
+            showToast('Error', data.message || 'Gagal menolak proyek', 'error');
+        }
+    } catch (error) {
+        console.error('Error rejecting project:', error);
+        showToast('Error', 'Terjadi kesalahan saat menolak proyek', 'error');
+    }
+}
+
+// Show toast notification
+function showToast(title, message, type) {
+    // Create toast element if it doesn't exist
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        document.body.appendChild(toastContainer);
+    }
+
+    const toastId = 'toast-' + Date.now();
+    const bgClass = type === 'success' ? 'bg-success' : 'bg-danger';
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+
+    const toastHTML = `
+        <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas ${icon} me-2"></i>
+                    <strong>${title}:</strong> ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    `;
+
+    toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+    
+    const toastElement = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+    toast.show();
+
+    // Remove toast element after it's hidden
+    toastElement.addEventListener('hidden.bs.toast', function () {
+        toastElement.remove();
+    });
+}
+
+// Edit Project Functions
+function openEditProjectModal() {
+    // Populate the form with current project data
+    document.getElementById('editTitle').value = '{{.Project.Title}}';
+    document.getElementById('editDescription').value = '{{.Project.Description}}';
+    document.getElementById('editTargetAmount').value = '{{.Project.TargetAmount}}';
+    document.getElementById('editMinInvestment').value = '{{.Project.MinInvestment}}';
+    document.getElementById('editRiskLevel').value = '{{.Project.RiskLevel}}';
+    document.getElementById('editInvestmentPeriod').value = '{{.Project.InvestmentPeriod}}';
+    document.getElementById('editExpectedReturn').value = '{{.Project.ExpectedReturn}}';
+}
+
+function saveProjectEdit() {
+    const projectId = '{{.Project.ID}}';
+    const formData = {
+        title: document.getElementById('editTitle').value,
+        description: document.getElementById('editDescription').value,
+        target_amount: parseFloat(document.getElementById('editTargetAmount').value),
+        min_investment: parseFloat(document.getElementById('editMinInvestment').value),
+        risk_level: document.getElementById('editRiskLevel').value,
+        investment_period: parseInt(document.getElementById('editInvestmentPeriod').value),
+        expected_return: document.getElementById('editExpectedReturn').value
+    };
+
+    fetch(`/api/projects/${projectId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast('success', 'Proyek berhasil diperbarui!');
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            showToast('error', data.message || 'Gagal memperbarui proyek');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('error', 'Terjadi kesalahan saat memperbarui proyek');
+    });
+}
+
+function openAdminEditModal() {
+    // Populate admin form with current data
+    document.getElementById('adminApprovalStatus').value = '{{.Project.ApprovalStatus}}';
+    document.getElementById('adminShariaCompliant').checked = {{.Project.ShariaCompliant}};
+}
+
+function saveAdminEdit() {
+    const projectId = '{{.Project.ID}}';
+    const approvalStatus = document.getElementById('adminApprovalStatus').value;
+    const shariaCompliant = document.getElementById('adminShariaCompliant').checked;
+    
+    const formData = {
+        approved: approvalStatus === 'approved' ? true : (approvalStatus === 'rejected' ? false : null),
+        comments: approvalStatus === 'approved' ? 'Approved by admin' : (approvalStatus === 'rejected' ? 'Rejected by admin' : ''),
+        sharia_compliant: shariaCompliant
+    };
+
+    fetch(`/admin/api/projects/${projectId}/approve`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast('success', 'Status proyek berhasil diperbarui!');
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            showToast('error', data.message || 'Gagal memperbarui status proyek');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('error', 'Terjadi kesalahan saat memperbarui status proyek');
+    });
+}
+</script>
+
+<!-- Edit Project Modal -->
+<div class="modal fade" id="editProjectModal" tabindex="-1" aria-labelledby="editProjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editProjectModalLabel">
+                    <i class="fas fa-edit me-2"></i>Edit Proyek
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProjectForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editTitle" class="form-label">Judul Proyek <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="editTitle" name="title" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editTargetAmount" class="form-label">Target Dana (Rp) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="editTargetAmount" name="target_amount" min="1000" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editDescription" class="form-label">Deskripsi Proyek <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="editDescription" name="description" rows="4" required></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="editMinInvestment" class="form-label">Investasi Minimum (Rp)</label>
+                                <input type="number" class="form-control" id="editMinInvestment" name="min_investment" min="100">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="editRiskLevel" class="form-label">Tingkat Risiko</label>
+                                <select class="form-select" id="editRiskLevel" name="risk_level">
+                                    <option value="">Pilih Tingkat Risiko</option>
+                                    <option value="Low">Rendah</option>
+                                    <option value="Medium">Menengah</option>
+                                    <option value="High">Tinggi</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="editInvestmentPeriod" class="form-label">Periode Investasi (Bulan)</label>
+                                <input type="number" class="form-control" id="editInvestmentPeriod" name="investment_period" min="6" max="120">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editExpectedReturn" class="form-label">Expected Return</label>
+                        <input type="text" class="form-control" id="editExpectedReturn" name="expected_return" placeholder="e.g., 10-15%">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="saveProjectEdit()">
+                    <i class="fas fa-save me-2"></i>Simpan Perubahan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Edit Modal -->
+<div class="modal fade" id="adminEditModal" tabindex="-1" aria-labelledby="adminEditModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="adminEditModalLabel">
+                    <i class="fas fa-user-shield me-2"></i>Admin Edit - Status Proyek
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="adminEditForm">
+                    <div class="mb-3">
+                        <label for="adminApprovalStatus" class="form-label">Status Persetujuan</label>
+                        <select class="form-select" id="adminApprovalStatus" name="approval_status">
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="adminShariaCompliant" name="sharia_compliant">
+                            <label class="form-check-label" for="adminShariaCompliant">
+                                Proyek Memenuhi Prinsip Syariah
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-success" onclick="saveAdminEdit()">
+                    <i class="fas fa-save me-2"></i>Simpan Perubahan Admin
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

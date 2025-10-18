@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
 	"comfunds/internal/auth"
 	"comfunds/internal/entities"
@@ -436,6 +437,259 @@ func (c *ProjectController) GetUserProjects(ctx *gin.Context) {
 	utils.SuccessResponse(ctx, http.StatusOK, "User projects retrieved successfully", response)
 }
 
+// UpdateProject handles updating project details (FR-008: Business Owners can edit their projects)
+// @Summary Update project
+// @Tags projects
+// @Security BearerAuth
+// @Param id path string true "Project ID"
+// @Param project body entities.UpdateProjectRequest true "Project update data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.ErrorResponseData
+// @Failure 401 {object} utils.ErrorResponseData
+// @Failure 403 {object} utils.ErrorResponseData
+// @Failure 404 {object} utils.ErrorResponseData
+// @Router /api/v1/projects/{id} [put]
+func (c *ProjectController) UpdateProject(ctx *gin.Context) {
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "User not authenticated", nil)
+		return
+	}
+
+	userRoles, exists := ctx.Get("user_roles")
+	if !exists {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "User roles not found", nil)
+		return
+	}
+
+	userRolesList, ok := userRoles.([]string)
+	if !ok {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Invalid user roles format", nil)
+		return
+	}
+
+	idParam := ctx.Param("id")
+	projectID, err := uuid.Parse(idParam)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid project ID", err)
+		return
+	}
+
+	// Get current project to check ownership
+	currentProject, err := c.projectRepo.GetByID(ctx.Request.Context(), projectID)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusNotFound, "Project not found", err)
+		return
+	}
+
+	// Parse user UUID
+	var userUUID uuid.UUID
+	switch v := userID.(type) {
+	case string:
+		userUUID, err = uuid.Parse(v)
+		if err != nil {
+			utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid user ID", err)
+			return
+		}
+	case uuid.UUID:
+		userUUID = v
+	default:
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid user ID format", nil)
+		return
+	}
+
+	// Check if user is admin or project owner
+	isAdmin := c.roleValidator.CanUserApproveProjects(userRolesList)
+	isOwner := currentProject.OwnerID == userUUID
+
+	if !isAdmin && !isOwner {
+		utils.ErrorResponse(ctx, http.StatusForbidden, "Access denied: Only project owner or admin can edit", nil)
+		return
+	}
+
+	var req entities.UpdateProjectRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request payload", err)
+		return
+	}
+
+	if err := utils.ValidateStruct(&req); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Validation failed", err)
+		return
+	}
+
+	// Update project fields
+	updatedProject := *currentProject
+	updatedProject.Title = req.Title
+	updatedProject.Description = req.Description
+	updatedProject.TargetAmount = req.TargetAmount
+	updatedProject.MinInvestment = req.MinInvestment
+	updatedProject.RiskLevel = req.RiskLevel
+	updatedProject.InvestmentPeriod = req.InvestmentPeriod
+	updatedProject.ExpectedReturn = req.ExpectedReturn
+
+	// Only admins can update approval status
+	if isAdmin && req.Status != "" {
+		updatedProject.Status = req.Status
+	}
+
+	// Save to database
+	project, err := c.projectRepo.Update(ctx.Request.Context(), projectID, &updatedProject)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to update project", err)
+		return
+	}
+
+	// Convert to response format
+	projectResponse := map[string]interface{}{
+		"id":                project.ID.String(),
+		"title":             project.Title,
+		"description":       project.Description,
+		"target_amount":     project.TargetAmount,
+		"raised_amount":     project.RaisedAmount,
+		"min_investment":    project.MinInvestment,
+		"category":          project.Category,
+		"status":            project.Status,
+		"approval_status":   project.ApprovalStatus,
+		"risk_level":        project.RiskLevel,
+		"investment_period": project.InvestmentPeriod,
+		"expected_return":   project.ExpectedReturn,
+		"sharia_compliant":  project.ShariaCompliant,
+		"updated_at":        project.UpdatedAt,
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "Project updated successfully", projectResponse)
+}
+
+// UpdateProjectApproval handles admin approval/rejection updates (Admin only)
+// @Summary Update project approval status
+// @Tags projects
+// @Security BearerAuth
+// @Param id path string true "Project ID"
+// @Param approval body entities.ProjectApprovalRequest true "Approval data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.ErrorResponseData
+// @Failure 401 {object} utils.ErrorResponseData
+// @Failure 403 {object} utils.ErrorResponseData
+// @Failure 404 {object} utils.ErrorResponseData
+// @Router /api/v1/admin/projects/{id}/approval [put]
+func (c *ProjectController) UpdateProjectApproval(ctx *gin.Context) {
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "User not authenticated", nil)
+		return
+	}
+
+	userRoles, exists := ctx.Get("user_roles")
+	if !exists {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "User roles not found", nil)
+		return
+	}
+
+	userRolesList, ok := userRoles.([]string)
+	if !ok {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Invalid user roles format", nil)
+		return
+	}
+
+	// Only admins can update approval status
+	if !c.roleValidator.CanUserApproveProjects(userRolesList) {
+		utils.ErrorResponse(ctx, http.StatusForbidden, "Admin role required to update approval status", nil)
+		return
+	}
+
+	idParam := ctx.Param("id")
+	projectID, err := uuid.Parse(idParam)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid project ID", err)
+		return
+	}
+
+	// Get current project
+	currentProject, err := c.projectRepo.GetByID(ctx.Request.Context(), projectID)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusNotFound, "Project not found", err)
+		return
+	}
+
+	var req entities.ProjectAdminUpdateRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request payload", err)
+		return
+	}
+
+	if err := utils.ValidateStruct(&req); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Validation failed", err)
+		return
+	}
+
+	// Parse user UUID
+	var userUUID uuid.UUID
+	switch v := userID.(type) {
+	case string:
+		userUUID, err = uuid.Parse(v)
+		if err != nil {
+			utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid user ID", err)
+			return
+		}
+	case uuid.UUID:
+		userUUID = v
+	default:
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid user ID format", nil)
+		return
+	}
+
+	// Update approval status and sharia compliance
+	updatedProject := *currentProject
+	now := time.Now()
+
+	// Update approval status if provided
+	if req.Approved != nil {
+		if *req.Approved {
+			updatedProject.ApprovalStatus = "approved"
+			updatedProject.ApprovedBy = &userUUID
+			updatedProject.ApprovedAt = &now
+			updatedProject.RejectedBy = nil
+			updatedProject.RejectedAt = nil
+			updatedProject.RejectionReason = nil
+		} else {
+			updatedProject.ApprovalStatus = "rejected"
+			updatedProject.RejectedBy = &userUUID
+			updatedProject.RejectedAt = &now
+			updatedProject.RejectionReason = &req.Comments
+			updatedProject.ApprovedBy = nil
+			updatedProject.ApprovedAt = nil
+		}
+	}
+
+	// Update sharia compliance if provided
+	if req.ShariaCompliant != nil {
+		updatedProject.ShariaCompliant = *req.ShariaCompliant
+	}
+
+	// Save to database
+	project, err := c.projectRepo.Update(ctx.Request.Context(), projectID, &updatedProject)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to update project approval", err)
+		return
+	}
+
+	// Convert to response format
+	projectResponse := map[string]interface{}{
+		"id":               project.ID.String(),
+		"approval_status":  project.ApprovalStatus,
+		"approved_by":      project.ApprovedBy,
+		"approved_at":      project.ApprovedAt,
+		"rejected_by":      project.RejectedBy,
+		"rejected_at":      project.RejectedAt,
+		"rejection_reason": project.RejectionReason,
+		"sharia_compliant": project.ShariaCompliant,
+		"updated_at":       project.UpdatedAt,
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "Project approval updated successfully", projectResponse)
+}
+
 // GetInvestmentOpportunities returns projects available for investment (FR-009)
 // @Summary Get investment opportunities
 // @Tags projects
@@ -697,11 +951,13 @@ func (c *ProjectController) GetProjectByID(ctx *gin.Context) {
 		"risk_level":        project.RiskLevel,
 		"investment_period": project.InvestmentPeriod,
 		"expected_return":   project.ExpectedReturn,
+		"sharia_compliant":  project.ShariaCompliant,
 		"business_id":       project.BusinessID.String(),
 		"owner_id":          project.OwnerID.String(),
 		"cooperative_id":    project.CooperativeID.String(),
 		"created_at":        project.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		"updated_at":        project.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		"documents":         []string{}, // Initialize empty documents array
 	}
 
 	// Add optional fields

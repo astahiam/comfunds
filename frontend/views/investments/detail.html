@@ -1,0 +1,334 @@
+<div class="container py-5">
+    <!-- Back Button -->
+    <div class="row mb-3">
+        <div class="col">
+            <a href="/investments" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Kembali ke Daftar Investasi
+            </a>
+        </div>
+    </div>
+
+    <!-- Investment Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h1 class="h2 fw-bold text-success mb-2">
+                                <i class="fas fa-chart-line me-3"></i>Detail Investasi
+                            </h1>
+                            <p class="text-muted mb-0">ID: {{.Investment.ID}}</p>
+                        </div>
+                        <div>
+                            {{if eq .Investment.Status "pending"}}
+                                <span class="badge bg-warning px-3 py-2 fs-6">Pending</span>
+                            {{else if eq .Investment.Status "active"}}
+                                <span class="badge bg-success px-3 py-2 fs-6">Aktif</span>
+                            {{else if eq .Investment.Status "completed"}}
+                                <span class="badge bg-info px-3 py-2 fs-6">Selesai</span>
+                            {{else if eq .Investment.Status "cancelled"}}
+                                <span class="badge bg-danger px-3 py-2 fs-6">Dibatalkan</span>
+                            {{else if eq .Investment.Status "rejected"}}
+                                <span class="badge bg-danger px-3 py-2 fs-6">Ditolak</span>
+                            {{else}}
+                                <span class="badge bg-secondary px-3 py-2 fs-6">{{.Investment.Status}}</span>
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column: Investment Summary -->
+        <div class="col-lg-8">
+            <!-- Investment Details Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h4 class="mb-0">
+                        <i class="fas fa-wallet me-2 text-success"></i>Informasi Investasi
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="border-start border-4 border-success ps-3">
+                                <p class="text-muted mb-1 small">Jumlah Investasi</p>
+                                <h3 class="fw-bold text-success mb-0">
+                                    Rp {{printf "%.0f" .Investment.Amount}}
+                                </h3>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border-start border-4 border-info ps-3">
+                                <p class="text-muted mb-1 small">Tanggal Investasi</p>
+                                <h5 class="mb-0">
+                                    {{if .Investment.InvestmentDate}}
+                                        {{formatDateID .Investment.InvestmentDate "date"}}
+                                    {{else if .Investment.CreatedAt}}
+                                        {{formatDateID .Investment.CreatedAt "date"}}
+                                    {{else}}
+                                        -
+                                    {{end}}
+                                </h5>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border-start border-4 border-warning ps-3">
+                                <p class="text-muted mb-1 small">Currency</p>
+                                <h5 class="mb-0">{{if .Investment.Currency}}{{.Investment.Currency}}{{else}}IDR{{end}}</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border-start border-4 border-primary ps-3">
+                                <p class="text-muted mb-1 small">Return Saat Ini</p>
+                                <h5 class="mb-0">
+                                    {{if .Investment.ReturnAmount}}
+                                        <span class="text-success">+Rp {{printf "%.0f" .Investment.ReturnAmount}}</span>
+                                    {{else}}
+                                        <span class="text-muted">Belum ada return</span>
+                                    {{end}}
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Information Card -->
+            {{if .Investment.Project}}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h4 class="mb-0">
+                        <i class="fas fa-project-diagram me-2 text-primary"></i>Informasi Proyek
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <h4 class="fw-bold mb-3">{{.Investment.Project.Title}}</h4>
+                    <p class="text-muted">{{.Investment.Project.Description}}</p>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong>Status Proyek:</strong>
+                                {{if eq .Investment.Project.Status "active"}}
+                                    <span class="badge bg-success">Aktif</span>
+                                {{else if eq .Investment.Project.Status "completed"}}
+                                    <span class="badge bg-info">Selesai</span>
+                                {{else if eq .Investment.Project.Status "pending"}}
+                                    <span class="badge bg-warning">Pending</span>
+                                {{else}}
+                                    <span class="badge bg-secondary">{{.Investment.Project.Status}}</span>
+                                {{end}}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong>Target Dana:</strong>
+                                {{if .Investment.Project.FundingGoal}}
+                                    <span class="text-success">Rp {{printf "%.0f" .Investment.Project.FundingGoal}}</span>
+                                {{else}}
+                                    <span class="text-muted">-</span>
+                                {{end}}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <a href="/projects/{{.Investment.ProjectID}}" class="btn btn-outline-primary mt-3">
+                        <i class="fas fa-eye me-2"></i>Lihat Detail Proyek
+                    </a>
+                </div>
+            </div>
+            {{end}}
+
+            <!-- Transaction History Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h4 class="mb-0">
+                        <i class="fas fa-history me-2 text-warning"></i>Riwayat Transaksi
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="fw-bold mb-1">Investasi Dibuat</h6>
+                                <p class="text-muted small mb-0">
+                                    {{if .Investment.InvestmentDate}}
+                                        {{formatDateID .Investment.InvestmentDate "datetime"}}
+                                    {{else if .Investment.CreatedAt}}
+                                        {{formatDateID .Investment.CreatedAt "datetime"}}
+                                    {{else}}
+                                        -
+                                    {{end}}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        {{if eq .Investment.Status "active"}}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-info"></div>
+                            <div class="timeline-content">
+                                <h6 class="fw-bold mb-1">Investasi Aktif</h6>
+                                <p class="text-muted small mb-0">Investasi Anda sedang berjalan</p>
+                            </div>
+                        </div>
+                        {{else if eq .Investment.Status "completed"}}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6 class="fw-bold mb-1">Investasi Selesai</h6>
+                                <p class="text-muted small mb-0">Investasi telah selesai dan dana dikembalikan</p>
+                            </div>
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Actions & Stats -->
+        <div class="col-lg-4">
+            <!-- Quick Stats -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2 text-success"></i>Statistik
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                        <span class="text-muted">ROI</span>
+                        <strong class="text-success">
+                            {{if and .Investment.Amount (gt .Investment.Amount 0.0) .Investment.ReturnAmount}}
+                                {{printf "%.1f" (mul (div .Investment.ReturnAmount .Investment.Amount) 100)}}%
+                            {{else}}
+                                0.0%
+                            {{end}}
+                        </strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                        <span class="text-muted">Durasi</span>
+                        <strong>
+                            {{if .Investment.InvestmentDate}}
+                                {{/* Calculate days since investment - simplified */}}
+                                Aktif
+                            {{else}}
+                                -
+                            {{end}}
+                        </strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Status</span>
+                        <strong>
+                            {{if eq .Investment.Status "pending"}}
+                                <span class="text-warning">Pending</span>
+                            {{else if eq .Investment.Status "active"}}
+                                <span class="text-success">Aktif</span>
+                            {{else if eq .Investment.Status "completed"}}
+                                <span class="text-info">Selesai</span>
+                            {{else if eq .Investment.Status "cancelled"}}
+                                <span class="text-danger">Dibatalkan</span>
+                            {{else}}
+                                {{.Investment.Status}}
+                            {{end}}
+                        </strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cog me-2 text-primary"></i>Aksi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <a href="/investments" class="btn btn-outline-primary w-100 mb-2">
+                        <i class="fas fa-list me-2"></i>Semua Investasi
+                    </a>
+                    <a href="/portfolio" class="btn btn-outline-success w-100 mb-2">
+                        <i class="fas fa-wallet me-2"></i>Portfolio
+                    </a>
+                    <a href="/projects/public" class="btn btn-success w-100">
+                        <i class="fas fa-search me-2"></i>Cari Proyek Baru
+                    </a>
+                </div>
+            </div>
+
+            <!-- Help Card -->
+            <div class="card border-0 shadow-sm bg-light">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">
+                        <i class="fas fa-question-circle me-2 text-info"></i>Butuh Bantuan?
+                    </h6>
+                    <p class="small text-muted mb-3">
+                        Jika Anda memiliki pertanyaan tentang investasi ini, silakan hubungi tim support kami.
+                    </p>
+                    <a href="#" class="btn btn-sm btn-info w-100">
+                        <i class="fas fa-headset me-2"></i>Hubungi Support
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    transition: transform 0.2s;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 25px;
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #e9ecef;
+}
+
+.timeline-item:before {
+    content: '';
+    position: absolute;
+    left: -22px;
+    top: 16px;
+    width: 2px;
+    height: calc(100% + 9px);
+    background-color: #e9ecef;
+}
+
+.timeline-item:last-child:before {
+    display: none;
+}
+
+.timeline-content {
+    padding-left: 20px;
+}
+
+@media (max-width: 992px) {
+    .col-lg-4 {
+        margin-top: 1.5rem;
+    }
+}
+</style>
+

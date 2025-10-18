@@ -102,6 +102,7 @@ CREATE TABLE IF NOT EXISTS projects (
     rejected_by UUID,
     rejected_at TIMESTAMP WITH TIME ZONE,
     rejection_reason TEXT,
+    sharia_compliant BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

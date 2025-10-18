@@ -7,6 +7,7 @@ type Project struct {
 	Title              string                 `json:"title"`
 	Description        string                 `json:"description"`
 	BusinessID         string                 `json:"business_id"`
+	OwnerID            string                 `json:"owner_id"`
 	FundingGoal        float64                `json:"funding_goal"`
 	MinimumFunding     float64                `json:"minimum_funding"`
 	CurrentFunding     float64                `json:"current_funding"`
@@ -19,6 +20,14 @@ type Project struct {
 	ApprovalStatus     string                 `json:"approval_status"`
 	ApprovedBy         *string                `json:"approved_by"`
 	ApprovedAt         *time.Time             `json:"approved_at"`
+	RejectedBy         *string                `json:"rejected_by"`
+	RejectedAt         *time.Time             `json:"rejected_at"`
+	RejectionReason    *string                `json:"rejection_reason"`
+	ReviewerComments   *string                `json:"reviewer_comments"`
+	RiskLevel          string                 `json:"risk_level"`        // Low, Medium, High
+	InvestmentPeriod   int                    `json:"investment_period"` // months
+	ExpectedReturn     string                 `json:"expected_return"`   // e.g., "10-15%"
+	ShariaCompliant    bool                   `json:"sharia_compliant"`
 	CreatedAt          time.Time              `json:"created_at"`
 	UpdatedAt          time.Time              `json:"updated_at"`
 	Business           *Business              `json:"business,omitempty"`

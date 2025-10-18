@@ -174,6 +174,15 @@ func main() {
 }
 
 func setupRoutes(app *fiber.App, authHandler, dashboardHandler, adminHandler, cooperativeHandler, projectHandler, investmentHandler, businessHandler, uploadHandler *handlers.Handler) {
+	// Admin registration route (public, no auth required) - using unique path to avoid conflicts
+	app.Get("/admin-registration", func(c *fiber.Ctx) error {
+		println("🔍 Admin registration route called")
+		return c.JSON(fiber.Map{"message": "Admin registration route is working!"})
+	})
+
+	// Admin registration route
+	app.Get("/admin/register", adminHandler.AdminRegisterPage)
+
 	// Public routes with optional authentication
 	app.Get("/", middleware.OptionalAuthMiddleware, handlers.LandingPage)
 	app.Get("/tentang-kami", middleware.OptionalAuthMiddleware, handlers.AboutPage)
@@ -204,6 +213,7 @@ func setupRoutes(app *fiber.App, authHandler, dashboardHandler, adminHandler, co
 		protected.Get("/projects/create", middleware.RequireBusinessOwner, projectHandler.CreateProjectPage)
 		protected.Post("/api/projects", middleware.RequireBusinessOwner, projectHandler.CreateProject)
 		protected.Get("/projects/:id", projectHandler.ProjectDetail)
+		protected.Put("/api/projects/:id", projectHandler.UpdateProject)
 
 		// Investment routes (FR-041 to FR-049, FR-054 to FR-057)
 		protected.Get("/investments", middleware.RequireInvestor, investmentHandler.UserInvestmentsPage)
@@ -227,7 +237,7 @@ func setupRoutes(app *fiber.App, authHandler, dashboardHandler, adminHandler, co
 		protected.Delete("/api/upload/business-document", uploadHandler.DeleteBusinessDocument)
 	}
 
-	// Admin routes (require admin role)
+	// Admin routes (require admin role) - using /admin prefix
 	admin := app.Group("/admin", middleware.AuthMiddleware)
 	{
 		admin.Get("/", adminHandler.AdminDashboard)
@@ -240,6 +250,7 @@ func setupRoutes(app *fiber.App, authHandler, dashboardHandler, adminHandler, co
 		admin.Post("/api/cooperatives/:id/approve", adminHandler.ApproveCooperative)
 		admin.Post("/api/projects/:id/approve", adminHandler.ApproveProject)
 		admin.Post("/api/projects/:id/reject", adminHandler.RejectProject)
+		admin.Put("/api/projects/:id/update-approval", projectHandler.UpdateProjectApproval)
 		admin.Post("/api/businesses/:id/approve", adminHandler.ApproveBusiness)
 		admin.Post("/api/businesses/:id/reject", adminHandler.RejectBusiness)
 		admin.Post("/api/investments/:id/approve", adminHandler.ApproveInvestment)

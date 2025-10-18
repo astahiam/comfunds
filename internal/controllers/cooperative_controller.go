@@ -375,7 +375,8 @@ func (c *CooperativeController) ApproveProject(ctx *gin.Context) {
 	}
 
 	var req struct {
-		Comments string `json:"comments"`
+		Comments        string `json:"comments"`
+		ShariaCompliant *bool  `json:"sharia_compliant"`
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -383,7 +384,7 @@ func (c *CooperativeController) ApproveProject(ctx *gin.Context) {
 		return
 	}
 
-	err = c.cooperativeService.ApproveProject(ctx.Request.Context(), cooperativeID, projectID, userID.(uuid.UUID), req.Comments)
+	err = c.cooperativeService.ApproveProject(ctx.Request.Context(), cooperativeID, projectID, userID.(uuid.UUID), req.Comments, req.ShariaCompliant)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, "Failed to approve project", err)
 		return
@@ -398,4 +399,93 @@ func (c *CooperativeController) ApproveProject(ctx *gin.Context) {
 	}
 
 	utils.SuccessResponse(ctx, http.StatusOK, "Project approved successfully", response)
+}
+
+// ApproveProjectAdmin allows admins to approve projects without specifying cooperative ID
+func (c *CooperativeController) ApproveProjectAdmin(ctx *gin.Context) {
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "User not authenticated", nil)
+		return
+	}
+
+	projectIDParam := ctx.Param("id")
+	projectID, err := uuid.Parse(projectIDParam)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid project ID", err)
+		return
+	}
+
+	var req struct {
+		Approved        *bool  `json:"approved,omitempty"`
+		Comments        string `json:"comments,omitempty"`
+		ShariaCompliant *bool  `json:"sharia_compliant,omitempty"`
+	}
+
+	// Allow empty body since comments are optional
+	_ = ctx.ShouldBindJSON(&req)
+
+	// For now, use a default cooperative ID or fetch from project
+	// In a real implementation, you'd fetch the project's cooperative_id first
+	defaultCooperativeID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440001")
+
+	err = c.cooperativeService.ApproveProject(ctx.Request.Context(), defaultCooperativeID, projectID, userID.(uuid.UUID), req.Comments, req.ShariaCompliant)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Failed to approve project", err)
+		return
+	}
+
+	response := map[string]interface{}{
+		"project_id":       projectID,
+		"status":           "approved",
+		"comments":         req.Comments,
+		"approved_by":      userID,
+		"sharia_compliant": req.ShariaCompliant,
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "Project approved successfully", response)
+}
+
+// RejectProjectAdmin allows admins to reject projects without specifying cooperative ID
+func (c *CooperativeController) RejectProjectAdmin(ctx *gin.Context) {
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "User not authenticated", nil)
+		return
+	}
+
+	projectIDParam := ctx.Param("id")
+	projectID, err := uuid.Parse(projectIDParam)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid project ID", err)
+		return
+	}
+
+	var req struct {
+		Reason string `json:"reason" binding:"required"`
+	}
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Reason is required", err)
+		return
+	}
+
+	// For now, use a default cooperative ID or fetch from project
+	// In a real implementation, you'd fetch the project's cooperative_id first
+	defaultCooperativeID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440001")
+
+	err = c.cooperativeService.RejectProject(ctx.Request.Context(), defaultCooperativeID, projectID, userID.(uuid.UUID), req.Reason)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Failed to reject project", err)
+		return
+	}
+
+	response := map[string]interface{}{
+		"project_id":  projectID,
+		"status":      "rejected",
+		"reason":      req.Reason,
+		"rejected_by": userID,
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "Project rejected successfully", response)
 }

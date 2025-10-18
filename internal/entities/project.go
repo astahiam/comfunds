@@ -13,7 +13,7 @@ type Project struct {
 	TargetAmount     float64    `json:"target_amount" db:"target_amount"`
 	RaisedAmount     float64    `json:"raised_amount" db:"raised_amount"`
 	MinInvestment    float64    `json:"min_investment" db:"min_investment"`
-	Category         string     `json:"category" db:"category"`
+	Category         string     `json:"category" db:"project_type"`
 	Status           string     `json:"status" db:"status"`                       // draft, submitted, approved, active, completed, cancelled
 	ApprovalStatus   string     `json:"approval_status" db:"approval_status"`     // pending, approved, rejected
 	RiskLevel        string     `json:"risk_level" db:"risk_level"`               // Low, Medium, High
@@ -76,6 +76,12 @@ type UpdateProjectRequest struct {
 type ProjectApprovalRequest struct {
 	Approved bool   `json:"approved" validate:"required"`
 	Comments string `json:"comments" validate:"max=1000"`
+}
+
+type ProjectAdminUpdateRequest struct {
+	Approved        *bool  `json:"approved,omitempty"`
+	Comments        string `json:"comments,omitempty"`
+	ShariaCompliant *bool  `json:"sharia_compliant,omitempty"`
 }
 
 // ProjectStatus constants

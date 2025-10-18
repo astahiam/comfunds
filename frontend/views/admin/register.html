@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Registration - HajiFund</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .registration-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 0;
+        }
+        
+        .registration-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        .registration-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        
+        .registration-body {
+            padding: 3rem 2rem;
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+        }
+        
+        .btn-register {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+        }
+        
+        .security-badge {
+            background: linear-gradient(135deg, #ffc107 0%, #ff8c00 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .input-group-text {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-right: none;
+        }
+        
+        .form-floating {
+            margin-bottom: 1rem;
+        }
+        
+        .admin-warning {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .registration-container {
+                padding: 1rem;
+            }
+            
+            .registration-header, .registration-body {
+                padding: 2rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="registration-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12">
+                    <div class="registration-card">
+                        <!-- Header -->
+                        <div class="registration-header">
+                            <div class="mb-3">
+                                <i class="fas fa-shield-alt display-4"></i>
+                            </div>
+                            <h1 class="h2 mb-3">Admin Registration</h1>
+                            <p class="lead mb-0">Create a new administrator account for HajiFund</p>
+                            <div class="mt-3">
+                                <span class="security-badge">
+                                    <i class="fas fa-lock me-2"></i>Secure Registration
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Registration Form -->
+                        <div class="registration-body">
+                            <!-- Security Warning -->
+                            <div class="admin-warning">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-exclamation-triangle me-3"></i>
+                                    <div>
+                                        <strong>Security Notice:</strong> Admin accounts have full system access. Only authorized personnel should register.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <form id="adminRegisterForm" novalidate>
+                                <div class="row">
+                                    <!-- Personal Information -->
+                                    <div class="col-md-6 mb-4">
+                                        <h5 class="text-success mb-3">
+                                            <i class="fas fa-user me-2"></i>Personal Information
+                                        </h5>
+                                        
+                                        <div class="form-floating mb-3">
+                                            <input type="text" class="form-control" id="name" name="name" 
+                                                   placeholder="Full Name" required>
+                                            <label for="name">Full Name <span class="text-danger">*</span></label>
+                                            <div class="invalid-feedback">
+                                                Please enter your full name
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-floating mb-3">
+                                            <input type="email" class="form-control" id="email" name="email" 
+                                                   placeholder="Email Address" required>
+                                            <label for="email">Email Address <span class="text-danger">*</span></label>
+                                            <div class="invalid-feedback">
+                                                Please enter a valid email address
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-floating mb-3">
+                                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                                   placeholder="Phone Number" required>
+                                            <label for="phone">Phone Number <span class="text-danger">*</span></label>
+                                            <div class="invalid-feedback">
+                                                Please enter your phone number
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Security Information -->
+                                    <div class="col-md-6 mb-4">
+                                        <h5 class="text-success mb-3">
+                                            <i class="fas fa-lock me-2"></i>Security Information
+                                        </h5>
+                                        
+                                        <div class="form-floating mb-3">
+                                            <input type="password" class="form-control" id="password" name="password" 
+                                                   placeholder="Password" required minlength="8">
+                                            <label for="password">Password <span class="text-danger">*</span></label>
+                                            <div class="invalid-feedback">
+                                                Password must be at least 8 characters long
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-floating mb-3">
+                                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" 
+                                                   placeholder="Confirm Password" required>
+                                            <label for="confirmPassword">Confirm Password <span class="text-danger">*</span></label>
+                                            <div class="invalid-feedback">
+                                                Passwords do not match
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-floating mb-3">
+                                            <input type="text" class="form-control" id="address" name="address" 
+                                                   placeholder="Address" required>
+                                            <label for="address">Address <span class="text-danger">*</span></label>
+                                            <div class="invalid-feedback">
+                                                Please enter your address
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Admin Authorization -->
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <h5 class="text-success mb-3">
+                                            <i class="fas fa-key me-2"></i>Admin Authorization
+                                        </h5>
+                                        
+                                        <div class="form-floating mb-3">
+                                            <input type="text" class="form-control" id="adminCode" name="adminCode" 
+                                                   placeholder="Admin Authorization Code" required>
+                                            <label for="adminCode">Admin Authorization Code <span class="text-danger">*</span></label>
+                                            <div class="invalid-feedback">
+                                                Please enter the admin authorization code
+                                            </div>
+                                            <div class="form-text">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                Contact system administrator for the authorization code
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Terms and Conditions -->
+                                <div class="mb-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                                        <label class="form-check-label" for="terms">
+                                            I agree to the <a href="/terms" target="_blank" class="text-success">Terms and Conditions</a> 
+                                            and <a href="/privacy" target="_blank" class="text-success">Privacy Policy</a>
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="invalid-feedback">
+                                            You must agree to the terms and conditions
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Submit Button -->
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-register btn-lg text-white">
+                                        <i class="fas fa-user-plus me-2"></i>Create Admin Account
+                                    </button>
+                                </div>
+                            </form>
+                            
+                            <!-- Login Link -->
+                            <div class="text-center mt-4">
+                                <p class="text-muted">
+                                    Already have an admin account? 
+                                    <a href="/login" class="text-success fw-bold">Login here</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="fas fa-info-circle text-primary me-2"></i>
+                <strong class="me-auto">HajiFund</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastBody">
+                <!-- Toast message will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Form validation and submission
+        document.getElementById('adminRegisterForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const form = this;
+            const formData = new FormData(form);
+            
+            // Validate form
+            if (!form.checkValidity()) {
+                e.stopPropagation();
+                form.classList.add('was-validated');
+                return;
+            }
+            
+            // Check password match
+            const password = formData.get('password');
+            const confirmPassword = formData.get('confirmPassword');
+            
+            if (password !== confirmPassword) {
+                document.getElementById('confirmPassword').setCustomValidity('Passwords do not match');
+                form.classList.add('was-validated');
+                return;
+            } else {
+                document.getElementById('confirmPassword').setCustomValidity('');
+            }
+            
+            // Check admin code (simple validation for demo)
+            const adminCode = formData.get('adminCode');
+            if (adminCode !== 'HAJIFUND_ADMIN_2024') {
+                document.getElementById('adminCode').setCustomValidity('Invalid admin authorization code');
+                form.classList.add('was-validated');
+                return;
+            } else {
+                document.getElementById('adminCode').setCustomValidity('');
+            }
+            
+            // Prepare registration data
+            const registrationData = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                phone: formData.get('phone'),
+                password: password,
+                address: formData.get('address'),
+                roles: ['admin'], // Set admin role
+                adminCode: adminCode
+            };
+            
+            try {
+                // Show loading state
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating Account...';
+                submitBtn.disabled = true;
+                
+                // Make API request
+                const response = await fetch('/api/v1/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(registrationData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Success
+                    showToast('success', 'Admin account created successfully! Redirecting to login...');
+                    setTimeout(() => {
+                        window.location.href = '/admin/login';
+                    }, 2000);
+                } else {
+                    // Error
+                    showToast('error', data.message || 'Failed to create admin account');
+                }
+                
+            } catch (error) {
+                console.error('Registration error:', error);
+                showToast('error', 'An error occurred. Please try again.');
+            } finally {
+                // Reset button state
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+        
+        // Real-time password confirmation validation
+        document.getElementById('confirmPassword').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+            
+            if (password !== confirmPassword) {
+                this.setCustomValidity('Passwords do not match');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+        
+        // Toast notification function
+        function showToast(type, message) {
+            const toast = document.getElementById('toast');
+            const toastBody = document.getElementById('toastBody');
+            const toastHeader = toast.querySelector('.toast-header i');
+            
+            // Set icon based on type
+            if (type === 'success') {
+                toastHeader.className = 'fas fa-check-circle text-success me-2';
+            } else if (type === 'error') {
+                toastHeader.className = 'fas fa-exclamation-circle text-danger me-2';
+            } else {
+                toastHeader.className = 'fas fa-info-circle text-primary me-2';
+            }
+            
+            toastBody.textContent = message;
+            
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        }
+        
+        // Auto-hide admin code field for demo purposes
+        document.getElementById('adminCode').addEventListener('input', function() {
+            if (this.value === 'HAJIFUND_ADMIN_2024') {
+                this.classList.add('is-valid');
+            } else {
+                this.classList.remove('is-valid');
+            }
+        });
+    </script>
+</body>
+</html>

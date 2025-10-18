@@ -193,7 +193,23 @@ func (c *InvestmentFundingController) GetInvestment(ctx *gin.Context) {
 		return
 	}
 
-	utils.SuccessResponse(ctx, http.StatusOK, "Investment retrieved successfully", investment)
+	// Format response to match frontend expectations
+	response := map[string]interface{}{
+		"id":              investment.ID,
+		"project_id":      investment.ProjectID,
+		"investor_id":     investment.InvestorID,
+		"amount":          investment.Amount,
+		"currency":        investment.Currency,
+		"status":          investment.Status,
+		"approval_status": investment.ApprovalStatus,
+		"investment_date": investment.CreatedAt, // Map CreatedAt to investment_date for frontend
+		"return_amount":   investment.ActualReturn,
+		"return_date":     investment.ActualReturnDate,
+		"created_at":      investment.CreatedAt,
+		"updated_at":      investment.UpdatedAt,
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "Investment retrieved successfully", response)
 }
 
 // UpdateInvestment updates investment
@@ -380,8 +396,27 @@ func (c *InvestmentFundingController) GetInvestorInvestments(ctx *gin.Context) {
 		return
 	}
 
+	// Format investments to match frontend expectations
+	formattedInvestments := make([]map[string]interface{}, len(investments))
+	for i, inv := range investments {
+		formattedInvestments[i] = map[string]interface{}{
+			"id":              inv.ID,
+			"project_id":      inv.ProjectID,
+			"investor_id":     inv.InvestorID,
+			"amount":          inv.Amount,
+			"currency":        inv.Currency,
+			"status":          inv.Status,
+			"approval_status": inv.ApprovalStatus,
+			"investment_date": inv.CreatedAt, // Map CreatedAt to investment_date for frontend
+			"return_amount":   inv.ActualReturn,
+			"return_date":     inv.ActualReturnDate,
+			"created_at":      inv.CreatedAt,
+			"updated_at":      inv.UpdatedAt,
+		}
+	}
+
 	response := map[string]interface{}{
-		"investments": investments,
+		"investments": formattedInvestments,
 		"pagination": map[string]interface{}{
 			"page":  page,
 			"limit": limit,
