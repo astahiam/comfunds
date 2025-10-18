@@ -74,7 +74,7 @@ func main() {
 	// Initialize services
 	userService := services.NewUserServiceAuth(userRepo, cooperativeRepo, jwtManager)
 	userServiceWithAudit := services.NewUserServiceWithAudit(userService, auditService, userRepo)
-	cooperativeService := services.NewCooperativeService(cooperativeRepo, userRepo, auditService, investmentPolicyService, projectApprovalService, fundMonitoringService, memberRegistryService)
+	cooperativeService := services.NewCooperativeService(cooperativeRepo, projectRepo, userRepo, auditService, investmentPolicyService, projectApprovalService, fundMonitoringService, memberRegistryService)
 
 	// Initialize controllers
 	authController := controllers.NewAuthController(userService)
@@ -274,6 +274,7 @@ func main() {
 				projects.GET("/available-for-investment", projectController.GetProjectsAvailableForInvestment) // Get investment-ready projects (must be before /:id)
 				projects.GET("/:id", projectController.GetProjectByID)                                         // Get project by ID (must be after specific routes)
 				projects.POST("", permissionMiddleware.RequirePermission(auth.PermissionCreateProject), projectController.CreateProject)
+				projects.PUT("/:id", projectController.UpdateProject) // Update project (owner or admin only)
 			}
 
 			// FR-041 to FR-045: Investment & Funding System
@@ -367,6 +368,11 @@ func main() {
 				admin.GET("/businesses/:id", businessController.GetBusiness)
 				admin.POST("/businesses/approve", businessController.ApproveBusiness)
 				admin.POST("/businesses/reject", businessController.RejectBusiness)
+
+				// Project approval management (admin can approve/reject projects)
+				admin.POST("/projects/:id/approve", cooperativeController.ApproveProjectAdmin)
+				admin.POST("/projects/:id/reject", cooperativeController.RejectProjectAdmin)
+				admin.PUT("/projects/:id/update-approval", projectController.UpdateProjectApproval)
 			}
 
 			// FR-015 to FR-023: Cooperative Management

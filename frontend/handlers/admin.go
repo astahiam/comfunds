@@ -278,14 +278,25 @@ func (h *Handler) ApproveProject(c *fiber.Ctx) error {
 	projectID := c.Params("id")
 	authHeaders := utils.GetAuthHeaders(getTokenFromContext(c))
 
+	// Debug logging
+	println("🔍 ApproveProject called for project ID:", projectID)
+	println("🔑 Auth headers:", authHeaders)
+
+	// Read the request body to forward sharia_compliant and other data
+	body := c.Body()
+	println("📦 Request body:", string(body))
+
 	// Make API request to approve project
-	resp, err := utils.MakeAPIRequest("POST", "/api/v1/admin/projects/"+projectID+"/approve", nil, authHeaders)
+	resp, err := utils.MakeAPIRequest("POST", "/api/v1/admin/projects/"+projectID+"/approve", body, authHeaders)
 	if err != nil {
+		println("❌ Error from backend API:", err.Error())
 		return c.Status(400).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Failed to approve project",
+			"message": "Failed to approve project: " + err.Error(),
 		})
 	}
+
+	println("✅ Project approved successfully:", resp)
 
 	return c.JSON(fiber.Map{
 		"status":  "success",
@@ -302,22 +313,30 @@ func (h *Handler) RejectProject(c *fiber.Ctx) error {
 		Reason string `json:"reason"`
 	}
 	if err := c.BodyParser(&req); err != nil {
+		println("❌ Error parsing request body:", err.Error())
 		return c.Status(400).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Invalid request body",
+			"message": "Invalid request body: " + err.Error(),
 		})
 	}
+
+	// Debug logging
+	println("🔍 RejectProject called for project ID:", projectID)
+	println("📝 Rejection reason:", req.Reason)
 
 	// Make API request to reject project
 	resp, err := utils.MakeAPIRequest("POST", "/api/v1/admin/projects/"+projectID+"/reject", map[string]interface{}{
 		"reason": req.Reason,
 	}, authHeaders)
 	if err != nil {
+		println("❌ Error from backend API:", err.Error())
 		return c.Status(400).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Failed to reject project",
+			"message": "Failed to reject project: " + err.Error(),
 		})
 	}
+
+	println("✅ Project rejected successfully:", resp)
 
 	return c.JSON(fiber.Map{
 		"status":  "success",
@@ -512,4 +531,27 @@ func (h *Handler) UpdateUserRoles(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(resp)
+}
+
+// AdminRegisterPage renders the admin registration page
+func (h *Handler) AdminRegisterPage(c *fiber.Ctx) error {
+	println("🔍 AdminRegisterPage handler called")
+	return c.Render("admin/register", fiber.Map{
+		"Title": "Admin Registration - HajiFund",
+	})
+}
+
+// AdminLoginPage renders the admin login page
+func (h *Handler) AdminLoginPage(c *fiber.Ctx) error {
+	return c.Render("admin/login", fiber.Map{
+		"Title": "Admin Login - HajiFund",
+	})
+}
+
+// TestAdminRoute is a simple test route
+func (h *Handler) TestAdminRoute(c *fiber.Ctx) error {
+	return c.JSON(fiber.Map{
+		"message": "Admin route is working!",
+		"path":    c.Path(),
+	})
 }

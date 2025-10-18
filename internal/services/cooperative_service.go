@@ -24,7 +24,7 @@ type CooperativeService interface {
 	DeleteCooperative(ctx context.Context, id uuid.UUID, deleterID uuid.UUID) error
 
 	// FR-020: Project Approval/Rejection
-	ApproveProject(ctx context.Context, cooperativeID, projectID, approverID uuid.UUID, comments string) error
+	ApproveProject(ctx context.Context, cooperativeID, projectID, approverID uuid.UUID, comments string, shariaCompliant *bool) error
 	RejectProject(ctx context.Context, cooperativeID, projectID, approverID uuid.UUID, reason string) error
 	GetPendingProjects(ctx context.Context, cooperativeID uuid.UUID, page, limit int) ([]*entities.Project, int, error)
 
@@ -49,6 +49,7 @@ type CooperativeService interface {
 
 type cooperativeService struct {
 	cooperativeRepo         repositories.CooperativeRepository
+	projectRepo             repositories.ProjectRepository
 	userRepo                repositories.UserRepositorySharded
 	auditService            AuditService
 	investmentPolicyService InvestmentPolicyService
@@ -59,6 +60,7 @@ type cooperativeService struct {
 
 func NewCooperativeService(
 	cooperativeRepo repositories.CooperativeRepository,
+	projectRepo repositories.ProjectRepository,
 	userRepo repositories.UserRepositorySharded,
 	auditService AuditService,
 	investmentPolicyService InvestmentPolicyService,
@@ -68,6 +70,7 @@ func NewCooperativeService(
 ) CooperativeService {
 	return &cooperativeService{
 		cooperativeRepo:         cooperativeRepo,
+		projectRepo:             projectRepo,
 		userRepo:                userRepo,
 		auditService:            auditService,
 		investmentPolicyService: investmentPolicyService,
@@ -243,33 +246,101 @@ func (s *cooperativeService) DeleteCooperative(ctx context.Context, id uuid.UUID
 }
 
 // FR-020: Project Approval/Rejection
-func (s *cooperativeService) ApproveProject(ctx context.Context, cooperativeID, projectID, approverID uuid.UUID, comments string) error {
-	// This would update project status and log the approval
-	// Implementation depends on project repository which we'll need to create
+func (s *cooperativeService) ApproveProject(ctx context.Context, cooperativeID, projectID, approverID uuid.UUID, comments string, shariaCompliant *bool) error {
+	// 1. Fetch the project from the repository
+	project, err := s.projectRepo.GetByID(ctx, projectID)
+	if err != nil {
+		return fmt.Errorf("failed to fetch project: %w", err)
+	}
 
+	// 2. Update project fields
+	now := time.Now()
+	project.ApprovalStatus = "approved"
+	project.Status = "approved" // Also update the main status field
+	project.ApprovedBy = &approverID
+	project.ApprovedAt = &now
+	project.ReviewerComments = &comments
+
+	// Clear rejection fields if they exist
+	project.RejectedBy = nil
+	project.RejectedAt = nil
+	project.RejectionReason = nil
+
+	// Update sharia compliance if provided
+	if shariaCompliant != nil {
+		project.ShariaCompliant = *shariaCompliant
+	}
+
+	// 3. Save the updated project back to the repository
+	_, err = s.projectRepo.Update(ctx, projectID, project)
+	if err != nil {
+		return fmt.Errorf("failed to update project: %w", err)
+	}
+
+	// Log the approval action
 	s.auditService.LogOperation(ctx, &LogOperationRequest{
 		EntityType: entities.AuditEntityProject,
 		EntityID:   projectID,
 		Operation:  entities.AuditOperationUpdate,
 		UserID:     approverID,
-		Changes:    map[string]interface{}{"status": "approved", "comments": comments},
-		Status:     entities.AuditStatusSuccess,
+		Changes: map[string]interface{}{
+			"approval_status":  "approved",
+			"comments":         comments,
+			"approved_by":      approverID.String(),
+			"approved_at":      now.Format(time.RFC3339),
+			"sharia_compliant": shariaCompliant,
+		},
+		Status: entities.AuditStatusSuccess,
 	})
 
-	return fmt.Errorf("project approval functionality requires project repository implementation")
+	fmt.Printf("✅ Project %s approved by %s\n", projectID, approverID)
+	return nil
 }
 
 func (s *cooperativeService) RejectProject(ctx context.Context, cooperativeID, projectID, approverID uuid.UUID, reason string) error {
+	// 1. Fetch the project from the repository
+	project, err := s.projectRepo.GetByID(ctx, projectID)
+	if err != nil {
+		return fmt.Errorf("failed to fetch project: %w", err)
+	}
+
+	// 2. Update project fields
+	now := time.Now()
+	project.ApprovalStatus = "rejected"
+	project.Status = "rejected" // Also update the main status field
+	project.RejectedBy = &approverID
+	project.RejectedAt = &now
+	project.RejectionReason = &reason
+
+	// Clear approval fields if they exist
+	project.ApprovedBy = nil
+	project.ApprovedAt = nil
+	project.ReviewerComments = nil
+
+	// 3. Save the updated project back to the repository
+	_, err = s.projectRepo.Update(ctx, projectID, project)
+	if err != nil {
+		return fmt.Errorf("failed to update project: %w", err)
+	}
+
+	// Log the rejection action
 	s.auditService.LogOperation(ctx, &LogOperationRequest{
 		EntityType: entities.AuditEntityProject,
 		EntityID:   projectID,
 		Operation:  entities.AuditOperationUpdate,
 		UserID:     approverID,
-		Changes:    map[string]interface{}{"status": "rejected", "reason": reason},
-		Status:     entities.AuditStatusSuccess,
+		Changes: map[string]interface{}{
+			"approval_status":  "rejected",
+			"reason":           reason,
+			"rejected_by":      approverID.String(),
+			"rejected_at":      now.Format(time.RFC3339),
+			"rejection_reason": reason,
+		},
+		Status: entities.AuditStatusSuccess,
 	})
 
-	return fmt.Errorf("project rejection functionality requires project repository implementation")
+	fmt.Printf("❌ Project %s rejected by %s: %s\n", projectID, approverID, reason)
+	return nil
 }
 
 func (s *cooperativeService) GetPendingProjects(ctx context.Context, cooperativeID uuid.UUID, page, limit int) ([]*entities.Project, int, error) {

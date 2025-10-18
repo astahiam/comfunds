@@ -312,18 +312,30 @@ func (s *investmentFundingService) GetProjectInvestmentLimits(ctx context.Contex
 
 // GetInvestment gets investment by ID
 func (s *investmentFundingService) GetInvestment(ctx context.Context, investmentID uuid.UUID) (*entities.InvestmentExtended, error) {
-	// Mock implementation
+	// Mock implementation with complete data
+	now := time.Now()
+	investmentDate := time.Now().AddDate(0, -1, 0) // 1 month ago
+
 	return &entities.InvestmentExtended{
-		ID:             investmentID,
-		InvestorID:     uuid.New(),
-		ProjectID:      uuid.New(),
-		Amount:         1000.0,
-		Currency:       "IDR",
-		InvestmentType: entities.InvestmentTypePartial,
-		Status:         entities.InvestmentStatusActive,
-		IsActive:       true,
-		CreatedAt:      time.Now(),
-		UpdatedAt:      time.Now(),
+		ID:                   investmentID,
+		InvestorID:           uuid.New(),
+		ProjectID:            uuid.New(),
+		CooperativeID:        uuid.New(),
+		Amount:               5000000.0, // 5 million IDR
+		Currency:             "IDR",
+		InvestmentType:       entities.InvestmentTypePartial,
+		InvestmentPercentage: 5.0,
+		Status:               entities.InvestmentStatusActive,
+		ApprovalStatus:       "approved",
+		ExpectedReturn:       10.0, // 10% expected return
+		ExpectedReturnDate:   &now,
+		ActualReturn:         0,
+		RiskLevel:            "medium",
+		ShariaCompliant:      true,
+		IsActive:             true,
+		CreatedAt:            investmentDate,
+		UpdatedAt:            now,
+		TransferDate:         &investmentDate,
 	}, nil
 }
 

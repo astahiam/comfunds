@@ -38,7 +38,7 @@ func (r *projectRepository) Create(ctx context.Context, project *entities.Projec
 
 	query := `
 		INSERT INTO projects (
-			id, title, description, target_amount, raised_amount, min_investment, category,
+			id, title, description, target_amount, raised_amount, min_investment, project_type,
 			status, approval_status, risk_level, investment_period, expected_return,
 			business_id, owner_id, cooperative_id, start_date, end_date,
 			project_image_1, project_image_2, project_image_3, created_at, updated_at
@@ -69,7 +69,7 @@ func (r *projectRepository) GetByID(ctx context.Context, id uuid.UUID) (*entitie
 	}
 
 	query := `
-		SELECT id, title, description, target_amount, raised_amount, min_investment, category,
+		SELECT id, title, description, target_amount, raised_amount, min_investment, project_type,
 			status, approval_status, risk_level, investment_period, expected_return,
 			business_id, owner_id, cooperative_id, approved_by, approved_at,
 			rejected_by, rejected_at, rejection_reason, reviewer_comments,
@@ -110,7 +110,7 @@ func (r *projectRepository) GetAll(ctx context.Context, limit, offset int) ([]*e
 	}
 
 	query := `
-		SELECT id, title, description, target_amount, raised_amount, min_investment, category,
+		SELECT id, title, description, target_amount, raised_amount, min_investment, project_type,
 			status, approval_status, risk_level, investment_period, expected_return,
 			business_id, owner_id, cooperative_id, approved_by, approved_at,
 			rejected_by, rejected_at, rejection_reason, reviewer_comments,
@@ -164,7 +164,7 @@ func (r *projectRepository) GetByOwnerID(ctx context.Context, ownerID uuid.UUID,
 	}
 
 	query := `
-		SELECT id, title, description, target_amount, raised_amount, min_investment, category,
+		SELECT id, title, description, target_amount, raised_amount, min_investment, project_type,
 			status, approval_status, risk_level, investment_period, expected_return,
 			business_id, owner_id, cooperative_id, approved_by, approved_at,
 			rejected_by, rejected_at, rejection_reason, reviewer_comments,
@@ -219,7 +219,7 @@ func (r *projectRepository) GetByApprovalStatus(ctx context.Context, status stri
 	}
 
 	query := `
-		SELECT id, title, description, target_amount, raised_amount, min_investment, category,
+		SELECT id, title, description, target_amount, raised_amount, min_investment, project_type,
 			status, approval_status, risk_level, investment_period, expected_return,
 			business_id, owner_id, cooperative_id, approved_by, approved_at,
 			rejected_by, rejected_at, rejection_reason, reviewer_comments,
@@ -275,10 +275,10 @@ func (r *projectRepository) Update(ctx context.Context, id uuid.UUID, project *e
 	query := `
 		UPDATE projects SET
 			title = $2, description = $3, target_amount = $4, raised_amount = $5, min_investment = $6,
-			category = $7, status = $8, approval_status = $9, risk_level = $10, investment_period = $11,
+			project_type = $7, status = $8, approval_status = $9, risk_level = $10, investment_period = $11,
 			expected_return = $12, approved_by = $13, approved_at = $14,
 			rejected_by = $15, rejected_at = $16, rejection_reason = $17, reviewer_comments = $18,
-			start_date = $19, end_date = $20, updated_at = CURRENT_TIMESTAMP
+			start_date = $19, end_date = $20, sharia_compliant = $21, updated_at = CURRENT_TIMESTAMP
 		WHERE id = $1
 		RETURNING updated_at
 	`
@@ -289,6 +289,7 @@ func (r *projectRepository) Update(ctx context.Context, id uuid.UUID, project *e
 		project.RiskLevel, project.InvestmentPeriod, project.ExpectedReturn,
 		project.ApprovedBy, project.ApprovedAt, project.RejectedBy, project.RejectedAt,
 		project.RejectionReason, project.ReviewerComments, project.StartDate, project.EndDate,
+		project.ShariaCompliant,
 	).Scan(&project.UpdatedAt)
 
 	if err != nil {
@@ -360,7 +361,7 @@ func (r *projectRepository) GetApprovedProjects(ctx context.Context, page, limit
 
 	// Query to get approved projects from all shards
 	query := `
-		SELECT id, title, description, target_amount, raised_amount, min_investment, category,
+		SELECT id, title, description, target_amount, raised_amount, min_investment, project_type,
 		       status, approval_status, risk_level, investment_period, expected_return,
 		       business_id, owner_id, cooperative_id, start_date, end_date,
 		       project_image_1, project_image_2, project_image_3, created_at, updated_at

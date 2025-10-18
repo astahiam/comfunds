@@ -180,6 +180,54 @@ func (h *Handler) PublicProjectsPage(c *fiber.Ctx) error {
 	}, "base")
 }
 
+// UpdateProject handles frontend proxy for project updates
+func (h *Handler) UpdateProject(c *fiber.Ctx) error {
+	projectID := c.Params("id")
+	_ = c.Locals("user").(*models.User) // User validation handled by middleware
+
+	// Forward the request to backend API
+	headers := utils.GetAuthHeaders(getTokenFromContext(c))
+	// Read the request body
+	body := c.Body()
+	resp, err := utils.MakeAPIRequest("PUT", "/api/v1/projects/"+projectID, body, headers)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to update project",
+		})
+	}
+
+	return c.Status(200).JSON(resp.Data)
+}
+
+// UpdateProjectApproval handles frontend proxy for admin project approval updates
+func (h *Handler) UpdateProjectApproval(c *fiber.Ctx) error {
+	projectID := c.Params("id")
+	user := c.Locals("user").(*models.User)
+
+	// Check if user is admin
+	if !h.hasRole(user.Roles, "admin") {
+		return c.Status(403).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Admin access required",
+		})
+	}
+
+	// Forward the request to backend API
+	headers := utils.GetAuthHeaders(getTokenFromContext(c))
+	// Read the request body
+	body := c.Body()
+	resp, err := utils.MakeAPIRequest("POST", "/api/v1/admin/projects/"+projectID+"/approve", body, headers)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to update project approval",
+		})
+	}
+
+	return c.Status(200).JSON(resp.Data)
+}
+
 // Helper functions for parsing API responses
 func parseProjectsFromAPI(projectsData []interface{}) []models.Project {
 	projects := make([]models.Project, len(projectsData))
@@ -189,6 +237,16 @@ func parseProjectsFromAPI(projectsData []interface{}) []models.Project {
 		}
 	}
 	return projects
+}
+
+// hasRole checks if the user has the specified role
+func (h *Handler) hasRole(roles []string, role string) bool {
+	for _, r := range roles {
+		if r == role {
+			return true
+		}
+	}
+	return false
 }
 
 func parseProjectFromAPI(projectMap map[string]interface{}) models.Project {
@@ -201,6 +259,44 @@ func parseProjectFromAPI(projectMap map[string]interface{}) models.Project {
 		Category:       getStringValueFromMap(projectMap, "category"),
 		Status:         getStringValueFromMap(projectMap, "status"),
 		ApprovalStatus: getStringValueFromMap(projectMap, "approval_status"),
+		RiskLevel:      getStringValueFromMap(projectMap, "risk_level"),
+		ExpectedReturn: getStringValueFromMap(projectMap, "expected_return"),
+		CooperativeID:  getStringValueFromMap(projectMap, "cooperative_id"),
+	}
+
+	// Parse integer fields
+	if investmentPeriod, ok := projectMap["investment_period"].(float64); ok {
+		project.InvestmentPeriod = int(investmentPeriod)
+	}
+
+	// Parse boolean fields
+	if shariaCompliant, ok := projectMap["sharia_compliant"].(bool); ok {
+		project.ShariaCompliant = shariaCompliant
+	}
+
+	// Parse pointer string fields (optional fields)
+	if rejectedBy, ok := projectMap["rejected_by"].(string); ok && rejectedBy != "" {
+		project.RejectedBy = &rejectedBy
+	}
+	if rejectionReason, ok := projectMap["rejection_reason"].(string); ok && rejectionReason != "" {
+		project.RejectionReason = &rejectionReason
+	}
+	if reviewerComments, ok := projectMap["reviewer_comments"].(string); ok && reviewerComments != "" {
+		project.ReviewerComments = &reviewerComments
+	}
+	if approvedBy, ok := projectMap["approved_by"].(string); ok && approvedBy != "" {
+		project.ApprovedBy = &approvedBy
+	}
+
+	// Parse documents array
+	if docsData, ok := projectMap["documents"].([]interface{}); ok {
+		documents := make([]string, 0, len(docsData))
+		for _, doc := range docsData {
+			if docStr, ok := doc.(string); ok {
+				documents = append(documents, docStr)
+			}
+		}
+		project.Documents = documents
 	}
 
 	// Handle funding amounts - support both old and new field names
@@ -254,6 +350,33 @@ func parseProjectFromAPI(projectMap map[string]interface{}) models.Project {
 	if createdAt, ok := projectMap["created_at"].(string); ok {
 		if t, err := parseProjectTime(createdAt); err == nil {
 			project.CreatedAt = t
+		}
+	}
+	if updatedAt, ok := projectMap["updated_at"].(string); ok {
+		if t, err := parseProjectTime(updatedAt); err == nil {
+			project.UpdatedAt = t
+		}
+	}
+
+	// Parse optional timestamp pointers
+	if approvedAt, ok := projectMap["approved_at"].(string); ok && approvedAt != "" {
+		if t, err := parseProjectTime(approvedAt); err == nil {
+			project.ApprovedAt = &t
+		}
+	}
+	if rejectedAt, ok := projectMap["rejected_at"].(string); ok && rejectedAt != "" {
+		if t, err := parseProjectTime(rejectedAt); err == nil {
+			project.RejectedAt = &t
+		}
+	}
+	if startDate, ok := projectMap["start_date"].(string); ok && startDate != "" {
+		if t, err := parseProjectTime(startDate); err == nil {
+			project.StartDate = t
+		}
+	}
+	if endDate, ok := projectMap["end_date"].(string); ok && endDate != "" {
+		if t, err := parseProjectTime(endDate); err == nil {
+			project.EndDate = t
 		}
 	}
 
