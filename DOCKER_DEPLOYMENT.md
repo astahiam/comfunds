@@ -1,380 +1,414 @@
-# 🐳 HajiFund Docker Deployment Guide
+# HajiFund Docker Deployment Guide
 
-This guide provides comprehensive instructions for deploying the HajiFund Islamic crowdfunding platform using Docker containers with 4 sharded PostgreSQL databases.
+## Overview
+This guide covers deploying the HajiFund application using Docker containers on your VPS. Docker provides better isolation, easier scaling, and consistent deployments across environments.
 
-## 📋 Table of Contents
+## Prerequisites
+- Ubuntu 24.04 VPS
+- Root or sudo access
+- Internet connection
+- Domain name (optional, can use IP address)
 
-- [Architecture Overview](#architecture-overview)
-- [Prerequisites](#prerequisites)
-- [Quick Start (Development)](#quick-start-development)
-- [Production Deployment](#production-deployment)
-- [Configuration](#configuration)
-- [Database Sharding](#database-sharding)
-- [Monitoring & Maintenance](#monitoring--maintenance)
-- [Troubleshooting](#troubleshooting)
+## Quick Deployment
 
-## 🏗️ Architecture Overview
+### 1. One-Command Deployment
+```bash
+# Download and run the deployment script
+curl -fsSL https://raw.githubusercontent.com/astahiam/comfunds/main/docker-deploy.sh | sudo bash
+```
 
-The HajiFund application consists of:
-
-- **Frontend**: Go-based web application (Port 3000)
-- **Backend API**: Go-based REST API (Port 8080)
-- **PostgreSQL Shards**: 4 database instances for horizontal scaling
-  - `comfunds00` (Port 5432)
-  - `comfunds01` (Port 5433)
-  - `comfunds02` (Port 5434)
-  - `comfunds03` (Port 5435)
-- **Nginx**: Reverse proxy and load balancer (Port 80/443)
-
-## 🔧 Prerequisites
-
-### For Development
-- Docker Desktop or Docker Engine
-- Docker Compose
-- Git
-
-### For Production VPS
-- Ubuntu 20.04+ or CentOS 8+
-- Root access or sudo privileges
-- Domain name (for SSL)
-- Minimum 4GB RAM, 2 CPU cores, 50GB storage
-
-## 🚀 Quick Start (Development)
-
-### 1. Clone and Setup
-
+### 2. Manual Deployment
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/astahiam/comfunds.git
 cd comfunds
 
-# Copy environment file
-cp docker/env.example .env
-
-# Edit environment variables (optional for development)
-nano .env
-```
-
-### 2. Deploy with Docker Compose
-
-```bash
 # Make deployment script executable
-chmod +x docker/deploy.sh
+chmod +x docker-deploy.sh
 
-# Deploy the application
-./docker/deploy.sh
+# Run deployment script
+sudo ./docker-deploy.sh
 ```
 
-### 3. Access the Application
+## What Gets Deployed
 
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8080
-- **API Health Check**: http://localhost:8080/api/v1/health
+### Services
+- **Backend API** (Go/Gin) - Port 8080
+- **Frontend** (GoFiber) - Port 3000  
+- **PostgreSQL** (Sharded) - Port 5432
+- **Nginx** (Reverse Proxy) - Ports 80/443
+- **Redis** (Caching) - Port 6379
 
-### 4. Demo Accounts
+### Features
+- ✅ SSL/TLS encryption
+- ✅ Load balancing
+- ✅ Health checks
+- ✅ Automatic restarts
+- ✅ Log management
+- ✅ Backup system
+- ✅ Monitoring tools
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@hajifund.com | admin123 |
-| Business Owner | demo-business@example.com | Password123! |
-| Investor | frontendtest@example.com | Password123! |
-| Member | member@hajifund.com | password123 |
-
-## 🌐 Production Deployment
-
-### Automated VPS Deployment
-
-```bash
-# Set your domain name
-export DOMAIN_NAME="your-domain.com"
-export EMAIL="admin@your-domain.com"
-
-# Run the VPS deployment script
-sudo ./docker/deploy-vps.sh
-```
-
-This script will:
-- Install Docker and Docker Compose
-- Install Nginx and Certbot
-- Configure SSL certificates
-- Set up firewall rules
-- Deploy the application
-- Configure auto-restart and monitoring
-
-### Manual Production Setup
-
-#### 1. Server Preparation
-
-```bash
-# Update system
-sudo apt update && sudo apt upgrade -y
-
-# Install Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-
-# Install Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-```
-
-#### 2. Application Deployment
-
-```bash
-# Clone application
-git clone <your-repo-url>
-cd comfunds
-
-# Create production environment
-cp docker/env.example .env
-nano .env  # Edit with production values
-
-# Deploy
-./docker/deploy.sh
-```
-
-#### 3. SSL Configuration
-
-```bash
-# Install Certbot
-sudo apt install certbot python3-certbot-nginx
-
-# Obtain SSL certificate
-sudo certbot --nginx -d your-domain.com -d api.your-domain.com
-
-# Setup auto-renewal
-sudo crontab -e
-# Add: 0 12 * * * /usr/bin/certbot renew --quiet
-```
-
-## ⚙️ Configuration
+## Configuration
 
 ### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DB_PASSWORD` | PostgreSQL password | comfunds123 |
-| `JWT_SECRET` | JWT signing secret | (generated) |
-| `ENVIRONMENT` | Environment mode | production |
-| `DOMAIN_NAME` | Your domain name | your-domain.com |
-| `CORS_ORIGINS` | Allowed CORS origins | http://localhost:3000 |
-
-### Database Configuration
-
-The application uses 4 PostgreSQL shards for horizontal scaling:
-
-- **Shard 0**: Users with ID hash % 4 = 0
-- **Shard 1**: Users with ID hash % 4 = 1
-- **Shard 2**: Users with ID hash % 4 = 2
-- **Shard 3**: Users with ID hash % 4 = 3
-
-Each shard contains identical table schemas for:
-- Users
-- Cooperatives
-- Businesses
-- Projects
-- Investments
-- Audit logs
-
-## 📊 Database Sharding
-
-### Shard Distribution
-
-The application automatically distributes data across shards based on UUID hashing:
-
-```go
-// Example shard selection
-shardIndex := hash(userID) % 4
-```
-
-### Database Access
-
-| Shard | Port | Database | Purpose |
-|-------|------|----------|---------|
-| 0 | 5432 | comfunds00 | Primary operations |
-| 1 | 5433 | comfunds01 | Secondary operations |
-| 2 | 5434 | comfunds02 | Tertiary operations |
-| 3 | 5435 | comfunds03 | Quaternary operations |
-
-### Backup Strategy
+The deployment script creates a `.env` file with these variables:
 
 ```bash
-# Backup all shards
-for i in {0..3}; do
-    docker exec comfunds-postgres-0$i pg_dump -U postgres comfunds0$i > backup_comfunds0$i_$(date +%Y%m%d).sql
-done
+# Database Configuration
+DB_PASSWORD=postgres
+
+# JWT Configuration  
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
+
+# Application URLs
+FRONTEND_URL=https://103.103.20.68
+
+# Admin Configuration
+ADMIN_EMAIL=admin@hajifund.com
+ADMIN_PASSWORD=admin123
 ```
 
-## 🔍 Monitoring & Maintenance
-
-### Service Management
+### Customizing Configuration
+Edit the variables at the top of `docker-deploy.sh`:
 
 ```bash
-# Check service status
-docker-compose ps
+# Configuration Variables
+GITHUB_REPO="https://github.com/astahiam/comfunds.git"
+DOMAIN_OR_IP="103.103.20.68"  # Your domain or IP
+DB_PASSWORD="your_secure_password"
+JWT_SECRET="your_jwt_secret"
+ADMIN_EMAIL="admin@yourdomain.com"
+ADMIN_PASSWORD="your_admin_password"
+```
 
-# View logs
-docker-compose logs -f
+## Post-Deployment
 
-# Restart services
+### Access URLs
+- **Frontend**: https://103.103.20.68
+- **Backend API**: https://103.103.20.68/api/
+- **Admin Panel**: https://103.103.20.68/admin/
+
+### Default Admin Credentials
+- **Email**: admin@hajifund.com
+- **Password**: admin123
+
+**⚠️ Change these credentials immediately after deployment!**
+
+## Container Management
+
+### View Running Containers
+```bash
+docker ps
+```
+
+### View Container Logs
+```bash
+# Backend logs
+docker logs hajifund-backend
+
+# Frontend logs  
+docker logs hajifund-frontend
+
+# All logs
+docker logs hajifund-backend hajifund-frontend hajifund-nginx hajifund-postgres
+```
+
+### Restart Services
+```bash
+cd /var/www/hajifund
 docker-compose restart
+```
 
-# Stop services
+### Stop All Services
+```bash
+cd /var/www/hajifund
 docker-compose down
+```
 
-# Update and restart
-docker-compose pull
+### Start All Services
+```bash
+cd /var/www/hajifund
 docker-compose up -d
 ```
 
-### Health Checks
-
-- **Backend**: http://localhost:8080/api/v1/health
-- **Frontend**: http://localhost:3000/test
-- **Database**: Built-in PostgreSQL health checks
-
-### Log Management
-
+### Update Application
 ```bash
-# View application logs
-docker-compose logs backend
-docker-compose logs frontend
-
-# View database logs
-docker-compose logs postgres-comfunds00
+cd /var/www/hajifund
+git pull
+docker-compose build --no-cache
+docker-compose up -d
 ```
 
-### Performance Monitoring
+## Monitoring
 
+### Container Status
 ```bash
-# Monitor resource usage
+/usr/local/bin/hajifund-docker-monitor.sh
+```
+
+### Resource Usage
+```bash
 docker stats
-
-# Check database connections
-docker exec comfunds-postgres-00 psql -U postgres -c "SELECT count(*) FROM pg_stat_activity;"
 ```
 
-## 🛠️ Troubleshooting
+### Health Checks
+```bash
+# Check container health
+docker ps --filter "health=unhealthy"
+
+# Test endpoints
+curl -k https://localhost/health
+curl -k https://localhost/api/v1/health
+```
+
+## Backup and Restore
+
+### Automatic Backups
+Backups run daily at 2 AM automatically.
+
+### Manual Backup
+```bash
+/usr/local/bin/hajifund-docker-backup.sh
+```
+
+### Restore from Backup
+```bash
+# Stop services
+cd /var/www/hajifund
+docker-compose down
+
+# Restore database
+docker exec -i hajifund-postgres psql -U hajifund_user hajifund00 < /var/backups/hajifund/hajifund00_YYYYMMDD_HHMMSS.sql
+
+# Start services
+docker-compose up -d
+```
+
+## Database Management
+
+### Connect to PostgreSQL
+```bash
+docker exec -it hajifund-postgres psql -U hajifund_user -d postgres
+```
+
+### List Databases
+```bash
+docker exec hajifund-postgres psql -U hajifund_user -c "\l"
+```
+
+### Backup Specific Database
+```bash
+docker exec hajifund-postgres pg_dump -U hajifund_user hajifund00 > backup.sql
+```
+
+## Scaling
+
+### Scale Backend Services
+```bash
+cd /var/www/hajifund
+docker-compose up -d --scale backend=3
+```
+
+### Scale Frontend Services
+```bash
+cd /var/www/hajifund
+docker-compose up -d --scale frontend=2
+```
+
+## SSL Certificate
+
+### Using Let's Encrypt (Recommended)
+```bash
+# Install Certbot
+apt install certbot
+
+# Get certificate
+certbot certonly --standalone -d yourdomain.com
+
+# Copy certificates to Docker
+cp /etc/letsencrypt/live/yourdomain.com/fullchain.pem /var/www/hajifund/docker/nginx/ssl/hajifund.crt
+cp /etc/letsencrypt/live/yourdomain.com/privkey.pem /var/www/hajifund/docker/nginx/ssl/hajifund.key
+
+# Restart Nginx
+docker restart hajifund-nginx
+```
+
+### Auto-renewal
+```bash
+# Add to crontab
+echo "0 12 * * * /usr/bin/certbot renew --quiet && docker restart hajifund-nginx" | crontab -
+```
+
+## Troubleshooting
 
 ### Common Issues
 
-#### 1. Services Won't Start
-
+#### 1. Containers Won't Start
 ```bash
 # Check logs
-docker-compose logs
+docker logs hajifund-backend
+docker logs hajifund-frontend
 
-# Check port conflicts
-netstat -tulpn | grep :3000
-netstat -tulpn | grep :8080
+# Check disk space
+df -h
+
+# Check memory
+free -h
 ```
 
 #### 2. Database Connection Issues
-
 ```bash
-# Test database connectivity
-docker exec comfunds-backend ping postgres-comfunds00
+# Check PostgreSQL status
+docker exec hajifund-postgres pg_isready -U hajifund_user
 
-# Check database status
-docker exec comfunds-postgres-00 pg_isready -U postgres
+# Check database exists
+docker exec hajifund-postgres psql -U hajifund_user -c "\l"
 ```
 
 #### 3. SSL Certificate Issues
-
 ```bash
-# Check certificate status
-sudo certbot certificates
-
-# Renew certificates
-sudo certbot renew
+# Check certificate files
+ls -la /var/www/hajifund/docker/nginx/ssl/
 
 # Test SSL
-openssl s_client -connect your-domain.com:443
+openssl x509 -in /var/www/hajifund/docker/nginx/ssl/hajifund.crt -text -noout
 ```
 
-#### 4. Memory Issues
-
+#### 4. Port Conflicts
 ```bash
-# Check memory usage
-free -h
-docker stats
-
-# Increase swap if needed
-sudo fallocate -l 2G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
+# Check what's using ports
+netstat -tulpn | grep :80
+netstat -tulpn | grep :443
+netstat -tulpn | grep :8080
+netstat -tulpn | grep :3000
 ```
 
-### Reset Everything
-
+### Log Analysis
 ```bash
-# Stop and remove all containers
-docker-compose down -v
+# Application logs
+tail -f /var/log/hajifund/backend/app.log
+tail -f /var/log/hajifund/frontend/app.log
 
-# Remove all images
-docker-compose down --rmi all
+# Nginx logs
+tail -f /var/log/hajifund/nginx/access.log
+tail -f /var/log/hajifund/nginx/error.log
 
-# Clean up volumes
-docker volume prune
-
-# Restart fresh
-./docker/deploy.sh
+# Docker logs
+docker logs -f hajifund-backend
+docker logs -f hajifund-frontend
 ```
 
-## 📚 Additional Resources
+## Performance Optimization
 
-### Docker Commands Reference
+### Resource Limits
+Edit `docker-compose.prod.yml` to add resource limits:
 
-```bash
-# Build specific service
-docker-compose build backend
-
-# Scale services
-docker-compose up -d --scale backend=2
-
-# Execute commands in containers
-docker-compose exec backend bash
-docker-compose exec postgres-comfunds00 psql -U postgres
-
-# View container logs
-docker logs comfunds-backend
+```yaml
+services:
+  backend:
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
 ```
 
-### Database Management
-
+### Database Optimization
 ```bash
 # Connect to database
-docker exec -it comfunds-postgres-00 psql -U postgres -d comfunds00
+docker exec -it hajifund-postgres psql -U hajifund_user -d postgres
 
-# Run migrations
-docker-compose exec backend ./main migrate
-
-# Seed demo data
-docker-compose exec backend ./scripts/run_seed_demo.sh
+# Optimize PostgreSQL settings
+ALTER SYSTEM SET shared_buffers = '256MB';
+ALTER SYSTEM SET effective_cache_size = '1GB';
+ALTER SYSTEM SET maintenance_work_mem = '64MB';
+SELECT pg_reload_conf();
 ```
 
-### Security Best Practices
+## Security
 
-1. **Change default passwords** in production
-2. **Use strong JWT secrets**
-3. **Enable SSL/TLS** for all communications
-4. **Regular security updates**
-5. **Monitor access logs**
-6. **Backup data regularly**
+### Container Security
+- All containers run as non-root users
+- Network isolation between services
+- SSL/TLS encryption for all traffic
+- Rate limiting on API endpoints
 
-## 🆘 Support
+### Database Security
+- Strong passwords required
+- Network access restricted
+- Regular backups
+- Audit logging enabled
 
-For issues and questions:
+### Firewall Configuration
+```bash
+# Check firewall status
+ufw status
 
-1. Check the logs: `docker-compose logs`
-2. Verify configuration: `docker-compose config`
-3. Test connectivity: `docker-compose exec backend ping postgres-comfunds00`
+# Allow only necessary ports
+ufw allow 22    # SSH
+ufw allow 80    # HTTP
+ufw allow 443   # HTTPS
+```
+
+## Maintenance
+
+### Regular Tasks
+1. **Daily**: Check container health
+2. **Weekly**: Review logs and performance
+3. **Monthly**: Update containers and dependencies
+4. **Quarterly**: Security audit and backup testing
+
+### Update Procedure
+```bash
+# 1. Backup current state
+/usr/local/bin/hajifund-docker-backup.sh
+
+# 2. Pull latest code
+cd /var/www/hajifund
+git pull
+
+# 3. Rebuild containers
+docker-compose build --no-cache
+
+# 4. Restart services
+docker-compose down
+docker-compose up -d
+
+# 5. Verify deployment
+/usr/local/bin/hajifund-docker-monitor.sh
+```
+
+## Support
+
+### Getting Help
+1. Check container logs: `docker logs [container-name]`
+2. Run monitoring script: `/usr/local/bin/hajifund-docker-monitor.sh`
+3. Check service status: `docker-compose ps`
 4. Review this documentation
-5. Check GitHub issues
+
+### Useful Commands
+```bash
+# System overview
+docker system df
+docker system prune
+
+# Container management
+docker ps -a
+docker images
+docker volume ls
+
+# Service management
+cd /var/www/hajifund
+docker-compose ps
+docker-compose logs
+docker-compose restart
+```
 
 ---
 
-**Happy Deploying! 🚀**
+**🎉 Your HajiFund application is now running with Docker!**
 
-The HajiFund platform is now ready to serve the Islamic crowdfunding community with a robust, scalable, and secure infrastructure.
+For more information, visit the [main repository](https://github.com/astahiam/comfunds) or check the logs and monitoring tools provided.
