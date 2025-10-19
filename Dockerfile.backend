@@ -1,10 +1,10 @@
-# Multi-stage build for Go backend
+# HajiFund Backend Dockerfile
 FROM golang:1.21-alpine AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Install git and ca-certificates (needed for go mod download)
+# Install dependencies
 RUN apk add --no-cache git ca-certificates tzdata
 
 # Copy go mod files
@@ -29,20 +29,16 @@ RUN apk --no-cache add ca-certificates tzdata
 RUN addgroup -g 1001 -S appgroup && \
     adduser -u 1001 -S appuser -G appgroup
 
-# Set working directory
-WORKDIR /app
+WORKDIR /root/
 
-# Copy binary from builder stage
+# Copy the binary from builder stage
 COPY --from=builder /app/main .
 
-# Copy migration files
-COPY --from=builder /app/migrations ./migrations
+# Copy any static files if needed
+COPY --from=builder /app/internal/ ./internal/
 
-# Copy scripts
-COPY --from=builder /app/scripts ./scripts
-
-# Change ownership to non-root user
-RUN chown -R appuser:appgroup /app
+# Change ownership
+RUN chown -R appuser:appgroup /root/
 
 # Switch to non-root user
 USER appuser
