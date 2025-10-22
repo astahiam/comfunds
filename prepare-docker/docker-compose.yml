@@ -1,0 +1,171 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database with Sharding
+  postgres:
+    image: postgres:15
+    container_name: hajifund-postgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh
+      - ./docker/postgres/init-comfunds00.sql:/docker-entrypoint-initdb.d/init-comfunds00.sql
+      - ./docker/postgres/init-comfunds01.sql:/docker-entrypoint-initdb.d/init-comfunds01.sql
+      - ./docker/postgres/init-comfunds02.sql:/docker-entrypoint-initdb.d/init-comfunds02.sql
+      - ./docker/postgres/init-comfunds03.sql:/docker-entrypoint-initdb.d/init-comfunds03.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - hajifund-network
+    restart: unless-stopped
+
+  # Redis for Session Storage
+  redis:
+    image: redis:7-alpine
+    container_name: hajifund-redis
+    command: redis-server --appendonly yes --requirepass redis123
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - hajifund-network
+    restart: unless-stopped
+
+  # Backend Service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: hajifund-backend
+    environment:
+      # Database Configuration
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres123
+      DB_NAME: postgres
+      
+      # Redis Configuration
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: redis123
+      
+      # Server Configuration
+      PORT: 8080
+      HOST: 0.0.0.0
+      GIN_MODE: release
+      
+      # JWT Configuration
+      JWT_SECRET: your-super-secret-jwt-key-change-this-in-production
+      
+      # CORS Configuration
+      ALLOWED_ORIGINS: http://103.103.20.68,http://localhost:3000
+      CORS_ORIGINS: http://103.103.20.68,http://localhost:3000
+      TRUSTED_PROXIES: 103.103.20.68,nginx
+      
+      # Cookie Configuration
+      COOKIE_DOMAIN: 103.103.20.68
+      COOKIE_PATH: /
+      COOKIE_SECURE: false
+      COOKIE_SAME_SITE: Lax
+      
+      # Sharding Configuration
+      SHARD_COUNT: 4
+      SHARD_0_HOST: postgres
+      SHARD_0_PORT: 5432
+      SHARD_0_USER: postgres
+      SHARD_0_PASSWORD: postgres123
+      SHARD_0_DB: comfunds00
+      SHARD_1_HOST: postgres
+      SHARD_1_PORT: 5432
+      SHARD_1_USER: postgres
+      SHARD_1_PASSWORD: postgres123
+      SHARD_1_DB: comfunds01
+      SHARD_2_HOST: postgres
+      SHARD_2_PORT: 5432
+      SHARD_2_USER: postgres
+      SHARD_2_PASSWORD: postgres123
+      SHARD_2_DB: comfunds02
+      SHARD_3_HOST: postgres
+      SHARD_3_PORT: 5432
+      SHARD_3_USER: postgres
+      SHARD_3_PASSWORD: postgres123
+      SHARD_3_DB: comfunds03
+    ports:
+      - "8080:8080"
+    networks:
+      - hajifund-network
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: hajifund-frontend
+    environment:
+      # Server Configuration
+      PORT: 3000
+      HOST: 0.0.0.0
+      GIN_MODE: release
+      
+      # Backend Configuration
+      API_BASE_URL: http://backend:8080
+      BACKEND_URL: http://backend:8080
+      FRONTEND_URL: http://103.103.20.68
+      
+      # CORS Configuration
+      ALLOWED_ORIGINS: http://103.103.20.68,http://localhost:3000
+      CORS_ORIGINS: http://103.103.20.68,http://localhost:3000
+      TRUSTED_PROXIES: 103.103.20.68,nginx
+      
+      # Cookie Configuration
+      COOKIE_DOMAIN: 103.103.20.68
+      COOKIE_PATH: /
+      COOKIE_SECURE: false
+      COOKIE_SAME_SITE: Lax
+    ports:
+      - "3000:3000"
+    networks:
+      - hajifund-network
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: hajifund-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./docker/nginx/ssl:/etc/nginx/ssl
+    networks:
+      - hajifund-network
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  hajifund-network:
+    driver: bridge
