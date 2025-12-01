@@ -80,7 +80,11 @@ if [ -f "docker-compose.yml" ]; then
     $SCP_CMD docker-compose.yml $VPS_USER@$VPS_HOST:$VPS_PATH/
     print_status "docker-compose.yml copied"
 else
-    print_error "docker-compose.yml not found"
+    print_error "docker-compose.yml not found in current directory"
+    print_info "Current directory: $(pwd)"
+    print_info "Files in current directory:"
+    ls -la
+    exit 1
 fi
 
 # Copy Dockerfiles

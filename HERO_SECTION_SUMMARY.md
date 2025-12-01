@@ -26,7 +26,7 @@ I have successfully implemented a complete hero section for the Hajifund website
 - ✅ Responsive mobile menu
 
 **Hero Section:**
-- ✅ Title: "Solusi Terbaik Pendanaan Syirkah Berbasis Syariah"
+- ✅ Title: "Solusi Terbaik Crowdfunding Berbasis Syariah"
 - ✅ Subtitle with descriptive text
 - ✅ Two CTA buttons: "Ajukan Pembiayaan" (outlined) and "Daftar Sebagai Investor" (solid green)
 - ✅ Hero person image on the right

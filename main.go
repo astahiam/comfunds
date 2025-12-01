@@ -160,7 +160,7 @@ func main() {
 
 			// Public cooperatives for registration
 			public.GET("/cooperatives", func(c *gin.Context) {
-				// For now, return hardcoded cooperatives with proper UUIDs
+				// Only return Koperasi Haji for registration
 				c.JSON(200, gin.H{
 					"status": "success",
 					"data": gin.H{
@@ -169,11 +169,6 @@ func main() {
 								"id":          "550e8400-e29b-41d4-a716-446655440001",
 								"name":        "Koperasi Haji",
 								"description": "Koperasi untuk jamaah haji dan umroh",
-							},
-							{
-								"id":          "550e8400-e29b-41d4-a716-446655440002",
-								"name":        "Koperasi SIDANA",
-								"description": "Koperasi Simpan Pinjam Dana Amanah",
 							},
 						},
 					},
@@ -203,7 +198,7 @@ func main() {
 							},
 						},
 						"hero_content": gin.H{
-							"title":    "Solusi Terbaik Pendanaan Syirkah Berbasis Syariah",
+							"title":    "Solusi Terbaik Crowdfunding Berbasis Syariah",
 							"subtitle": "Kami membantu pengembangan UMKM dengan solusi pendanaan profit sharing syirkah secara musyarakah, amanah dan terpercaya.",
 							"cta_buttons": []gin.H{
 								{

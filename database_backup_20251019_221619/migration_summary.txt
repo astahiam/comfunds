@@ -1,0 +1,25 @@
+HajiFund Data Migration Summary
+===============================
+Date: Sun Oct 19 22:16:57 WIB 2025
+Local DB: localhost:5432
+VPS DB: localhost:5432
+
+Databases Migrated:
+- comfunds00: ✅ Migrated
+- comfunds01: ✅ Migrated
+- comfunds02: ✅ Migrated
+- comfunds03: ✅ Migrated
+
+Backup Files:
+total 2520
+drwxr-xr-x  11 alkha  staff     352 Oct 19 22:16 .
+drwxr-xr-x@ 74 alkha  staff    2368 Oct 19 22:16 ..
+-rw-r--r--   1 alkha  staff  139471 Oct 19 22:16 comfunds00_data_only.sql
+-rw-r--r--   1 alkha  staff  183947 Oct 19 22:16 comfunds00_schema_and_data.sql
+-rw-r--r--   1 alkha  staff  137337 Oct 19 22:16 comfunds01_data_only.sql
+-rw-r--r--   1 alkha  staff  181813 Oct 19 22:16 comfunds01_schema_and_data.sql
+-rw-r--r--   1 alkha  staff  134118 Oct 19 22:16 comfunds02_data_only.sql
+-rw-r--r--   1 alkha  staff  178594 Oct 19 22:16 comfunds02_schema_and_data.sql
+-rw-r--r--   1 alkha  staff  135591 Oct 19 22:16 comfunds03_data_only.sql
+-rw-r--r--   1 alkha  staff  180067 Oct 19 22:16 comfunds03_schema_and_data.sql
+-rw-r--r--   1 alkha  staff     291 Oct 19 22:16 migration_summary.txt

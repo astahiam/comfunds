@@ -3,7 +3,7 @@ set -e
 
 # Create multiple databases for sharding
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-    -- Create databases for sharding
+    -- Create shard databases
     CREATE DATABASE comfunds00;
     CREATE DATABASE comfunds01;
     CREATE DATABASE comfunds02;
@@ -16,10 +16,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     GRANT ALL PRIVILEGES ON DATABASE comfunds03 TO $POSTGRES_USER;
 EOSQL
 
-# Apply schema to each database
-for db in comfunds00 comfunds01 comfunds02 comfunds03; do
-    echo "Initializing database: $db"
-    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$db" -f /docker-entrypoint-initdb.d/init-$db.sql
+# Initialize each shard with its schema
+for shard in 00 01 02 03; do
+    echo "Initializing comfunds$shard database..."
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "comfunds$shard" -f "/docker-entrypoint-initdb.d/init-comfunds$shard.sql"
 done
 
-echo "All databases initialized successfully!"
+echo "All shard databases initialized successfully!"

@@ -1,20 +1,25 @@
 #!/bin/bash
 set -e
-set -u
 
-function create_user_and_database() {
-	local database=$1
-	echo "  Creating user and database '$database'"
-	psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
-	    CREATE DATABASE $database;
-	    GRANT ALL PRIVILEGES ON DATABASE $database TO $POSTGRES_USER;
+# Create multiple databases for sharding
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+    -- Create databases for sharding
+    CREATE DATABASE comfunds00;
+    CREATE DATABASE comfunds01;
+    CREATE DATABASE comfunds02;
+    CREATE DATABASE comfunds03;
+    
+    -- Grant permissions
+    GRANT ALL PRIVILEGES ON DATABASE comfunds00 TO $POSTGRES_USER;
+    GRANT ALL PRIVILEGES ON DATABASE comfunds01 TO $POSTGRES_USER;
+    GRANT ALL PRIVILEGES ON DATABASE comfunds02 TO $POSTGRES_USER;
+    GRANT ALL PRIVILEGES ON DATABASE comfunds03 TO $POSTGRES_USER;
 EOSQL
-}
 
-if [ -n "$POSTGRES_MULTIPLE_DATABASES" ]; then
-	echo "Multiple database creation requested: $POSTGRES_MULTIPLE_DATABASES"
-	for db in $(echo $POSTGRES_MULTIPLE_DATABASES | tr ',' ' '); do
-		create_user_and_database $db
-	done
-	echo "Multiple databases created"
-fi
+# Apply schema to each database
+for db in comfunds00 comfunds01 comfunds02 comfunds03; do
+    echo "Initializing database: $db"
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$db" -f /docker-entrypoint-initdb.d/init-$db.sql
+done
+
+echo "All databases initialized successfully!"

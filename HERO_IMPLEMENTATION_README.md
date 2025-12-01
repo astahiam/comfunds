@@ -26,7 +26,7 @@ The hero section has been implemented with the following features:
 - **Responsive**: Collapsible mobile menu
 
 ### 2. Hero Section
-- **Title**: "Solusi Terbaik Pendanaan Syirkah Berbasis Syariah"
+- **Title**: "Solusi Terbaik Crowdfunding Berbasis Syariah"
 - **Subtitle**: Descriptive text about UMKM funding solutions
 - **CTA Buttons**: 
   - "Ajukan Pembiayaan" (outlined button)
@@ -92,7 +92,7 @@ GET /api/v1/public/hero
       }
     },
     "hero_content": {
-      "title": "Solusi Terbaik Pendanaan Syirkah Berbasis Syariah",
+      "title": "Solusi Terbaik Crowdfunding Berbasis Syariah",
       "subtitle": "Kami membantu pengembangan UMKM dengan solusi pendanaan profit sharing syirkah secara musyarakah, amanah dan terpercaya.",
       "cta_buttons": [
         {

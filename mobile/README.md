@@ -1,329 +1,140 @@
-# ComFunds Mobile Application
+# Hajifund Mobile App
 
-This directory contains the Flutter mobile application for the ComFunds platform, supporting both iOS and Android.
+Sharia-Compliant Cooperative Crowdfunding Platform - React Native Mobile Application
 
-## 🚀 Quick Start
+## Overview
+
+Hajifund Mobile is a React Native application for iOS and Android that enables cooperative members to invest in business projects through Sharia-compliant profit-sharing mechanisms.
+
+## Features
+
+- **Authentication**: Login and registration with role-based access
+- **Project Browsing**: View and filter available funding projects
+- **Investment Management**: Track investments and portfolio
+- **Business Management**: Create and manage business profiles
+- **Dashboard**: Overview of investments and project statistics
+
+## Tech Stack
+
+- React Native 0.72.6
+- TypeScript
+- React Navigation 6
+- Axios for API calls
+- AsyncStorage for local storage
+- React Native Vector Icons
+
+## Installation
 
 ### Prerequisites
 
-- Flutter SDK (3.10.0 or higher)
-- Dart SDK (3.0.0 or higher)
-- Android Studio / Xcode (for native development)
-- Android SDK / iOS development tools
+- Node.js >= 18
+- React Native CLI
+- Xcode (for iOS development)
+- Android Studio (for Android development)
 
-### Development
+### Setup
 
-1. **Install dependencies:**
-   ```bash
-   flutter pub get
-   ```
+1. Install dependencies:
+```bash
+npm install
+```
 
-2. **Run on Android:**
-   ```bash
-   flutter run -d android
-   ```
+2. For iOS:
+```bash
+cd ios && pod install && cd ..
+```
 
-3. **Run on iOS:**
-   ```bash
-   flutter run -d ios
-   ```
+3. Run the app:
+```bash
+# iOS
+npm run ios
 
-4. **Run on connected device:**
-   ```bash
-   flutter devices
-   flutter run -d <device-id>
-   ```
+# Android
+npm run android
+```
 
-### Docker Development
-
-1. **Build Android APK:**
-   ```bash
-   cd ..
-   make mobile-build
-   ```
-
-2. **Build Android App Bundle:**
-   ```bash
-   make mobile-bundle
-   ```
-
-## 📱 Platform Support
-
-### Android
-
-- **Minimum SDK**: API 21 (Android 5.0)
-- **Target SDK**: API 33 (Android 13)
-- **Architecture**: ARM64, x86_64
-
-### iOS
-
-- **Minimum Version**: iOS 12.0
-- **Target Version**: iOS 16.0
-- **Architecture**: ARM64
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 mobile/
-├── android/                   # Android-specific code
-│   ├── app/
-│   │   ├── src/
-│   │   └── build.gradle
-│   └── build.gradle
-├── ios/                       # iOS-specific code
-│   ├── Runner/
-│   │   ├── Info.plist
-│   │   └── Assets.xcassets
-│   └── Runner.xcworkspace
-├── lib/
-│   ├── main.dart              # Application entry point
-│   ├── app.dart               # App configuration
-│   ├── models/                # Data models
-│   ├── services/              # API services
-│   ├── providers/             # State management
-│   ├── screens/               # UI screens
-│   ├── widgets/               # Reusable widgets
-│   └── utils/                 # Utility functions
-├── assets/
-│   ├── images/                # Image assets
-│   ├── icons/                 # Icon assets
-│   └── fonts/                 # Font files
-├── test/                      # Unit tests
-├── pubspec.yaml               # Dependencies
-└── README.md                  # This file
+├── src/
+│   ├── components/       # Reusable UI components
+│   ├── screens/          # Screen components
+│   ├── navigation/      # Navigation configuration
+│   ├── services/        # API services
+│   ├── context/         # React Context providers
+│   ├── constants/       # App constants (colors, theme, config)
+│   ├── types/           # TypeScript type definitions
+│   └── assets/          # Images and static assets
+├── App.tsx              # Root component
+└── index.js             # Entry point
 ```
 
-## 🔧 Configuration
+## Configuration
 
-### Android Configuration
+Update API base URL in `src/constants/Config.ts`:
 
-Update `android/app/build.gradle`:
-
-```gradle
-android {
-    compileSdkVersion 33
-    defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 33
-        // ... other config
-    }
-}
+```typescript
+API_BASE_URL: 'http://your-backend-url/api/v1'
 ```
 
-### iOS Configuration
+## Design System
 
-Update `ios/Runner/Info.plist`:
+The app uses the same design system as the web frontend:
+- Primary Color: #00A86B (Green)
+- Typography: Inter and Poppins fonts
+- Components follow Material Design principles
 
-```xml
-<key>MinimumOSVersion</key>
-<string>12.0</string>
-<key>CFBundleShortVersionString</key>
-<string>1.0.0</string>
-```
+## Features by Role
 
-### API Configuration
+### Guest Users
+- View public project information
+- Register for an account
 
-Update the API base URL in `lib/services/api_service.dart`:
+### Cooperative Members
+- View all projects within their cooperative
+- Invest in approved projects
+- Track investment portfolio
 
-```dart
-class ApiService {
-  static const String baseUrl = 'http://localhost:8080/api/v1';
-  // ... rest of the service
-}
-```
+### Business Owners
+- Create and manage business profiles
+- Create funding projects
+- Track project funding progress
 
-## 🎨 UI/UX Features
+### Investors
+- Browse and invest in projects
+- View portfolio and returns
+- Track profit distributions
 
-- **Material Design**: Follows Google's Material Design guidelines
-- **Cupertino Design**: iOS-specific design elements
-- **Dark/Light Theme**: Support for theme switching
-- **Responsive Layout**: Adapts to different screen sizes
-- **Accessibility**: WCAG 2.1 compliant
-- **Biometric Authentication**: Fingerprint/Face ID support
+## API Integration
 
-## 📱 Features
+The app integrates with the Hajifund backend API. Ensure the backend is running and accessible before testing the mobile app.
 
-- **User Authentication**: Login, registration, password reset
-- **Project Management**: Create, view, and manage projects
-- **Investment Management**: Browse and invest in projects
-- **Profile Management**: User profile and settings
-- **Image Upload**: Camera and gallery support
-- **Push Notifications**: Real-time project updates
-- **Offline Support**: Basic offline functionality
-- **QR Code Scanner**: Scan project QR codes
-- **Biometric Login**: Secure authentication
+## Development
 
-## 🧪 Testing
-
-### Unit Tests
+### Running in Development Mode
 
 ```bash
-flutter test
+npm start
 ```
 
-### Integration Tests
+Then run on iOS or Android simulator/device.
 
+### Building for Production
+
+#### iOS
 ```bash
-flutter test integration_test/
+cd ios
+xcodebuild -workspace Hajifund.xcworkspace -scheme Hajifund -configuration Release
 ```
 
-### Widget Tests
-
+#### Android
 ```bash
-flutter test test/widget_test.dart
+cd android
+./gradlew assembleRelease
 ```
 
-### Platform-Specific Tests
+## License
 
-```bash
-# Android
-flutter test --platform android
+Copyright © 2024 Hajifund. All rights reserved.
 
-# iOS
-flutter test --platform ios
-```
-
-## 🚀 Building
-
-### Android APK
-
-```bash
-flutter build apk --release
-```
-
-### Android App Bundle
-
-```bash
-flutter build appbundle --release
-```
-
-### iOS Archive
-
-```bash
-flutter build ios --release
-```
-
-### Docker Builds
-
-```bash
-# Build Android APK
-make mobile-build
-
-# Build Android App Bundle
-make mobile-bundle
-
-# Build iOS (simulator)
-docker build -f mobile/Dockerfile --target ios-builder ./mobile
-```
-
-## 📱 App Store Deployment
-
-### Android (Google Play Store)
-
-1. **Build App Bundle:**
-   ```bash
-   flutter build appbundle --release
-   ```
-
-2. **Sign the bundle:**
-   ```bash
-   jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore my-release-key.keystore app-release.aab alias_name
-   ```
-
-3. **Upload to Google Play Console**
-
-### iOS (App Store)
-
-1. **Build for distribution:**
-   ```bash
-   flutter build ios --release
-   ```
-
-2. **Archive in Xcode:**
-   - Open `ios/Runner.xcworkspace`
-   - Select "Any iOS Device" as target
-   - Product → Archive
-
-3. **Upload to App Store Connect**
-
-## 🔒 Security
-
-### Android Security
-
-- **Network Security**: Configure network security config
-- **Certificate Pinning**: Implement certificate pinning
-- **ProGuard**: Enable code obfuscation
-- **Permissions**: Request only necessary permissions
-
-### iOS Security
-
-- **App Transport Security**: Enable ATS
-- **Keychain**: Secure storage for sensitive data
-- **Code Signing**: Proper code signing
-- **Permissions**: Request only necessary permissions
-
-## 📚 Dependencies
-
-### Core Dependencies
-
-- `flutter`: Flutter framework
-- `http`: HTTP client for API calls
-- `provider`: State management
-- `shared_preferences`: Local storage
-- `flutter_secure_storage`: Secure storage
-- `image_picker`: Image selection
-- `cached_network_image`: Image caching
-- `flutter_svg`: SVG support
-- `intl`: Internationalization
-- `url_launcher`: URL handling
-
-### Platform-Specific Dependencies
-
-- `permission_handler`: Handle permissions
-- `camera`: Camera functionality
-- `qr_code_scanner`: QR code scanning
-
-### Development Dependencies
-
-- `flutter_test`: Testing framework
-- `flutter_lints`: Code linting
-
-## 🔧 Permissions
-
-### Android Permissions
-
-Add to `android/app/src/main/AndroidManifest.xml`:
-
-```xml
-<uses-permission android:name="android.permission.INTERNET" />
-<uses-permission android:name="android.permission.CAMERA" />
-<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-<uses-permission android:name="android.permission.USE_BIOMETRIC" />
-<uses-permission android:name="android.permission.USE_FINGERPRINT" />
-```
-
-### iOS Permissions
-
-Add to `ios/Runner/Info.plist`:
-
-```xml
-<key>NSCameraUsageDescription</key>
-<string>This app needs camera access to scan QR codes and take photos</string>
-<key>NSPhotoLibraryUsageDescription</key>
-<string>This app needs photo library access to select images</string>
-<key>NSFaceIDUsageDescription</key>
-<string>This app uses Face ID for secure authentication</string>
-```
-
-## 🤝 Contributing
-
-1. Follow Flutter coding conventions
-2. Write tests for new features
-3. Update documentation
-4. Test on both platforms
-5. Ensure accessibility compliance
-
-## 📄 License
-
-This mobile application is part of the ComFunds project and follows the same license terms.

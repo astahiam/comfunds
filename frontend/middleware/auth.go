@@ -13,6 +13,14 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	// Get token from cookie
 	tokenString := c.Cookies("auth_token")
 	if tokenString == "" {
+		// Check if this is an API request
+		path := c.Path()
+		if len(path) >= 4 && path[:4] == "/api" {
+			return c.Status(401).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Unauthorized: Authentication token not found",
+			})
+		}
 		return c.Redirect("/login")
 	}
 
@@ -33,12 +41,28 @@ func AuthMiddleware(c *fiber.Ctx) error {
 			HTTPOnly: true,
 			MaxAge:   -1,
 		})
+		// Check if this is an API request
+		path := c.Path()
+		if len(path) >= 4 && path[:4] == "/api" {
+			return c.Status(401).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Unauthorized: Invalid or expired token",
+			})
+		}
 		return c.Redirect("/login")
 	}
 
 	// Extract claims
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
+		// Check if this is an API request
+		path := c.Path()
+		if len(path) >= 4 && path[:4] == "/api" {
+			return c.Status(401).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Unauthorized: Invalid token claims",
+			})
+		}
 		return c.Redirect("/login")
 	}
 

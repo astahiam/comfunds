@@ -2,7 +2,13 @@ package controllers
 
 import (
 	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
 
 	"comfunds/internal/auth"
 	"comfunds/internal/entities"
@@ -28,10 +34,14 @@ func NewBusinessController(businessService services.BusinessManagementService) *
 // CreateBusiness handles business creation (FR-024) - Business Owners only
 // @Summary Create a new business
 // @Tags businesses
-// @Accept json
+// @Accept multipart/form-data
 // @Produce json
 // @Security BearerAuth
-// @Param business body entities.CreateBusinessRequest true "Business data"
+// @Param name formData string true "Business name"
+// @Param type formData string true "Business type"
+// @Param description formData string true "Business description"
+// @Param cooperative_id formData string true "Cooperative ID"
+// @Param business_image formData file false "Business image"
 // @Success 201 {object} map[string]interface{}
 // @Failure 400 {object} utils.ErrorResponseData
 // @Failure 401 {object} utils.ErrorResponseData
@@ -65,23 +75,158 @@ func (c *BusinessController) CreateBusiness(ctx *gin.Context) {
 		return
 	}
 
-	var req entities.CreateBusinessExtendedRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request payload", err)
+	// Parse multipart form with larger size limit (10MB for file uploads)
+	if err := ctx.Request.ParseMultipartForm(10 << 20); err != nil { // 10MB max
+		utils.ErrorResponse(ctx, http.StatusBadRequest, fmt.Sprintf("Failed to parse form data: %v", err), err)
 		return
 	}
 
+	var req entities.CreateBusinessExtendedRequest
+	var businessImageURL *string
+
+	// Get form values
+	req.Name = ctx.PostForm("name")
+	req.Type = ctx.PostForm("type")
+	req.Description = ctx.PostForm("description")
+
+	// Parse cooperative_id
+	if coopIDStr := ctx.PostForm("cooperative_id"); coopIDStr != "" {
+		coopID, err := uuid.Parse(coopIDStr)
+		if err == nil {
+			req.CooperativeID = coopID
+		}
+	}
+
+	req.RegistrationNumber = ctx.PostForm("registration_number")
+	req.TaxID = ctx.PostForm("tax_id")
+	req.LegalStructure = ctx.PostForm("legal_structure")
+	req.Industry = ctx.PostForm("industry")
+	req.Sector = ctx.PostForm("sector")
+	req.Address = ctx.PostForm("address")
+	req.Phone = ctx.PostForm("phone")
+	req.Email = ctx.PostForm("email")
+	req.Website = ctx.PostForm("website")
+	req.BankAccount = ctx.PostForm("bank_account")
+	req.BusinessLicense = ctx.PostForm("business_license")
+
+	// Parse employee_count
+	if empCountStr := ctx.PostForm("employee_count"); empCountStr != "" {
+		if empCount, err := strconv.Atoi(empCountStr); err == nil {
+			req.EmployeeCount = empCount
+		}
+	}
+
+	// Parse annual_revenue
+	if revenueStr := ctx.PostForm("annual_revenue"); revenueStr != "" {
+		if revenue, err := strconv.ParseFloat(revenueStr, 64); err == nil {
+			req.AnnualRevenue = revenue
+		}
+	}
+
+	req.Currency = ctx.PostForm("currency")
+	if req.Currency == "" {
+		req.Currency = "IDR" // Default to IDR
+	}
+
+	// Parse established_date
+	if estDateStr := ctx.PostForm("established_date"); estDateStr != "" {
+		if estDate, err := time.Parse("2006-01-02", estDateStr); err == nil {
+			req.EstablishedDate = estDate
+		}
+	}
+
+	// Handle business image file upload
+	file, header, err := ctx.Request.FormFile("business_image")
+	if err == nil {
+		defer file.Close()
+
+		// Validate file size (max 10MB)
+		maxSize := int64(10 * 1024 * 1024) // 10MB
+		if header.Size > maxSize {
+			utils.ErrorResponse(ctx, http.StatusBadRequest, "File size exceeds 10MB limit", nil)
+			return
+		}
+
+		// Validate file type (JPG, PNG, JPEG)
+		allowedExtensions := []string{".jpg", ".jpeg", ".png"}
+		ext := strings.ToLower(filepath.Ext(header.Filename))
+		isAllowedExt := false
+		for _, allowedExt := range allowedExtensions {
+			if ext == allowedExt {
+				isAllowedExt = true
+				break
+			}
+		}
+		if !isAllowedExt {
+			utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid file type. Allowed: JPG, PNG", nil)
+			return
+		}
+
+		// Create upload directory: uploads/images/business
+		uploadDir := "uploads/images/business"
+		if err := os.MkdirAll(uploadDir, 0755); err != nil {
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to create upload directory", err)
+			return
+		}
+
+		// Generate unique filename
+		timestamp := time.Now().Format("20060102_150405")
+		uniqueID := uuid.New().String()[:8]
+		filename := fmt.Sprintf("business_%s_%s%s", timestamp, uniqueID, ext)
+		filePath := filepath.Join(uploadDir, filename)
+
+		// Create destination file
+		dst, err := os.Create(filePath)
+		if err != nil {
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to create file", err)
+			return
+		}
+		defer dst.Close()
+
+		// Copy uploaded file to destination
+		if _, err := io.Copy(dst, file); err != nil {
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to save file", err)
+			return
+		}
+
+		// Generate file URL (relative path for storage in database)
+		fileURL := fmt.Sprintf("/uploads/images/business/%s", filename)
+		businessImageURL = &fileURL
+		req.BusinessImage = businessImageURL
+	}
+
+	// Debug: Print all form values before validation
+	fmt.Printf("DEBUG: Form values received:\n")
+	fmt.Printf("  Name: %s\n", req.Name)
+	fmt.Printf("  Type: %s\n", req.Type)
+	fmt.Printf("  Description: %s (len: %d)\n", req.Description, len(req.Description))
+	fmt.Printf("  CooperativeID: %s\n", req.CooperativeID.String())
+	fmt.Printf("  RegistrationNumber: %s\n", req.RegistrationNumber)
+	fmt.Printf("  LegalStructure: %s\n", req.LegalStructure)
+	fmt.Printf("  Industry: %s\n", req.Industry)
+	fmt.Printf("  Address: %s\n", req.Address)
+	fmt.Printf("  Phone: %s\n", req.Phone)
+	fmt.Printf("  Email: %s\n", req.Email)
+	fmt.Printf("  EstablishedDate: %v (zero: %v)\n", req.EstablishedDate, req.EstablishedDate.IsZero())
+	fmt.Printf("  Currency: %s\n", req.Currency)
+	fmt.Printf("  BankAccount: %s\n", req.BankAccount)
+	
 	if err := utils.ValidateStruct(&req); err != nil {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, "Validation failed", err)
+		fmt.Printf("DEBUG: Validation failed: %v\n", err)
+		utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error(), err)
 		return
 	}
 
 	fmt.Printf("DEBUG: Calling businessService.CreateBusiness for user %s\n", userID.(uuid.UUID).String())
+	fmt.Printf("DEBUG: Request data - Name: %s, Type: %s, CooperativeID: %s, EstablishedDate: %v\n", 
+		req.Name, req.Type, req.CooperativeID.String(), req.EstablishedDate)
 	business, err := c.businessService.CreateBusiness(ctx.Request.Context(), &req, userID.(uuid.UUID))
 	if err != nil {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, "Failed to create business", err)
+		fmt.Printf("DEBUG: BusinessService.CreateBusiness error: %v\n", err)
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Failed to create business: "+err.Error(), err)
 		return
 	}
+
 	fmt.Printf("DEBUG: Business created successfully: %s\n", business.Name)
 
 	utils.SuccessResponse(ctx, http.StatusCreated, "Business created successfully", business)
@@ -161,11 +306,11 @@ func (c *BusinessController) GetOwnerBusinesses(ctx *gin.Context) {
 // UpdateBusiness handles updating a business (FR-028) - Owner only
 // @Summary Update business
 // @Tags businesses
-// @Accept json
+// @Accept multipart/form-data
 // @Produce json
 // @Security BearerAuth
 // @Param id path string true "Business ID"
-// @Param business body entities.UpdateBusinessRequest true "Updated business data"
+// @Param business_image formData file false "Business image"
 // @Success 200 {object} entities.BusinessExtended
 // @Failure 400 {object} utils.ErrorResponseData
 // @Failure 401 {object} utils.ErrorResponseData
@@ -186,10 +331,123 @@ func (c *BusinessController) UpdateBusiness(ctx *gin.Context) {
 		return
 	}
 
-	var req entities.UpdateBusinessExtendedRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request payload", err)
+	// Parse multipart form with larger size limit (10MB for file uploads)
+	if err := ctx.Request.ParseMultipartForm(10 << 20); err != nil {
+		// If it's not multipart, try JSON (backward compatibility)
+		var req entities.UpdateBusinessExtendedRequest
+		if err := ctx.ShouldBindJSON(&req); err != nil {
+			utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request payload", err)
+			return
+		}
+
+		if err := utils.ValidateStruct(&req); err != nil {
+			utils.ErrorResponse(ctx, http.StatusBadRequest, "Validation failed", err)
+			return
+		}
+
+		business, err := c.businessService.UpdateBusiness(ctx.Request.Context(), businessID, &req, userID.(uuid.UUID))
+		if err != nil {
+			utils.ErrorResponse(ctx, http.StatusBadRequest, "Failed to update business", err)
+			return
+		}
+
+		utils.SuccessResponse(ctx, http.StatusOK, "Business updated successfully", business)
 		return
+	}
+
+	// Handle multipart form data
+	var req entities.UpdateBusinessExtendedRequest
+
+	// Get form values
+	if name := ctx.PostForm("name"); name != "" {
+		req.Name = name
+	}
+	if businessType := ctx.PostForm("type"); businessType != "" {
+		req.Type = businessType
+	}
+	if desc := ctx.PostForm("description"); desc != "" {
+		req.Description = desc
+	}
+	req.Industry = ctx.PostForm("industry")
+	req.Sector = ctx.PostForm("sector")
+	req.Address = ctx.PostForm("address")
+	req.Phone = ctx.PostForm("phone")
+	req.Email = ctx.PostForm("email")
+	req.Website = ctx.PostForm("website")
+	req.BankAccount = ctx.PostForm("bank_account")
+	req.BusinessLicense = ctx.PostForm("business_license")
+
+	// Parse employee_count
+	if empCountStr := ctx.PostForm("employee_count"); empCountStr != "" {
+		if empCount, err := strconv.Atoi(empCountStr); err == nil {
+			req.EmployeeCount = empCount
+		}
+	}
+
+	// Parse annual_revenue
+	if revenueStr := ctx.PostForm("annual_revenue"); revenueStr != "" {
+		if revenue, err := strconv.ParseFloat(revenueStr, 64); err == nil {
+			req.AnnualRevenue = revenue
+		}
+	}
+
+	// Handle business image file upload
+	file, header, err := ctx.Request.FormFile("business_image")
+	if err == nil {
+		defer file.Close()
+
+		// Validate file size (max 10MB)
+		maxSize := int64(10 * 1024 * 1024) // 10MB
+		if header.Size > maxSize {
+			utils.ErrorResponse(ctx, http.StatusBadRequest, "File size exceeds 10MB limit", nil)
+			return
+		}
+
+		// Validate file type (JPG, PNG, JPEG)
+		allowedExtensions := []string{".jpg", ".jpeg", ".png"}
+		ext := strings.ToLower(filepath.Ext(header.Filename))
+		isAllowedExt := false
+		for _, allowedExt := range allowedExtensions {
+			if ext == allowedExt {
+				isAllowedExt = true
+				break
+			}
+		}
+		if !isAllowedExt {
+			utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid file type. Allowed: JPG, PNG", nil)
+			return
+		}
+
+		// Create upload directory: uploads/images/business
+		uploadDir := "uploads/images/business"
+		if err := os.MkdirAll(uploadDir, 0755); err != nil {
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to create upload directory", err)
+			return
+		}
+
+		// Generate unique filename
+		timestamp := time.Now().Format("20060102_150405")
+		uniqueID := uuid.New().String()[:8]
+		filename := fmt.Sprintf("business_%s_%s%s", timestamp, uniqueID, ext)
+		filePath := filepath.Join(uploadDir, filename)
+
+		// Create destination file
+		dst, err := os.Create(filePath)
+		if err != nil {
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to create file", err)
+			return
+		}
+		defer dst.Close()
+
+		// Copy uploaded file to destination
+		if _, err := io.Copy(dst, file); err != nil {
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to save file", err)
+			return
+		}
+
+		// Generate file URL (relative path for storage in database)
+		fileURL := fmt.Sprintf("/uploads/images/business/%s", filename)
+		req.BusinessImage = &fileURL
 	}
 
 	if err := utils.ValidateStruct(&req); err != nil {

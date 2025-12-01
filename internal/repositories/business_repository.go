@@ -38,6 +38,7 @@ func scanBusinessRow(rows *sql.Rows) (*entities.BusinessExtended, error) {
 	var scannedDocumentsJSON, metadataJSON, performanceMetricsJSON, complianceStatusJSON []byte
 	var approvedBy, approvedAt, rejectionReason sql.NullString
 
+	var businessImage sql.NullString
 	err := rows.Scan(
 		&business.ID, &business.Name, &business.Type, &business.Description,
 		&business.OwnerID, &business.CooperativeID, &business.RegistrationNumber,
@@ -45,11 +46,14 @@ func scanBusinessRow(rows *sql.Rows) (*entities.BusinessExtended, error) {
 		&business.Sector, &business.Address, &business.Phone,
 		&business.Email, &business.Website, &business.EstablishedDate,
 		&business.EmployeeCount, &business.AnnualRevenue, &business.Currency,
-		&business.BankAccount, &business.BusinessLicense, &scannedDocumentsJSON,
-		&business.Status, &business.ApprovalStatus, &approvedBy, &approvedAt, &rejectionReason,
+		&business.BankAccount, &business.BusinessLicense, &businessImage,
+		&scannedDocumentsJSON, &business.Status, &business.ApprovalStatus, &approvedBy, &approvedAt, &rejectionReason,
 		&metadataJSON, &performanceMetricsJSON, &complianceStatusJSON,
 		&business.IsActive, &business.CreatedAt, &business.UpdatedAt,
 	)
+	if businessImage.Valid {
+		business.BusinessImage = &businessImage.String
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +91,7 @@ const businessSelectQuery = `
 	SELECT id, name, business_type, description, owner_id, cooperative_id,
 	       registration_number, tax_id, legal_structure, industry, sector,
 	       address, phone, email, website, established_date, employee_count,
-	       annual_revenue, currency, bank_account, business_license, documents,
+	       annual_revenue, currency, bank_account, business_license, business_image, documents,
 	       status, approval_status, approved_by, approved_at, rejection_reason,
 	       metadata, performance_metrics, compliance_status, is_active, created_at, updated_at
 	FROM businesses`
@@ -109,12 +113,12 @@ func (r *businessRepository) Create(ctx context.Context, business *entities.Busi
 			id, name, business_type, description, owner_id, cooperative_id,
 			registration_number, tax_id, legal_structure, industry, sector,
 			address, phone, email, website, established_date, employee_count,
-			annual_revenue, currency, bank_account, business_license, documents,
+			annual_revenue, currency, bank_account, business_license, business_image, documents,
 			status, approval_status, metadata, performance_metrics, compliance_status,
 			is_active, created_at, updated_at
 		) VALUES (
 			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17,
-			$18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30
+			$18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31
 		) RETURNING created_at, updated_at
 	`
 
@@ -159,7 +163,7 @@ func (r *businessRepository) Create(ctx context.Context, business *entities.Busi
 		business.Address, business.Phone, business.Email, business.Website,
 		business.EstablishedDate, business.EmployeeCount, business.AnnualRevenue,
 		business.Currency, business.BankAccount, business.BusinessLicense,
-		documentsJSON, business.Status, business.ApprovalStatus,
+		business.BusinessImage, documentsJSON, business.Status, business.ApprovalStatus,
 		metadataJSON, performanceMetricsJSON, complianceStatusJSON,
 		business.IsActive, business.CreatedAt, business.UpdatedAt)
 

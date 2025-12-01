@@ -29,6 +29,7 @@ type BusinessExtended struct {
 	Currency           string                 `json:"currency" db:"currency"`
 	BankAccount        string                 `json:"bank_account" db:"bank_account"`
 	BusinessLicense    string                 `json:"business_license" db:"business_license"`
+	BusinessImage      *string                `json:"business_image" db:"business_image"`
 	Documents          []string               `json:"documents" db:"documents"`
 	Status             string                 `json:"status" db:"status"` // draft, pending_approval, approved, rejected, suspended, active, inactive
 	ApprovalStatus     string                 `json:"approval_status" db:"approval_status"`
@@ -160,6 +161,7 @@ type CreateBusinessExtendedRequest struct {
 	Currency           string                 `json:"currency" validate:"required,len=3"`
 	BankAccount        string                 `json:"bank_account" validate:"required"`
 	BusinessLicense    string                 `json:"business_license"`
+	BusinessImage      *string                `json:"business_image" validate:"omitempty,max=500"`
 	Documents          []string               `json:"documents"`
 	Metadata           map[string]interface{} `json:"metadata"`
 }
@@ -179,6 +181,7 @@ type UpdateBusinessExtendedRequest struct {
 	AnnualRevenue   float64                `json:"annual_revenue" validate:"min=0"`
 	BankAccount     string                 `json:"bank_account"`
 	BusinessLicense string                 `json:"business_license"`
+	BusinessImage   *string                `json:"business_image" validate:"omitempty,max=500"`
 	Documents       []string               `json:"documents"`
 	Metadata        map[string]interface{} `json:"metadata"`
 }

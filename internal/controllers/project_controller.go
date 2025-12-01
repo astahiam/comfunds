@@ -1,7 +1,13 @@
 package controllers
 
 import (
+	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	"comfunds/internal/auth"
@@ -152,10 +158,17 @@ func (c *ProjectController) GetCooperativeProjects(ctx *gin.Context) {
 // CreateProject allows business owners to create projects (FR-008)
 // @Summary Create a new project
 // @Tags projects
-// @Accept json
+// @Accept multipart/form-data
 // @Produce json
 // @Security BearerAuth
-// @Param project body entities.CreateProjectRequest true "Project data"
+// @Param title formData string true "Project title"
+// @Param description formData string true "Project description"
+// @Param target_amount formData number true "Target funding amount"
+// @Param category formData string true "Project category"
+// @Param business_id formData string true "Business ID"
+// @Param project_image_1 formData file false "Project image 1"
+// @Param project_image_2 formData file false "Project image 2"
+// @Param project_image_3 formData file false "Project image 3"
 // @Success 201 {object} map[string]interface{}
 // @Failure 400 {object} utils.ErrorResponseData
 // @Failure 401 {object} utils.ErrorResponseData
@@ -186,35 +199,72 @@ func (c *ProjectController) CreateProject(ctx *gin.Context) {
 		return
 	}
 
-	var req struct {
-		Title            string     `json:"title" validate:"required,min=3,max=200"`
-		Description      string     `json:"description" validate:"required,min=10,max=2000"`
-		TargetAmount     float64    `json:"target_amount" validate:"required,min=1000"`
-		Category         string     `json:"category" validate:"required"`
-		BusinessID       *uuid.UUID `json:"business_id" validate:"required"`
-		MinInvestment    *float64   `json:"min_investment" validate:"omitempty,min=100"`
-		RiskLevel        *string    `json:"risk_level" validate:"omitempty,oneof=Low Medium High"`
-		InvestmentPeriod *int       `json:"investment_period" validate:"omitempty,min=6,max=120"`
-		ExpectedReturn   *string    `json:"expected_return" validate:"omitempty"`
-		StartDate        *string    `json:"start_date" validate:"omitempty"`
-		EndDate          *string    `json:"end_date" validate:"omitempty"`
-	}
-
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		// Log the error for debugging
-		ctx.Error(err)
-		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request payload", err)
+	// Parse multipart form with larger size limit (10MB for file uploads)
+	if err := ctx.Request.ParseMultipartForm(10 << 20); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, fmt.Sprintf("Failed to parse form data: %v", err), err)
 		return
 	}
 
-	// Debug: Log the received request
-	ctx.Set("debug_request", req)
+	// Get form values
+	title := ctx.PostForm("title")
+	description := ctx.PostForm("description")
+	targetAmountStr := ctx.PostForm("target_amount")
+	category := ctx.PostForm("category")
+	businessIDStr := ctx.PostForm("business_id")
+	minInvestmentStr := ctx.PostForm("min_investment")
+	riskLevel := ctx.PostForm("risk_level")
+	investmentPeriodStr := ctx.PostForm("investment_period")
+	expectedReturn := ctx.PostForm("expected_return")
 
-	if err := utils.ValidateStruct(&req); err != nil {
-		// Log validation errors
-		ctx.Error(err)
-		utils.ErrorResponse(ctx, http.StatusBadRequest, "Validation failed", err)
+	// Validate required fields
+	if title == "" {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Title is required", nil)
 		return
+	}
+	if description == "" {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Description is required", nil)
+		return
+	}
+	if targetAmountStr == "" {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Target amount is required", nil)
+		return
+	}
+	if category == "" {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Category is required", nil)
+		return
+	}
+	if businessIDStr == "" {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Business ID is required", nil)
+		return
+	}
+
+	// Parse target amount
+	targetAmount, err := strconv.ParseFloat(targetAmountStr, 64)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid target amount", err)
+		return
+	}
+
+	// Parse business ID
+	businessID, err := uuid.Parse(businessIDStr)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid business ID", err)
+		return
+	}
+
+	// Parse optional fields
+	var minInvestment float64
+	if minInvestmentStr != "" {
+		if parsed, err := strconv.ParseFloat(minInvestmentStr, 64); err == nil {
+			minInvestment = parsed
+		}
+	}
+
+	var investmentPeriod int
+	if investmentPeriodStr != "" {
+		if parsed, err := strconv.Atoi(investmentPeriodStr); err == nil {
+			investmentPeriod = parsed
+		}
 	}
 
 	// Parse user UUID and cooperative ID
@@ -242,35 +292,97 @@ func (c *ProjectController) CreateProject(ctx *gin.Context) {
 		}
 	}
 
+	// Handle project image uploads
+	uploadDir := "uploads/images/project"
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to create upload directory", err)
+		return
+	}
+
+	uploadImage := func(fieldName string) *string {
+		file, header, err := ctx.Request.FormFile(fieldName)
+		if err != nil {
+			return nil // File not provided, which is optional
+		}
+		defer file.Close()
+
+		// Validate file size (max 10MB)
+		maxSize := int64(10 * 1024 * 1024) // 10MB
+		if header.Size > maxSize {
+			return nil // Skip if too large, but don't fail the request
+		}
+
+		// Validate file type (JPG, PNG, JPEG)
+		allowedExtensions := []string{".jpg", ".jpeg", ".png"}
+		ext := strings.ToLower(filepath.Ext(header.Filename))
+		isAllowedExt := false
+		for _, allowedExt := range allowedExtensions {
+			if ext == allowedExt {
+				isAllowedExt = true
+				break
+			}
+		}
+		if !isAllowedExt {
+			return nil // Skip invalid file types
+		}
+
+		// Generate unique filename
+		timestamp := time.Now().Format("20060102_150405")
+		uniqueID := uuid.New().String()[:8]
+		filename := fmt.Sprintf("project_%s_%s%s", timestamp, uniqueID, ext)
+		filePath := filepath.Join(uploadDir, filename)
+
+		// Create destination file
+		dst, err := os.Create(filePath)
+		if err != nil {
+			return nil
+		}
+		defer dst.Close()
+
+		// Copy uploaded file to destination
+		if _, err := io.Copy(dst, file); err != nil {
+			return nil
+		}
+
+		// Generate file URL
+		fileURL := fmt.Sprintf("/uploads/images/project/%s", filename)
+		return &fileURL
+	}
+
+	var projectImage1, projectImage2, projectImage3 *string
+	projectImage1 = uploadImage("project_image_1")
+	projectImage2 = uploadImage("project_image_2")
+	projectImage3 = uploadImage("project_image_3")
+
 	// Create project entity
 	newProject := &entities.Project{
 		ID:             uuid.New(),
-		Title:          req.Title,
-		Description:    req.Description,
-		TargetAmount:   req.TargetAmount,
+		Title:          title,
+		Description:    description,
+		TargetAmount:   targetAmount,
 		RaisedAmount:   0,
-		Category:       req.Category,
-		BusinessID:     *req.BusinessID,
+		MinInvestment:  minInvestment,
+		Category:       category,
+		BusinessID:     businessID,
 		OwnerID:        userUUID,
 		CooperativeID:  cooperativeUUID,
 		Status:         "draft",
 		ApprovalStatus: "pending",
+		ProjectImage1:  projectImage1,
+		ProjectImage2:  projectImage2,
+		ProjectImage3:  projectImage3,
 	}
 
 	// Add optional fields if provided
-	if req.MinInvestment != nil {
-		newProject.MinInvestment = *req.MinInvestment
+	if riskLevel != "" {
+		newProject.RiskLevel = riskLevel
 	}
-	if req.RiskLevel != nil {
-		newProject.RiskLevel = *req.RiskLevel
+	if investmentPeriod > 0 {
+		newProject.InvestmentPeriod = investmentPeriod
 	}
-	if req.InvestmentPeriod != nil {
-		newProject.InvestmentPeriod = *req.InvestmentPeriod
+	if expectedReturn != "" {
+		newProject.ExpectedReturn = expectedReturn
 	}
-	if req.ExpectedReturn != nil {
-		newProject.ExpectedReturn = *req.ExpectedReturn
-	}
-	// Note: StartDate and EndDate require time.Time parsing, skipping for now
 
 	// Save to database
 	createdProject, err := c.projectRepo.Create(ctx, newProject)
@@ -294,6 +406,9 @@ func (c *ProjectController) CreateProject(ctx *gin.Context) {
 		"status":          createdProject.Status,
 		"approval_status": createdProject.ApprovalStatus,
 		"risk_level":      createdProject.RiskLevel,
+		"project_image_1": createdProject.ProjectImage1,
+		"project_image_2": createdProject.ProjectImage2,
+		"project_image_3": createdProject.ProjectImage3,
 		"created_at":      createdProject.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 	}
 
