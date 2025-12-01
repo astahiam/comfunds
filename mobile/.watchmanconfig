@@ -1,0 +1,18 @@
+{
+  "ignore_dirs": [
+    "node_modules",
+    ".git",
+    "android",
+    "ios",
+    ".gradle",
+    "build",
+    "dist",
+    "coverage",
+    ".idea",
+    ".vscode",
+    "*.log",
+    "*.tmp",
+    ".DS_Store"
+  ]
+}
+

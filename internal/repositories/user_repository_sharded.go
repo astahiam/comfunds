@@ -44,8 +44,8 @@ func (r *userRepositorySharded) Create(ctx context.Context, user *entities.User)
 	}
 
 	query := `
-		INSERT INTO users (id, email, name, password, phone, address, cooperative_id, roles, kyc_status, is_active, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+		INSERT INTO users (id, email, name, password, phone, address, cooperative_id, roles, kyc_status, membership_payment_proof, is_active, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 		RETURNING created_at, updated_at
 	`
 
@@ -62,9 +62,9 @@ func (r *userRepositorySharded) Create(ctx context.Context, user *entities.User)
 	}
 
 	// Execute on the determined shard
-	rows, err := r.shardMgr.ExecuteOnShard(ctx, shardIndex, query, 
+	rows, err := r.shardMgr.ExecuteOnShard(ctx, shardIndex, query,
 		user.ID, user.Email, user.Name, user.Password, user.Phone, user.Address,
-		user.CooperativeID, rolesJSON, user.KYCStatus, user.IsActive, user.CreatedAt, user.UpdatedAt)
+		user.CooperativeID, rolesJSON, user.KYCStatus, user.MembershipPaymentProof, user.IsActive, user.CreatedAt, user.UpdatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
@@ -88,7 +88,7 @@ func (r *userRepositorySharded) GetByID(ctx context.Context, id uuid.UUID) (*ent
 	}
 
 	query := `
-		SELECT id, email, name, password, phone, address, cooperative_id, roles, kyc_status, is_active, created_at, updated_at
+		SELECT id, email, name, password, phone, address, cooperative_id, roles, kyc_status, membership_payment_proof, is_active, created_at, updated_at
 		FROM users
 		WHERE id = $1 AND is_active = true
 	`
@@ -108,7 +108,7 @@ func (r *userRepositorySharded) GetByID(ctx context.Context, id uuid.UUID) (*ent
 
 	err = rows.Scan(
 		&user.ID, &user.Email, &user.Name, &user.Password, &user.Phone, &user.Address,
-		&user.CooperativeID, &rolesJSON, &user.KYCStatus, &user.IsActive, &user.CreatedAt, &user.UpdatedAt,
+		&user.CooperativeID, &rolesJSON, &user.KYCStatus, &user.MembershipPaymentProof, &user.IsActive, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan user: %w", err)
@@ -130,7 +130,7 @@ func (r *userRepositorySharded) GetByEmail(ctx context.Context, email string) (*
 	}
 
 	query := `
-		SELECT id, email, name, password, phone, address, cooperative_id, roles, kyc_status, is_active, created_at, updated_at
+		SELECT id, email, name, password, phone, address, cooperative_id, roles, kyc_status, membership_payment_proof, is_active, created_at, updated_at
 		FROM users
 		WHERE email = $1 AND is_active = true
 	`
@@ -151,7 +151,7 @@ func (r *userRepositorySharded) GetByEmail(ctx context.Context, email string) (*
 
 			err = rows.Scan(
 				&user.ID, &user.Email, &user.Name, &user.Password, &user.Phone, &user.Address,
-				&user.CooperativeID, &rolesJSON, &user.KYCStatus, &user.IsActive, &user.CreatedAt, &user.UpdatedAt,
+				&user.CooperativeID, &rolesJSON, &user.KYCStatus, &user.MembershipPaymentProof, &user.IsActive, &user.CreatedAt, &user.UpdatedAt,
 			)
 			rows.Close()
 
@@ -180,7 +180,7 @@ func (r *userRepositorySharded) GetAll(ctx context.Context, limit, offset int) (
 	}
 
 	query := `
-		SELECT id, email, name, password, phone, address, cooperative_id, roles, kyc_status, is_active, created_at, updated_at
+		SELECT id, email, name, password, phone, address, cooperative_id, roles, kyc_status, membership_payment_proof, is_active, created_at, updated_at
 		FROM users
 		WHERE is_active = true
 		ORDER BY created_at DESC
@@ -205,7 +205,7 @@ func (r *userRepositorySharded) GetAll(ctx context.Context, limit, offset int) (
 
 			err = rows.Scan(
 				&user.ID, &user.Email, &user.Name, &user.Password, &user.Phone, &user.Address,
-				&user.CooperativeID, &rolesJSON, &user.KYCStatus, &user.IsActive, &user.CreatedAt, &user.UpdatedAt,
+				&user.CooperativeID, &rolesJSON, &user.KYCStatus, &user.MembershipPaymentProof, &user.IsActive, &user.CreatedAt, &user.UpdatedAt,
 			)
 			if err != nil {
 				continue
@@ -235,7 +235,7 @@ func (r *userRepositorySharded) Update(ctx context.Context, id uuid.UUID, user *
 		UPDATE users
 		SET name = $2, phone = $3, address = $4, roles = $5, updated_at = $6
 		WHERE id = $1 AND is_active = true
-		RETURNING id, email, name, phone, address, cooperative_id, roles, kyc_status, is_active, created_at, updated_at
+		RETURNING id, email, name, phone, address, cooperative_id, roles, kyc_status, membership_payment_proof, is_active, created_at, updated_at
 	`
 
 	user.UpdatedAt = time.Now()
@@ -260,7 +260,7 @@ func (r *userRepositorySharded) Update(ctx context.Context, id uuid.UUID, user *
 	var rolesJSONResult []byte
 	err = rows.Scan(
 		&user.ID, &user.Email, &user.Name, &user.Phone, &user.Address,
-		&user.CooperativeID, &rolesJSONResult, &user.KYCStatus, &user.IsActive, &user.CreatedAt, &user.UpdatedAt,
+		&user.CooperativeID, &rolesJSONResult, &user.KYCStatus, &user.MembershipPaymentProof, &user.IsActive, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan updated user: %w", err)
@@ -343,7 +343,7 @@ func (r *userRepositorySharded) GetByCooperativeID(ctx context.Context, cooperat
 	}
 
 	query := `
-		SELECT id, email, name, password, phone, address, cooperative_id, roles, kyc_status, is_active, created_at, updated_at
+		SELECT id, email, name, password, phone, address, cooperative_id, roles, kyc_status, membership_payment_proof, is_active, created_at, updated_at
 		FROM users
 		WHERE cooperative_id = $1 AND is_active = true
 		ORDER BY created_at DESC
@@ -368,7 +368,7 @@ func (r *userRepositorySharded) GetByCooperativeID(ctx context.Context, cooperat
 
 			err = rows.Scan(
 				&user.ID, &user.Email, &user.Name, &user.Password, &user.Phone, &user.Address,
-				&user.CooperativeID, &rolesJSON, &user.KYCStatus, &user.IsActive, &user.CreatedAt, &user.UpdatedAt,
+				&user.CooperativeID, &rolesJSON, &user.KYCStatus, &user.MembershipPaymentProof, &user.IsActive, &user.CreatedAt, &user.UpdatedAt,
 			)
 			if err != nil {
 				continue

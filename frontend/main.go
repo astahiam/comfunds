@@ -40,6 +40,19 @@ func main() {
 		return false
 	})
 
+	// Deduplicate roles array
+	engine.AddFunc("uniqueRoles", func(roles []string) []string {
+		seen := make(map[string]bool)
+		result := []string{}
+		for _, role := range roles {
+			if !seen[role] {
+				seen[role] = true
+				result = append(result, role)
+			}
+		}
+		return result
+	})
+
 	// Add math functions for templates
 	engine.AddFunc("add", func(a, b int) int {
 		return a + b
@@ -117,7 +130,8 @@ func main() {
 
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
-		Views: engine,
+		Views:     engine,
+		BodyLimit: 10 * 1024 * 1024, // 10MB limit for file uploads
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			code := fiber.StatusInternalServerError
 			if e, ok := err.(*fiber.Error); ok {
@@ -134,9 +148,10 @@ func main() {
 	app.Use(recover.New())
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:8080",
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
-		AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
+		AllowOrigins:     "http://localhost:8080",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
+		AllowCredentials: true, // Allow cookies to be sent
 	}))
 
 	// Static files

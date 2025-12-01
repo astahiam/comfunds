@@ -1,8 +1,15 @@
 package handlers
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"hajifund-frontend/models"
 	"hajifund-frontend/utils"
+	"io"
+	"mime/multipart"
+	"net/http"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -210,28 +217,147 @@ func (h *Handler) CreateBusiness(c *fiber.Ctx) error {
 		})
 	}
 
-	var req models.CreateBusinessRequest
-	if err := c.BodyParser(&req); err != nil {
+	// Forward multipart form data to backend
+	backendURL := os.Getenv("API_BASE_URL")
+	if backendURL == "" {
+		backendURL = "http://localhost:8080"
+	}
+
+	// Check Content-Type header
+	contentType := c.Get("Content-Type")
+	fmt.Printf("DEBUG CreateBusiness: Content-Type received: %s\n", contentType)
+	if contentType == "" || len(contentType) < 19 || contentType[:19] != "multipart/form-data" {
 		return c.Status(400).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Invalid request body",
+			"message": fmt.Sprintf("Invalid Content-Type. Expected multipart/form-data, got: %s", contentType),
 		})
 	}
 
-	// Make API request to backend
-	resp, err := utils.MakeAPIRequest("POST", "/api/v1/businesses", req, utils.GetAuthHeaders(getTokenFromContext(c)))
+	// Parse multipart form with size limit (10MB)
+	// Note: Fiber's MultipartForm() automatically parses the request body
+	form, err := c.MultipartForm()
 	if err != nil {
+		fmt.Printf("Error parsing multipart form: %v\n", err)
+		fmt.Printf("DEBUG CreateBusiness: Content-Type was: %s\n", contentType)
 		return c.Status(400).JSON(fiber.Map{
 			"status":  "error",
-			"message": err.Error(),
+			"message": "Invalid form data: " + err.Error(),
+			"details": fmt.Sprintf("Content-Type: %s", contentType),
 		})
+	}
+
+	// Reconstruct multipart form data for backend
+	var buf bytes.Buffer
+	writer := multipart.NewWriter(&buf)
+
+	// Add form fields
+	fmt.Printf("DEBUG CreateBusiness: Form fields received:\n")
+	for key, values := range form.Value {
+		for _, value := range values {
+			fmt.Printf("  %s: %s\n", key, value)
+			writer.WriteField(key, value)
+		}
+	}
+	fmt.Printf("DEBUG CreateBusiness: Form files received: %d\n", len(form.File))
+
+	// Add files
+	for key, files := range form.File {
+		for _, file := range files {
+			fileWriter, err := writer.CreateFormFile(key, file.Filename)
+			if err != nil {
+				writer.Close()
+				return c.Status(500).JSON(fiber.Map{
+					"status":  "error",
+					"message": "Failed to create form file: " + err.Error(),
+				})
+			}
+
+			// Open and copy file
+			src, err := file.Open()
+			if err != nil {
+				writer.Close()
+				return c.Status(500).JSON(fiber.Map{
+					"status":  "error",
+					"message": "Failed to open file: " + err.Error(),
+				})
+			}
+
+			io.Copy(fileWriter, src)
+			src.Close()
+		}
+	}
+
+	writer.Close()
+	body := buf.Bytes()
+	multipartContentType := writer.FormDataContentType()
+
+	// Create a new request to backend with multipart form data
+	req, err := http.NewRequest("POST", backendURL+"/api/v1/businesses", bytes.NewReader(body))
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to create backend request",
+		})
+	}
+
+	// Set headers
+	req.Header.Set("Content-Type", multipartContentType)
+	req.ContentLength = int64(len(body))
+	token := getTokenFromContext(c)
+	fmt.Printf("DEBUG CreateBusiness: Token from context: %s (length: %d)\n", 
+		token, len(token))
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+		fmt.Printf("DEBUG CreateBusiness: Authorization header set\n")
+	} else {
+		fmt.Printf("DEBUG CreateBusiness: WARNING - No token found, Authorization header not set\n")
+	}
+
+	// Make request to backend
+	client := &http.Client{
+		Timeout: 30 * time.Second, // 30 second timeout for file uploads
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("Error connecting to backend: %v\n", err)
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to connect to backend: " + err.Error(),
+		})
+	}
+	defer resp.Body.Close()
+
+	// Read response body
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Printf("Error reading backend response: %v\n", err)
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to read backend response",
+		})
+	}
+
+	// Parse backend response
+	var backendResp map[string]interface{}
+	if err := json.Unmarshal(respBody, &backendResp); err != nil {
+		fmt.Printf("Error parsing backend response: %v\n", err)
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to parse backend response: " + err.Error(),
+			"details": string(respBody),
+		})
+	}
+
+	// Check if backend returned an error
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		return c.Status(resp.StatusCode).JSON(backendResp)
 	}
 
 	return c.JSON(fiber.Map{
 		"status":   "success",
 		"message":  "Business created successfully",
 		"redirect": "/business",
-		"data":     resp.Data,
+		"data":     backendResp["data"],
 	})
 }
 
@@ -406,28 +532,126 @@ func (h *Handler) EditBusinessPage(c *fiber.Ctx) error {
 func (h *Handler) UpdateBusiness(c *fiber.Ctx) error {
 	businessID := c.Params("id")
 
-	var req models.CreateBusinessRequest
-	if err := c.BodyParser(&req); err != nil {
+	// Forward multipart form data to backend
+	backendURL := os.Getenv("API_BASE_URL")
+	if backendURL == "" {
+		backendURL = "http://localhost:8080"
+	}
+
+	// Parse multipart form with size limit (10MB)
+	form, err := c.MultipartForm()
+	if err != nil {
+		fmt.Printf("Error parsing multipart form: %v\n", err)
 		return c.Status(400).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Invalid request body",
+			"message": "Invalid form data: " + err.Error(),
 		})
 	}
 
-	// Make API request to backend
-	resp, err := utils.MakeAPIRequest("PUT", "/api/v1/businesses/"+businessID, req, utils.GetAuthHeaders(getTokenFromContext(c)))
+	// Reconstruct multipart form data for backend
+	var buf bytes.Buffer
+	writer := multipart.NewWriter(&buf)
+
+	// Add form fields
+	for key, values := range form.Value {
+		for _, value := range values {
+			writer.WriteField(key, value)
+		}
+	}
+
+	// Add files
+	for key, files := range form.File {
+		for _, file := range files {
+			fileWriter, err := writer.CreateFormFile(key, file.Filename)
+			if err != nil {
+				writer.Close()
+				return c.Status(500).JSON(fiber.Map{
+					"status":  "error",
+					"message": "Failed to create form file: " + err.Error(),
+				})
+			}
+
+			// Open and copy file
+			src, err := file.Open()
+			if err != nil {
+				writer.Close()
+				return c.Status(500).JSON(fiber.Map{
+					"status":  "error",
+					"message": "Failed to open file: " + err.Error(),
+				})
+			}
+
+			io.Copy(fileWriter, src)
+			src.Close()
+		}
+	}
+
+	writer.Close()
+	body := buf.Bytes()
+	contentType := writer.FormDataContentType()
+
+	// Create a new request to backend with multipart form data
+	req, err := http.NewRequest("PUT", backendURL+"/api/v1/businesses/"+businessID, bytes.NewReader(body))
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{
+		return c.Status(500).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Failed to update business",
+			"message": "Failed to create backend request",
 		})
+	}
+
+	// Set headers
+	req.Header.Set("Content-Type", contentType)
+	req.ContentLength = int64(len(body))
+	token := getTokenFromContext(c)
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
+	// Make request to backend
+	client := &http.Client{
+		Timeout: 30 * time.Second, // 30 second timeout for file uploads
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("Error connecting to backend: %v\n", err)
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to connect to backend: " + err.Error(),
+		})
+	}
+	defer resp.Body.Close()
+
+	// Read response body
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Printf("Error reading backend response: %v\n", err)
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to read backend response",
+		})
+	}
+
+	// Parse backend response
+	var backendResp map[string]interface{}
+	if err := json.Unmarshal(respBody, &backendResp); err != nil {
+		fmt.Printf("Error parsing backend response: %v\n", err)
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to parse backend response: " + err.Error(),
+			"details": string(respBody),
+		})
+	}
+
+	// Check if backend returned an error
+	if resp.StatusCode != http.StatusOK {
+		return c.Status(resp.StatusCode).JSON(backendResp)
 	}
 
 	return c.JSON(fiber.Map{
 		"status":   "success",
 		"message":  "Business updated successfully",
 		"redirect": "/business/" + businessID,
-		"data":     resp.Data,
+		"data":     backendResp["data"],
 	})
 }
 

@@ -257,7 +257,7 @@
                                     <label for="business_plan" class="form-label">Rencana Bisnis <span class="text-danger">*</span></label>
                                     <div class="upload-area" id="business_plan_area" data-doc-type="business_plan">
                                         <input type="file" class="form-control d-none" id="business_plan" accept=".pdf,.doc,.docx,.xls,.xlsx">
-                                        <input type="hidden" id="business_plan_url" name="business_plan_url" required>
+                                        <input type="hidden" id="business_plan_url" name="business_plan_url">
                                         <div class="upload-placeholder">
                                             <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-2"></i>
                                             <p class="mb-1">Klik atau drag file ke sini</p>
@@ -315,7 +315,7 @@
                                     <label for="financial_statements" class="form-label">Laporan Keuangan <span class="text-danger">*</span></label>
                                     <div class="upload-area" id="financial_statements_area" data-doc-type="financial_statements">
                                         <input type="file" class="form-control d-none" id="financial_statements" accept=".pdf,.doc,.docx,.xls,.xlsx">
-                                        <input type="hidden" id="financial_statements_url" name="financial_statements_url" required>
+                                        <input type="hidden" id="financial_statements_url" name="financial_statements_url">
                                         <div class="upload-placeholder">
                                             <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-2"></i>
                                             <p class="mb-1">Klik atau drag file ke sini</p>
@@ -505,70 +505,213 @@ function showToast(message, type) {
 // Form validation and submission
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('createBusinessForm');
+    if (!form) {
+        console.error('Form not found!');
+        return;
+    }
+    
     const submitButton = form.querySelector('button[type="submit"]');
+    if (!submitButton) {
+        console.error('Submit button not found!');
+        return;
+    }
     
     console.log('Business form initialized');
     console.log('Submit button found:', submitButton);
-    
-    // Test button click
-    submitButton.addEventListener('click', function(e) {
-        console.log('Submit button clicked!');
-    });
 
     // Form submission
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         console.log('Form submit event triggered');
         
+        // Check HTML5 validation first
         if (!form.checkValidity()) {
             e.stopPropagation();
             form.classList.add('was-validated');
-            console.log('Form validation failed');
+            console.log('Form validation failed - HTML5 validation');
+            
+            // Show which fields are invalid
+            const invalidFields = form.querySelectorAll(':invalid');
+            invalidFields.forEach(field => {
+                console.log('Invalid field:', field.id || field.name, field.validationMessage);
+            });
             return;
         }
         
-        console.log('Form validation passed');
+        // Custom validation for required documents
+        const businessPlanInput = document.getElementById('business_plan_url');
+        const financialStatementsInput = document.getElementById('financial_statements_url');
+        
+        const businessPlanUrl = businessPlanInput ? businessPlanInput.value : '';
+        const financialStatementsUrl = financialStatementsInput ? financialStatementsInput.value : '';
+        
+        console.log('Document validation check:', {
+            businessPlanUrl: businessPlanUrl,
+            financialStatementsUrl: financialStatementsUrl,
+            businessPlanInputExists: !!businessPlanInput,
+            financialStatementsInputExists: !!financialStatementsInput
+        });
+        
+        if (!businessPlanUrl || businessPlanUrl.trim() === '') {
+            console.error('Business plan URL is missing!');
+            showToast('Rencana Bisnis wajib diupload', 'error');
+            const businessPlanArea = document.getElementById('business_plan_area');
+            if (businessPlanArea) {
+                businessPlanArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                businessPlanArea.style.border = '2px solid #dc3545';
+                setTimeout(() => {
+                    businessPlanArea.style.border = '';
+                }, 3000);
+            }
+            return;
+        }
+        
+        if (!financialStatementsUrl || financialStatementsUrl.trim() === '') {
+            console.error('Financial statements URL is missing!');
+            showToast('Laporan Keuangan wajib diupload', 'error');
+            const financialStatementsArea = document.getElementById('financial_statements_area');
+            if (financialStatementsArea) {
+                financialStatementsArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                financialStatementsArea.style.border = '2px solid #dc3545';
+                setTimeout(() => {
+                    financialStatementsArea.style.border = '';
+                }, 3000);
+            }
+            return;
+        }
+        
+        console.log('Form validation passed - both required documents are present');
+        
+        // Verify hidden inputs are in the form
+        const businessPlanInputInForm = form.querySelector('#business_plan_url');
+        const financialStatementsInputInForm = form.querySelector('#financial_statements_url');
+        console.log('Hidden inputs in form:', {
+            businessPlanInForm: !!businessPlanInputInForm,
+            financialStatementsInForm: !!financialStatementsInputInForm,
+            businessPlanValue: businessPlanInputInForm ? businessPlanInputInForm.value : 'NOT FOUND',
+            financialStatementsValue: financialStatementsInputInForm ? financialStatementsInputInForm.value : 'NOT FOUND'
+        });
 
+        // Create FormData object from the form
         const formData = new FormData(form);
-        const businessData = {
-            name: formData.get('name'),
-            type: formData.get('type'),
-            description: formData.get('description'),
-            cooperative_id: formData.get('cooperative_id'),
-            registration_number: formData.get('registration_number'),
-            legal_structure: formData.get('legal_structure'),
-            industry: formData.get('industry'),
-            address: formData.get('address'),
-            phone: formData.get('phone'),
-            email: formData.get('email'),
-            established_date: formData.get('established_date') + 'T00:00:00Z', // Convert to ISO format
-            currency: formData.get('currency'),
-            bank_account: formData.get('bank_account'),
-            website: formData.get('website') || '',
-            employee_count: parseInt(formData.get('employee_count')) || 0,
-            annual_revenue: parseFloat(formData.get('annual_revenue')) || 0,
-            business_license: formData.get('business_license') || '',
-            documents: formData.get('document_url') ? [formData.get('document_url')] : [],
-            // Risk Assessment Documents
-            business_plan_url: formData.get('business_plan_url') || '',
-            swot_analysis_url: formData.get('swot_analysis_url') || '',
-            financial_statements_url: formData.get('financial_statements_url') || '',
-            market_research_url: formData.get('market_research_url') || '',
-            risk_assessment_url: formData.get('risk_assessment_url') || ''
-        };
+        
+        // Note: FormData automatically includes all form fields with name attributes
+        // The date input already returns "YYYY-MM-DD" format which matches backend expectations
+        
+        // Add document URLs if they exist (backend might expect these as separate fields)
+        const documentUrl = formData.get('document_url');
+        if (documentUrl) {
+            formData.append('documents[]', documentUrl);
+        }
+        
+        // Add risk assessment document URLs
+        // Note: These are already in formData from the hidden inputs, but we ensure they're set correctly
+        const businessPlanUrlValue = formData.get('business_plan_url');
+        if (businessPlanUrlValue) {
+            formData.append('business_plan_url', businessPlanUrlValue);
+        }
+        
+        const swotAnalysisUrl = formData.get('swot_analysis_url');
+        if (swotAnalysisUrl) {
+            formData.append('swot_analysis_url', swotAnalysisUrl);
+        }
+        
+        const financialStatementsUrlValue = formData.get('financial_statements_url');
+        if (financialStatementsUrlValue) {
+            formData.append('financial_statements_url', financialStatementsUrlValue);
+        }
+        
+        const marketResearchUrl = formData.get('market_research_url');
+        if (marketResearchUrl) {
+            formData.append('market_research_url', marketResearchUrl);
+        }
+        
+        const riskAssessmentUrl = formData.get('risk_assessment_url');
+        if (riskAssessmentUrl) {
+            formData.append('risk_assessment_url', riskAssessmentUrl);
+        }
 
-        console.log('Business data to be sent:', businessData);
+        console.log('Sending multipart/form-data');
+        console.log('Form fields:', Array.from(formData.entries()).map(([key, value]) => [key, typeof value === 'string' ? value : value.name]));
+        
+        // Debug: Verify document URLs are in FormData
+        const businessPlanInFormData = formData.get('business_plan_url');
+        const financialStatementsInFormData = formData.get('financial_statements_url');
+        console.log('Document URLs in FormData:', {
+            business_plan_url: businessPlanInFormData,
+            financial_statements_url: financialStatementsInFormData
+        });
+        
+        if (!businessPlanInFormData) {
+            console.error('ERROR: business_plan_url not found in FormData!');
+            showToast('Error: Rencana Bisnis tidak terdeteksi dalam form. Silakan upload ulang.', 'error');
+            return;
+        }
+        
+        if (!financialStatementsInFormData) {
+            console.error('ERROR: financial_statements_url not found in FormData!');
+            showToast('Error: Laporan Keuangan tidak terdeteksi dalam form. Silakan upload ulang.', 'error');
+            return;
+        }
 
         try {
             const response = await fetch('/api/businesses', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(businessData)
+                credentials: 'include', // Include cookies (auth token)
+                // Don't set Content-Type header - browser will set it automatically with boundary for FormData
+                body: formData
             });
 
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+
+            // Check if response is OK before parsing JSON
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
+                let errorMessage = 'Gagal membuat bisnis';
+                let errorDetails = '';
+                try {
+                    const errorJson = JSON.parse(errorText);
+                    errorMessage = errorJson.message || errorJson.error || errorMessage;
+                    if (errorJson.error && errorJson.error !== errorJson.message) {
+                        errorDetails = errorJson.error;
+                    }
+                } catch (e) {
+                    errorMessage = `Error ${response.status}: ${errorText}`;
+                }
+                
+                // Show detailed error alert
+                const errorAlert = document.createElement('div');
+                errorAlert.className = 'alert alert-danger alert-dismissible fade show mt-3';
+                errorAlert.innerHTML = `
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-exclamation-circle fa-2x text-danger me-3 mt-1"></i>
+                        <div>
+                            <strong>❌ Gagal Membuat Bisnis</strong><br>
+                            <div class="mt-2">
+                                <strong>Pesan Error:</strong><br>
+                                ${errorMessage}
+                                ${errorDetails ? '<br><br><strong>Detail:</strong><br>' + errorDetails : ''}
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    ℹ️ <strong>Tips:</strong> Pastikan semua field yang wajib diisi sudah terisi dengan benar.
+                                    Periksa format tanggal, email, dan nomor telepon.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                form.insertAdjacentElement('beforebegin', errorAlert);
+                
+                showToast(errorMessage, 'error');
+                return;
+            }
+
             const result = await response.json();
+            console.log('Response result:', result);
 
             if (result.status === 'success') {
                 showToast('✅ Bisnis berhasil dibuat dan menunggu persetujuan!', 'success');
@@ -576,6 +719,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Show detailed success info
                 const successAlert = document.createElement('div');
                 successAlert.className = 'alert alert-success alert-dismissible fade show mt-3';
+                const businessName = formData.get('name') || 'Bisnis';
+                const businessType = formData.get('type') || '';
                 successAlert.innerHTML = `
                     <div class="d-flex align-items-start">
                         <i class="fas fa-check-circle fa-2x text-success me-3 mt-1"></i>
@@ -583,8 +728,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             <strong>🎉 Bisnis Berhasil Dibuat!</strong><br>
                             <div class="mt-2">
                                 <strong>Detail Bisnis:</strong><br>
-                                • <strong>Nama:</strong> ${businessData.name}<br>
-                                • <strong>Jenis:</strong> ${businessData.type}<br>
+                                • <strong>Nama:</strong> ${businessName}<br>
+                                • <strong>Jenis:</strong> ${businessType}<br>
                                 • <strong>ID Bisnis:</strong> ${result.data?.id || 'Sedang diproses'}<br>
                                 • <strong>Status:</strong> Menunggu persetujuan koperasi<br>
                                 • <strong>Waktu:</strong> ${new Date().toLocaleString('id-ID')}
@@ -609,11 +754,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.location.href = result.redirect || '/business';
                 }, 5000);
             } else {
-                showToast(result.message || 'Gagal membuat bisnis', 'error');
+                const errorMsg = result.message || result.error || 'Gagal membuat bisnis';
+                console.error('Business creation failed:', result);
+                showToast(errorMsg, 'error');
             }
         } catch (error) {
             console.error('Create business error:', error);
-            showToast('Terjadi kesalahan saat membuat bisnis', 'error');
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name
+            });
+            showToast('Terjadi kesalahan saat membuat bisnis: ' + error.message, 'error');
         }
     });
 
@@ -639,14 +791,64 @@ document.addEventListener('DOMContentLoaded', function() {
         const placeholder = uploadArea.querySelector('.upload-placeholder');
         const progress = uploadArea.querySelector('.upload-progress');
         const success = uploadArea.querySelector('.upload-success');
-        const progressBar = progress.querySelector('.progress-bar');
+        const progressBar = progress ? progress.querySelector('.progress-bar') : null;
+        
+        console.log('Initializing upload area:', docType, {
+            fileInput: !!fileInput,
+            hiddenInput: !!hiddenInput,
+            placeholder: !!placeholder,
+            progress: !!progress,
+            success: !!success
+        });
+        
+        if (!fileInput || !hiddenInput || !placeholder || !progress || !success) {
+            console.error('Missing required elements for upload area:', docType);
+            return;
+        }
 
-        // Click to upload
+        // Handle delete button clicks
+        const deleteBtn = uploadArea.querySelector('.btn-delete');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (confirm('Hapus file ini?')) {
+                    const fileUrl = hiddenInput.value;
+                    if (fileUrl) {
+                        deleteFile(fileUrl, uploadArea);
+                    }
+                }
+            });
+        }
+        
+        // Handle view button clicks
+        const viewBtn = uploadArea.querySelector('.btn-view');
+        if (viewBtn) {
+            viewBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const fileUrl = hiddenInput.value;
+                if (fileUrl) {
+                    window.open('http://localhost:8080' + fileUrl, '_blank');
+                }
+            });
+        }
+        
+        // Handle upload area clicks (but not buttons)
         uploadArea.addEventListener('click', (e) => {
-            if (!e.target.closest('.btn-delete') && !e.target.closest('.btn-view')) {
-                if (!success.classList.contains('d-none')) return;
-                fileInput.click();
+            // Don't trigger if clicking on buttons or if file already uploaded
+            if (e.target.closest('.btn-delete') || e.target.closest('.btn-view')) {
+                return;
             }
+            
+            if (!success.classList.contains('d-none')) {
+                console.log('File already uploaded, ignoring click');
+                return;
+            }
+            
+            // Trigger file input for upload
+            console.log('Upload area clicked, triggering file input');
+            fileInput.click();
         });
 
         // Drag and drop
@@ -661,48 +863,39 @@ document.addEventListener('DOMContentLoaded', function() {
 
         uploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             uploadArea.classList.remove('drag-over');
             const files = e.dataTransfer.files;
             if (files.length > 0) {
+                console.log('File dropped:', files[0].name);
                 handleFileUpload(files[0], docType, uploadArea);
             }
         });
 
         // File input change
         fileInput.addEventListener('change', (e) => {
+            console.log('File input changed:', e.target.files.length);
             if (e.target.files.length > 0) {
                 handleFileUpload(e.target.files[0], docType, uploadArea);
-            }
-        });
-
-        // Delete button
-        const deleteBtn = success.querySelector('.btn-delete');
-        deleteBtn.addEventListener('click', () => {
-            if (confirm('Hapus file ini?')) {
-                const fileUrl = hiddenInput.value;
-                if (fileUrl) {
-                    deleteFile(fileUrl, uploadArea);
-                }
-            }
-        });
-
-        // View button
-        const viewBtn = success.querySelector('.btn-view');
-        viewBtn.addEventListener('click', () => {
-            const fileUrl = hiddenInput.value;
-            if (fileUrl) {
-                window.open('http://localhost:8080' + fileUrl, '_blank');
             }
         });
     }
 
     async function handleFileUpload(file, docType, uploadArea) {
+        console.log('handleFileUpload called:', { fileName: file.name, docType, fileSize: file.size });
+        
         const hiddenInput = uploadArea.querySelector('input[type="hidden"]');
         const placeholder = uploadArea.querySelector('.upload-placeholder');
         const progress = uploadArea.querySelector('.upload-progress');
         const success = uploadArea.querySelector('.upload-success');
-        const progressBar = progress.querySelector('.progress-bar');
-        const fileName = success.querySelector('.file-name');
+        const progressBar = progress ? progress.querySelector('.progress-bar') : null;
+        const fileName = success ? success.querySelector('.file-name') : null;
+        
+        if (!hiddenInput || !placeholder || !progress || !success) {
+            console.error('Missing required elements in upload area');
+            showToast('Error: Upload area tidak lengkap', 'error');
+            return;
+        }
 
         // Validate file size (10MB)
         if (file.size > 10 * 1024 * 1024) {
@@ -722,59 +915,172 @@ document.addEventListener('DOMContentLoaded', function() {
         placeholder.classList.add('d-none');
         progress.classList.remove('d-none');
         success.classList.add('d-none');
+        
+        if (progressBar) {
+            progressBar.style.width = '0%';
+        }
 
         // Prepare form data
         const formData = new FormData();
         formData.append('file', file);
         formData.append('document_type', docType);
+        
+        console.log('Sending upload request:', { docType, fileName: file.name });
 
-        try {
-            // Upload file with progress tracking
-            const xhr = new XMLHttpRequest();
-
-            xhr.upload.addEventListener('progress', (e) => {
-                if (e.lengthComputable) {
-                    const percentComplete = (e.loaded / e.total) * 100;
-                    progressBar.style.width = percentComplete + '%';
-                }
-            });
-
-            xhr.addEventListener('load', () => {
-                if (xhr.status === 200) {
-                    const response = JSON.parse(xhr.responseText);
-                    if (response.status === 'success') {
-                        // Set hidden input value
-                        hiddenInput.value = response.data.file_url;
-                        
-                        // Show success
-                        progress.classList.add('d-none');
-                        success.classList.remove('d-none');
-                        fileName.textContent = file.name;
-                        
-                        showToast('File berhasil diupload', 'success');
-                    } else {
-                        throw new Error(response.message || 'Upload gagal');
-                    }
-                } else {
-                    throw new Error('Upload gagal dengan status: ' + xhr.status);
-                }
-            });
-
-            xhr.addEventListener('error', () => {
-                throw new Error('Upload gagal');
-            });
-
-            xhr.open('POST', '/api/upload/business-document');
-            xhr.send(formData);
-
-        } catch (error) {
-            console.error('Upload error:', error);
-            showToast('Gagal mengupload file: ' + error.message, 'error');
+        // Upload file with progress tracking
+        const xhr = new XMLHttpRequest();
+        
+        // Helper function to handle errors
+        const handleUploadError = (errorMessage) => {
+            console.error('Upload error:', errorMessage);
+            showToast('Gagal mengupload file: ' + errorMessage, 'error');
             
             // Reset to placeholder
             progress.classList.add('d-none');
             placeholder.classList.remove('d-none');
-            progressBar.style.width = '0%';
+            if (progressBar) {
+                progressBar.style.width = '0%';
+            }
+        };
+
+        xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable && progressBar) {
+                const percentComplete = (e.loaded / e.total) * 100;
+                progressBar.style.width = percentComplete + '%';
+                console.log('Upload progress:', percentComplete + '%');
+            }
+        });
+
+        xhr.addEventListener('load', () => {
+            console.log('Upload response received:', { 
+                status: xhr.status, 
+                statusText: xhr.statusText,
+                responseText: xhr.responseText,
+                responseType: xhr.responseType
+            });
+            
+            // Handle both success (200) and error status codes
+            let response;
+            try {
+                response = JSON.parse(xhr.responseText);
+                console.log('Parsed response:', response);
+            } catch (parseError) {
+                console.error('Error parsing response:', parseError, 'Raw response:', xhr.responseText);
+                handleUploadError('Gagal memproses respons server: ' + parseError.message);
+                return;
+            }
+            
+            // Check if response indicates success
+            if (xhr.status >= 200 && xhr.status < 300 && response.status === 'success') {
+                // Extract file URL from response
+                let fileUrl = null;
+                
+                // Try different possible response structures
+                if (response.data && response.data.file_url) {
+                    fileUrl = response.data.file_url;
+                } else if (response.file_url) {
+                    fileUrl = response.file_url;
+                } else if (response.data && typeof response.data === 'string') {
+                    fileUrl = response.data;
+                }
+                
+                if (!fileUrl) {
+                    console.error('File URL not found in response:', response);
+                    handleUploadError('File URL tidak ditemukan dalam respons server');
+                    return;
+                }
+                
+                // Set hidden input value
+                hiddenInput.value = fileUrl;
+                
+                // Verify the value was set correctly
+                const formElement = document.getElementById('createBusinessForm');
+                console.log('File URL set:', {
+                    fileUrl: fileUrl,
+                    hiddenInputId: hiddenInput.id,
+                    hiddenInputName: hiddenInput.name,
+                    hiddenInputValue: hiddenInput.value,
+                    isInForm: formElement ? formElement.contains(hiddenInput) : false
+                });
+                
+                // Double-check: read back the value to ensure it's set
+                const verifyValue = document.getElementById(hiddenInput.id).value;
+                if (verifyValue !== fileUrl) {
+                    console.error('WARNING: Hidden input value mismatch!', {
+                        expected: fileUrl,
+                        actual: verifyValue
+                    });
+                    // Force set it again
+                    document.getElementById(hiddenInput.id).value = fileUrl;
+                }
+                
+                // Show success
+                progress.classList.add('d-none');
+                success.classList.remove('d-none');
+                if (fileName) {
+                    fileName.textContent = file.name;
+                }
+                
+                showToast('File berhasil diupload', 'success');
+            } else {
+                // Handle error response
+                let errorMsg = 'Upload gagal';
+                if (response.message) {
+                    errorMsg = response.message;
+                } else if (response.error) {
+                    errorMsg = response.error;
+                } else if (response.details) {
+                    errorMsg = response.details;
+                } else {
+                    errorMsg = `Upload gagal dengan status: ${xhr.status}`;
+                }
+                
+                console.error('Upload failed:', {
+                    status: xhr.status,
+                    response: response,
+                    errorMessage: errorMsg
+                });
+                
+                handleUploadError(errorMsg);
+            }
+        });
+
+        xhr.addEventListener('error', (e) => {
+            console.error('XHR error event:', e);
+            console.error('XHR readyState:', xhr.readyState);
+            console.error('XHR status:', xhr.status);
+            handleUploadError('Koneksi error - pastikan backend server berjalan di http://localhost:8080');
+        });
+        
+        xhr.addEventListener('abort', () => {
+            console.error('Upload aborted');
+            handleUploadError('Upload dibatalkan');
+        });
+        
+        xhr.addEventListener('timeout', () => {
+            console.error('Upload timeout');
+            handleUploadError('Upload timeout - coba lagi');
+        });
+
+        // Enable credentials to send cookies (auth token)
+        xhr.withCredentials = true;
+        
+        // Set timeout (30 seconds)
+        xhr.timeout = 30000;
+        
+        try {
+            xhr.open('POST', '/api/upload/business-document');
+            // Don't set Content-Type header - let browser set it automatically with boundary for FormData
+            // But ensure we're sending credentials
+            console.log('Sending upload request to /api/upload/business-document');
+            console.log('FormData entries:', Array.from(formData.entries()).map(([key, value]) => [key, value instanceof File ? value.name : value]));
+            
+            xhr.send(formData);
+            
+            console.log('Upload request sent, waiting for response...');
+        } catch (error) {
+            console.error('Error sending upload request:', error);
+            handleUploadError('Gagal mengirim request: ' + error.message);
         }
     }
 
@@ -785,7 +1091,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const response = await fetch(`/api/upload/business-document?file_path=${encodeURIComponent(fileUrl)}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                credentials: 'include' // Include cookies (auth token)
             });
 
             const result = await response.json();
@@ -807,9 +1114,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Initialize all upload areas
-    document.querySelectorAll('.upload-area').forEach(uploadArea => {
-        initializeFileUpload(uploadArea);
+    const uploadAreas = document.querySelectorAll('.upload-area');
+    console.log('Found upload areas:', uploadAreas.length);
+    
+    uploadAreas.forEach((uploadArea, index) => {
+        console.log(`Initializing upload area ${index + 1}:`, uploadArea.id || 'no-id');
+        try {
+            initializeFileUpload(uploadArea);
+        } catch (error) {
+            console.error('Error initializing upload area:', error);
+        }
     });
+    
+    console.log('All upload areas initialized');
 });
 </script>
 

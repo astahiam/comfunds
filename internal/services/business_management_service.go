@@ -122,6 +122,7 @@ func (s *businessManagementService) CreateBusiness(ctx context.Context, req *ent
 		Currency:           req.Currency,
 		BankAccount:        req.BankAccount,
 		BusinessLicense:    req.BusinessLicense,
+		BusinessImage:      req.BusinessImage,
 		Documents:          req.Documents,
 		Status:             entities.BusinessStatusDraft,
 		ApprovalStatus:     "pending",

@@ -3,143 +3,107 @@
     <div class="container">
         <div class="row align-items-center min-vh-60 py-5">
             <div class="col-12 text-center">
-                <h1 class="hero-title mb-3">Ajukan Pembiayaan Syariah</h1>
-                <p class="hero-subtitle mb-4">
-                    Dapatkan pendanaan untuk mengembangkan UMKM Anda dengan prinsip syariah yang aman dan menguntungkan
-                </p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Application Form -->
-<section class="py-5">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-8 mx-auto">
-                <div class="card shadow-lg border-0">
-                    <div class="card-header bg-success text-white text-center py-4">
-                        <h3 class="mb-0">
-                            <i class="fas fa-file-alt me-2"></i>Formulir Pengajuan Pembiayaan
-                        </h3>
-                        <p class="mb-0 mt-2">Lengkapi data berikut untuk mengajukan pembiayaan syariah</p>
+                <!-- Decorative Icons -->
+                <div class="mb-4 d-flex justify-content-center align-items-center gap-4 flex-wrap">
+                    <div class="hero-icon-wrapper">
+                        <i class="fas fa-mosque text-success" style="font-size: 3rem; opacity: 0.8;"></i>
                     </div>
-                    <div class="card-body p-5">
-                        <form id="pembiayaanForm">
-                            <!-- Business Information -->
-                            <div class="mb-4">
-                                <h5 class="text-success mb-3">
-                                    <i class="fas fa-building me-2"></i>Informasi Bisnis
-                                </h5>
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Nama Bisnis</label>
-                                        <input type="text" class="form-control" name="business_name" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Jenis Usaha</label>
-                                        <select class="form-select" name="business_type" required>
-                                            <option value="">Pilih Jenis Usaha</option>
-                                            <option value="kuliner">Kuliner & Makanan</option>
-                                            <option value="fashion">Fashion & Busana</option>
-                                            <option value="retail">Retail & E-commerce</option>
-                                            <option value="jasa">Jasa & Konsultasi</option>
-                                            <option value="manufaktur">Manufaktur</option>
-                                            <option value="lainnya">Lainnya</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label">Alamat Bisnis</label>
-                                        <textarea class="form-control" name="business_address" rows="3" required></textarea>
-                                    </div>
-                                </div>
+                    <div class="hero-icon-wrapper">
+                        <i class="fas fa-handshake text-success" style="font-size: 3rem; opacity: 0.8;"></i>
+                    </div>
+                    <div class="hero-icon-wrapper">
+                        <i class="fas fa-chart-line text-success" style="font-size: 3rem; opacity: 0.8;"></i>
+                    </div>
+                </div>
+                
+                <h1 class="hero-title mb-4">Ajukan Pembiayaan Syariah</h1>
+                
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 col-xl-8">
+                        <p class="hero-subtitle mb-4 text-center" style="font-size: 1.25rem; line-height: 1.8;">
+                            <i class="fas fa-quote-left text-success me-2" style="opacity: 0.5;"></i>
+                            Dapatkan pendanaan untuk mengembangkan UMKM Anda dengan prinsip syariah yang aman dan menguntungkan
+                            <i class="fas fa-quote-right text-success ms-2" style="opacity: 0.5;"></i>
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Feature Highlights -->
+                <div class="row mt-5 justify-content-center">
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="d-flex flex-column align-items-center">
+                            <div class="feature-icon-circle mb-3">
+                                <i class="fas fa-shield-alt text-success"></i>
                             </div>
-
-                            <!-- Funding Information -->
-                            <div class="mb-4">
-                                <h5 class="text-success mb-3">
-                                    <i class="fas fa-money-bill-wave me-2"></i>Informasi Pembiayaan
-                                </h5>
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Jumlah Pembiayaan (Rp)</label>
-                                        <input type="number" class="form-control" name="funding_amount" min="10000000" max="1000000000" required>
-                                        <small class="text-muted">Minimum Rp 10.000.000 - Maksimum Rp 1.000.000.000</small>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Jangka Waktu (Bulan)</label>
-                                        <select class="form-select" name="duration" required>
-                                            <option value="">Pilih Jangka Waktu</option>
-                                            <option value="6">6 Bulan</option>
-                                            <option value="12">12 Bulan</option>
-                                            <option value="18">18 Bulan</option>
-                                            <option value="24">24 Bulan</option>
-                                            <option value="36">36 Bulan</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label">Tujuan Penggunaan Dana</label>
-                                        <textarea class="form-control" name="funding_purpose" rows="4" placeholder="Jelaskan secara detail bagaimana dana akan digunakan untuk mengembangkan bisnis Anda..." required></textarea>
-                                    </div>
-                                </div>
+                            <h6 class="fw-bold">Aman & Terpercaya</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="d-flex flex-column align-items-center">
+                            <div class="feature-icon-circle mb-3">
+                                <i class="fas fa-mosque text-success"></i>
                             </div>
-
-                            <!-- Business Plan -->
-                            <div class="mb-4">
-                                <h5 class="text-success mb-3">
-                                    <i class="fas fa-chart-line me-2"></i>Rencana Bisnis
-                                </h5>
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Omset Bulanan Saat Ini (Rp)</label>
-                                        <input type="number" class="form-control" name="current_revenue" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Target Omset Setelah Pembiayaan (Rp)</label>
-                                        <input type="number" class="form-control" name="target_revenue" required>
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label">Strategi Pengembangan Bisnis</label>
-                                        <textarea class="form-control" name="business_strategy" rows="4" placeholder="Jelaskan strategi pengembangan bisnis Anda setelah mendapat pembiayaan..." required></textarea>
-                                    </div>
-                                </div>
+                            <h6 class="fw-bold">100% Syariah</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="d-flex flex-column align-items-center">
+                            <div class="feature-icon-circle mb-3">
+                                <i class="fas fa-clock text-success"></i>
                             </div>
-
-                            <!-- Syariah Compliance -->
-                            <div class="mb-4">
-                                <h5 class="text-success mb-3">
-                                    <i class="fas fa-mosque me-2"></i>Kepatuhan Syariah
-                                </h5>
-                                <div class="alert alert-info">
-                                    <h6 class="alert-heading">Deklarasi Syariah</h6>
-                                    <p class="mb-2">Dengan mengajukan pembiayaan ini, saya menyatakan bahwa:</p>
-                                    <ul class="mb-0">
-                                        <li>Bisnis yang dijalankan tidak bertentangan dengan prinsip syariah</li>
-                                        <li>Tidak ada unsur riba, gharar, atau maysir dalam operasional bisnis</li>
-                                        <li>Produk/jasa yang ditawarkan halal dan sesuai syariah</li>
-                                        <li>Bersedia menjalankan bisnis sesuai prinsip syariah</li>
-                                    </ul>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="syariah_compliance" required>
-                                    <label class="form-check-label">
-                                        Saya menyatakan dan menjamin bahwa bisnis saya mematuhi prinsip-prinsip syariah
-                                    </label>
-                                </div>
+                            <h6 class="fw-bold">Proses Cepat</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="d-flex flex-column align-items-center">
+                            <div class="feature-icon-circle mb-3">
+                                <i class="fas fa-percent text-success"></i>
                             </div>
-
-                            <!-- Submit Button -->
-                            <div class="text-center">
-                                <button type="submit" class="btn btn-success btn-lg px-5">
-                                    <i class="fas fa-paper-plane me-2"></i>Ajukan Pembiayaan
-                                </button>
-                            </div>
-                        </form>
+                            <h6 class="fw-bold">Bagi Hasil Adil</h6>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    
+    <style>
+        .hero-icon-wrapper {
+            animation: float 3s ease-in-out infinite;
+        }
+        .hero-icon-wrapper:nth-child(1) {
+            animation-delay: 0s;
+        }
+        .hero-icon-wrapper:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+        .hero-icon-wrapper:nth-child(3) {
+            animation-delay: 1s;
+        }
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        .feature-icon-circle {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(25, 135, 84, 0.1) 0%, rgba(25, 135, 84, 0.2) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            transition: all 0.3s ease;
+        }
+        .feature-icon-circle:hover {
+            transform: scale(1.1);
+            background: linear-gradient(135deg, rgba(25, 135, 84, 0.2) 0%, rgba(25, 135, 84, 0.3) 100%);
+        }
+    </style>
 </section>
 
 <!-- Requirements Section -->
@@ -187,18 +151,36 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h5 class="text-success mb-3">
+                            <i class="fas fa-mosque me-2"></i>Kepatuhan Syariah
+                        </h5>
+                        <div class="alert alert-info mb-3">
+                            <h6 class="alert-heading">Deklarasi Syariah</h6>
+                            <p class="mb-2">Untuk mengajukan pembiayaan di HajiFund, bisnis Anda harus memenuhi prinsip-prinsip syariah berikut:</p>
+                            <ul class="mb-0">
+                                <li>Bisnis yang dijalankan tidak bertentangan dengan prinsip syariah</li>
+                                <li>Tidak ada unsur riba (bunga), gharar (ketidakpastian), atau maysir (judi) dalam operasional bisnis</li>
+                                <li>Produk/jasa yang ditawarkan halal dan sesuai syariah</li>
+                                <li>Bersedia menjalankan bisnis sesuai prinsip syariah dan tunduk pada pengawasan syariah</li>
+                                <li>Menggunakan skema pembiayaan berbasis bagi hasil (mudharabah/musyarakah) bukan bunga</li>
+                            </ul>
+                        </div>
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Semua pengajuan pembiayaan akan melalui proses verifikasi kepatuhan syariah oleh tim kami sebelum disetujui.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Register Button -->
+        <div class="text-center mt-5">
+            <a href="/register" class="btn btn-success btn-lg px-5">
+                <i class="fas fa-user-plus me-2"></i>Daftar Sekarang
+            </a>
         </div>
     </div>
 </section>
-
-<script>
-document.getElementById('pembiayaanForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    // Show success message
-    alert('Terima kasih! Pengajuan pembiayaan Anda telah berhasil dikirim. Tim kami akan menghubungi Anda dalam 1-2 hari kerja untuk proses selanjutnya.');
-    
-    // Reset form
-    this.reset();
-});
-</script>

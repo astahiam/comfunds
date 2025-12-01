@@ -209,9 +209,9 @@ nano /var/www/hajifund/.env
 DB_HOST=localhost
 DB_PORT=5432
 DB_USER=comfunds_user
-DB_PASSWORD=comfunds_secure_password
+DB_PASSWORD=comfunds_password
 DB_SSLMODE=disable
-JWT_SECRET=your_jwt_secret_key_here
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
 PORT=8080
 ENVIRONMENT=production
 

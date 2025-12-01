@@ -34,5 +34,9 @@ Thumbs.db
 /bin/
 /dist/
 
+# Mobile build files
+*.apk
+
 # Logs
 *.log
+

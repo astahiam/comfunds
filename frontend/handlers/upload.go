@@ -25,7 +25,17 @@ func (h *Handler) UploadBusinessDocument(c *fiber.Ctx) error {
 	if token == "" {
 		return c.Status(401).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Unauthorized",
+			"message": "Unauthorized: Authentication token not found",
+		})
+	}
+
+	// Check if request is multipart/form-data
+	contentType := c.Get("Content-Type")
+	if contentType == "" || len(contentType) < 19 || contentType[:19] != "multipart/form-data" {
+		return c.Status(400).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Invalid Content-Type. Expected multipart/form-data",
+			"details": fmt.Sprintf("Received Content-Type: %s", contentType),
 		})
 	}
 
@@ -43,7 +53,7 @@ func (h *Handler) UploadBusinessDocument(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{
 			"status":  "error",
-			"message": "File is required",
+			"message": fmt.Sprintf("File is required: %v", err),
 		})
 	}
 

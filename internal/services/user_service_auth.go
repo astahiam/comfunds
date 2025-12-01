@@ -90,16 +90,17 @@ func (s *userServiceAuth) Register(ctx context.Context, req *entities.CreateUser
 
 	// Create user entity
 	user := &entities.User{
-		ID:            uuid.New(),
-		Email:         req.Email,
-		Name:          req.Name,
-		Password:      hashedPassword,
-		Phone:         req.Phone,
-		Address:       req.Address,
-		CooperativeID: req.CooperativeID,
-		Roles:         req.Roles,
-		KYCStatus:     "pending",
-		IsActive:      true,
+		ID:                     uuid.New(),
+		Email:                  req.Email,
+		Name:                   req.Name,
+		Password:               hashedPassword,
+		Phone:                  req.Phone,
+		Address:                req.Address,
+		CooperativeID:          req.CooperativeID,
+		Roles:                  req.Roles,
+		KYCStatus:              "pending",
+		MembershipPaymentProof: req.MembershipPaymentProof,
+		IsActive:               true,
 	}
 
 	// Create user in database

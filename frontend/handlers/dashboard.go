@@ -242,9 +242,16 @@ func (h *Handler) Profile(c *fiber.Ctx) error {
 		return c.Redirect("/login")
 	}
 
+	refreshedUser := *user
+	if resp, err := h.makeAuthenticatedRequest("GET", "/api/v1/auth/profile", nil, c); err == nil && resp != nil {
+		if data, ok := resp.Data.(map[string]interface{}); ok {
+			hydrateUserFromAPIData(&refreshedUser, data)
+		}
+	}
+
 	return c.Render("dashboard/profile", fiber.Map{
 		"Title": "Profile - HajiFund",
-		"User":  user,
+		"User":  &refreshedUser,
 	}, "base")
 }
 
@@ -284,6 +291,51 @@ func (h *Handler) UpdateProfile(c *fiber.Ctx) error {
 		"message": "Profile updated successfully",
 		"data":    resp.Data,
 	})
+}
+
+func hydrateUserFromAPIData(user *models.User, data map[string]interface{}) {
+	if user == nil {
+		return
+	}
+
+	if id := getStringValue(data["id"]); id != "" {
+		user.ID = id
+	}
+	if email := getStringValue(data["email"]); email != "" {
+		user.Email = email
+	}
+	if name := getStringValue(data["name"]); name != "" {
+		user.Name = name
+	}
+	if phone := getStringValue(data["phone"]); phone != "" {
+		user.Phone = phone
+	}
+	if address := getStringValue(data["address"]); address != "" {
+		user.Address = address
+	}
+
+	if coopID := getStringValue(data["cooperative_id"]); coopID != "" {
+		user.CooperativeID = &coopID
+	} else {
+		user.CooperativeID = nil
+	}
+
+	if roles := data["roles"]; roles != nil {
+		user.Roles = extractRolesFromInterface(roles)
+	}
+
+	if kycStatus := getStringValue(data["kyc_status"]); kycStatus != "" {
+		user.KYCStatus = kycStatus
+	}
+
+	user.IsActive = getBoolValue(data["is_active"])
+
+	if createdAt := parseTime(data["created_at"]); !createdAt.IsZero() {
+		user.CreatedAt = createdAt
+	}
+	if updatedAt := parseTime(data["updated_at"]); !updatedAt.IsZero() {
+		user.UpdatedAt = updatedAt
+	}
 }
 
 // Helper function to parse time
