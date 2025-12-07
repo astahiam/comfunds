@@ -1,0 +1,146 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+env:
+  VPS_HOST: 103.103.20.68
+  VPS_USER: ryankharisma
+  VPS_PATH: ~/sourcecode
+
+jobs:
+  deploy-production:
+    name: Deploy to Production (VPS)
+    runs-on: ubuntu-latest
+    environment: production
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/vps_key
+          chmod 600 ~/.ssh/vps_key
+          ssh-keyscan -H ${{ env.VPS_HOST }} >> ~/.ssh/known_hosts
+      
+      - name: Test SSH connection
+        run: |
+          ssh -i ~/.ssh/vps_key -o StrictHostKeyChecking=no ${{ env.VPS_USER }}@${{ env.VPS_HOST }} "echo 'SSH connection successful'"
+      
+      - name: Pull latest code on VPS
+        run: |
+          ssh -i ~/.ssh/vps_key -o StrictHostKeyChecking=no ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << EOF
+            cd ${{ env.VPS_PATH }}
+            echo "Current directory: \$(pwd)"
+            echo "Pulling latest code from main branch..."
+            
+            if [ -d ".git" ]; then
+              git fetch origin
+              git checkout main || git checkout -b main
+              git pull origin main
+              echo "✅ Code pulled successfully"
+              git log -1 --oneline
+            else
+              echo "⚠️  Not a git repository, cloning..."
+              git clone -b main https://github.com/astahiam/comfunds.git .
+            fi
+          EOF
+      
+      - name: Copy updated files
+        run: |
+          ssh -i ~/.ssh/vps_key -o StrictHostKeyChecking=no ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << EOF
+            cd ${{ env.VPS_PATH }}
+            echo "Ensuring frontend Dockerfile is in place..."
+            if [ -f "Dockerfile.frontend" ] && [ ! -f "frontend/Dockerfile.frontend" ]; then
+              cp Dockerfile.frontend frontend/Dockerfile.frontend
+            fi
+          EOF
+      
+      - name: Deploy application
+        run: |
+          ssh -i ~/.ssh/vps_key -o StrictHostKeyChecking=no ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << EOF
+            cd ${{ env.VPS_PATH }}
+            echo "🚀 Starting production deployment..."
+            
+            # Make deployment script executable
+            chmod +x deploy-vps-complete.sh 2>/dev/null || true
+            chmod +x run-golang-migrations.sh 2>/dev/null || true
+            
+            # Run deployment
+            if [ -f "deploy-vps-complete.sh" ]; then
+              echo "Running deployment script..."
+              ./deploy-vps-complete.sh --skip-git-pull || {
+                echo "⚠️  Deployment script failed"
+                exit 1
+              }
+            else
+              echo "⚠️  Deployment script not found"
+              exit 1
+            fi
+          EOF
+      
+      - name: Verify deployment
+        run: |
+          ssh -i ~/.ssh/vps_key -o StrictHostKeyChecking=no ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << EOF
+            cd ${{ env.VPS_PATH }}
+            echo "🔍 Verifying deployment..."
+            
+            # Check container status
+            echo "Container status:"
+            docker-compose ps || docker compose ps || true
+            
+            # Wait for services to start
+            sleep 15
+            
+            echo ""
+            echo "Service health checks:"
+            
+            # Check backend
+            if curl -f http://localhost:8080/api/v1/health >/dev/null 2>&1; then
+              echo "✅ Backend API: Healthy"
+            else
+              echo "⚠️  Backend API: Not responding"
+            fi
+            
+            # Check frontend
+            if curl -f http://localhost:3000 >/dev/null 2>&1; then
+              echo "✅ Frontend: Healthy"
+            else
+              echo "⚠️  Frontend: Not responding"
+            fi
+            
+            # Show recent logs
+            echo ""
+            echo "Recent logs (last 20 lines):"
+            docker-compose logs --tail=20 || docker compose logs --tail=20 || true
+          EOF
+      
+      - name: Deployment summary
+        if: always()
+        run: |
+          echo "## 🚀 Production Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Deployment workflow completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Production" >> $GITHUB_STEP_SUMMARY
+          echo "**VPS:** ${{ env.VPS_HOST }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** main" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🌐 **Application URL:** http://${{ env.VPS_HOST }}" >> $GITHUB_STEP_SUMMARY
+
