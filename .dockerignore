@@ -49,6 +49,10 @@ dist/
 
 # Test files
 *_test.go
+test*.go
+test_registration_file_upload.go
+integration_test*.go
+test_helper.go
 test/
 tests/
 

@@ -99,9 +99,9 @@ func (c *AuthController) RegisterUser(ctx *gin.Context) {
 		return
 	}
 
-	// Handle file upload for payment proof
+	// Handle file upload for payment proof (OPTIONAL)
 	file, header, err := ctx.Request.FormFile("payment_proof")
-	if err == nil {
+	if err == nil && header != nil && header.Size > 0 {
 		defer file.Close()
 
 		// Validate file size (max 10MB)
@@ -158,6 +158,7 @@ func (c *AuthController) RegisterUser(ctx *gin.Context) {
 		paymentProofURL = &fileURL
 		req.MembershipPaymentProof = paymentProofURL
 	}
+	// If payment_proof is not provided, req.MembershipPaymentProof remains nil (optional)
 
 	if err := utils.ValidateStruct(&req); err != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, "Validation failed", err)

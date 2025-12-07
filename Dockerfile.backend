@@ -1,5 +1,8 @@
 # Multi-stage build for backend
-FROM golang:1.21-alpine AS builder
+FROM golang:1.23-alpine AS builder
+
+# Set GOTOOLCHAIN to allow using newer toolchain if needed
+ENV GOTOOLCHAIN=auto
 
 # Set working directory
 WORKDIR /app
@@ -13,8 +16,11 @@ COPY go.mod go.sum ./
 # Download dependencies
 RUN go mod download
 
-# Copy source code
+# Copy source code (excluding test files)
 COPY . .
+
+# Remove test files before building
+RUN find . -name "*_test.go" -o -name "test*.go" -o -name "integration_test*.go" -o -name "test_helper.go" | xargs rm -f || true
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .

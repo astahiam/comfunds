@@ -123,8 +123,43 @@
                         </div>
                         </div>
 
+                    <!-- Role Selection -->
+                    <div class="mb-3">
+                        <label class="form-label">Pilih Peran</label>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="role_investor" name="roles" value="investor">
+                                    <label class="form-check-label" for="role_investor">
+                                        <i class="fas fa-chart-line me-2 text-success"></i>
+                                        Investor
+                                        <small class="d-block text-muted">Berinvestasi dalam proyek UMKM</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                            <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="role_business_owner" name="roles" value="business_owner">
+                                    <label class="form-check-label" for="role_business_owner">
+                                        <i class="fas fa-briefcase me-2 text-primary"></i>
+                                        Pemilik Bisnis
+                                        <small class="d-block text-muted">Mencari pendanaan untuk bisnis</small>
+                                </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="invalid-feedback">
+                            Pilih minimal satu peran
+                        </div>
+                    </div>
+
                         <div class="mb-3">
                             <label for="payment_proof" class="form-label">Bukti Pembayaran Iuran Anggota Koperasi</label>
+                            <div class="alert alert-info mb-2" role="alert">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Biaya Pendaftaran Anggota Koperasi</strong><br>
+                                <strong>Sebesar Rp. 100.000.</strong>
+                            </div>
                             <div class="input-group">
                                 <span class="input-group-text">
                                     <i class="fas fa-file-upload text-muted"></i>
@@ -168,36 +203,6 @@
                             </div>
                         </div>
                         </div>
-
-                    <!-- Role Selection -->
-                    <div class="mb-3">
-                        <label class="form-label">Pilih Peran</label>
-                        <div class="row g-2">
-                            <div class="col-md-6">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="role_investor" name="roles" value="investor">
-                                    <label class="form-check-label" for="role_investor">
-                                        <i class="fas fa-chart-line me-2 text-success"></i>
-                                        Investor
-                                        <small class="d-block text-muted">Berinvestasi dalam proyek UMKM</small>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                            <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="role_business_owner" name="roles" value="business_owner">
-                                    <label class="form-check-label" for="role_business_owner">
-                                        <i class="fas fa-briefcase me-2 text-primary"></i>
-                                        Pemilik Bisnis
-                                        <small class="d-block text-muted">Mencari pendanaan untuk bisnis</small>
-                                </label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="invalid-feedback">
-                            Pilih minimal satu peran
-                        </div>
-                    </div>
 
                     <!-- Terms and Conditions -->
                     <div class="mb-3 form-check">
