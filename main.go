@@ -198,17 +198,17 @@ func main() {
 							},
 						},
 						"hero_content": gin.H{
-							"title":    "Solusi Terbaik Crowdfunding Berbasis Syariah",
-							"subtitle": "Kami membantu pengembangan UMKM dengan solusi pendanaan profit sharing syirkah secara musyarakah, amanah dan terpercaya.",
+							"title":    "Solusi Terbaik Crowdfunding Berbasis Koperasi",
+							"subtitle": "HajiFund adalah Crowdfunding berbadan hukum koperasi yang siap memfasilitasi investor dan pengusaha yang memerlukan pembiayaan dengan konsep bagi hasil keuntungan.",
 							"cta_buttons": []gin.H{
-								{
-									"text": "Ajukan Pembiayaan",
-									"url":  "/ajukan-pembiayaan",
+								gin.H{
+									"text": "Daftar Anggota Koperasi",
+									"url":  "/register",
 									"type": "outline",
 								},
 								{
-									"text": "Daftar Sebagai Investor",
-									"url":  "/register",
+									"text": "Login Anggota Koperasi",
+									"url":  "/login",
 									"type": "primary",
 								},
 							},

@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  postgres:
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-comfunds00.sql:/docker-entrypoint-initdb.d/10-init-comfunds00.sql:ro
+      - ./init-comfunds01.sql:/docker-entrypoint-initdb.d/11-init-comfunds01.sql:ro
+      - ./init-comfunds02.sql:/docker-entrypoint-initdb.d/12-init-comfunds02.sql:ro
+      - ./init-comfunds03.sql:/docker-entrypoint-initdb.d/13-init-comfunds03.sql:ro
+
+volumes:
+  postgres_data:

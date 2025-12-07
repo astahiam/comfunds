@@ -10,6 +10,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -82,15 +83,26 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 	}
 
 	// Set auth token in cookie with proper expiration
-	c.Cookie(&fiber.Cookie{
+	cookieDomain := os.Getenv("COOKIE_DOMAIN")
+	cookieSecure := os.Getenv("COOKIE_SECURE") == "true"
+	
+	// Don't set domain for IP addresses (cookies work without domain for IPs)
+	cookie := &fiber.Cookie{
 		Name:     "auth_token",
 		Value:    authResp.AccessToken,
 		HTTPOnly: true,
-		Secure:   false, // Set to true in production
+		Secure:   cookieSecure,
 		SameSite: "Lax",
 		MaxAge:   24 * 60 * 60, // 24 hours
 		Path:     "/",
-	})
+	}
+	
+	// Only set domain if it's a valid domain (not IP address)
+	if cookieDomain != "" && !isIPAddress(cookieDomain) {
+		cookie.Domain = cookieDomain
+	}
+	
+	c.Cookie(cookie)
 
 	// Determine redirect based on user roles
 	redirectURL := "/dashboard"
@@ -251,15 +263,26 @@ func (h *Handler) Register(c *fiber.Ctx) error {
 
 	// Set auth token in cookie with proper expiration
 	if authResp.AccessToken != "" {
-		c.Cookie(&fiber.Cookie{
+		cookieDomain := os.Getenv("COOKIE_DOMAIN")
+		cookieSecure := os.Getenv("COOKIE_SECURE") == "true"
+		
+		// Don't set domain for IP addresses (cookies work without domain for IPs)
+		cookie := &fiber.Cookie{
 			Name:     "auth_token",
 			Value:    authResp.AccessToken,
 			HTTPOnly: true,
-			Secure:   false, // Set to true in production
+			Secure:   cookieSecure,
 			SameSite: "Lax",
 			MaxAge:   24 * 60 * 60, // 24 hours
 			Path:     "/",
-		})
+		}
+		
+		// Only set domain if it's a valid domain (not IP address)
+		if cookieDomain != "" && !isIPAddress(cookieDomain) {
+			cookie.Domain = cookieDomain
+		}
+		
+		c.Cookie(cookie)
 	}
 
 	return c.Status(resp.StatusCode).JSON(backendResp)
@@ -279,14 +302,25 @@ func getStringValue(v interface{}) string {
 // Logout handles user logout
 func (h *Handler) Logout(c *fiber.Ctx) error {
 	// Clear auth token cookie
-	c.Cookie(&fiber.Cookie{
+	cookieDomain := os.Getenv("COOKIE_DOMAIN")
+	cookieSecure := os.Getenv("COOKIE_SECURE") == "true"
+	
+	cookie := &fiber.Cookie{
 		Name:     "auth_token",
 		Value:    "",
 		HTTPOnly: true,
-		Secure:   false,
+		Secure:   cookieSecure,
 		SameSite: "Lax",
 		MaxAge:   -1, // Expire immediately
-	})
+		Path:     "/",
+	}
+	
+	// Only set domain if it's a valid domain (not IP address)
+	if cookieDomain != "" && !isIPAddress(cookieDomain) {
+		cookie.Domain = cookieDomain
+	}
+	
+	c.Cookie(cookie)
 
 	return c.JSON(fiber.Map{
 		"status":   "success",
@@ -334,4 +368,23 @@ func extractRolesFromInterface(roles interface{}) []string {
 	}
 
 	return result
+}
+
+// isIPAddress checks if a string is an IP address
+func isIPAddress(s string) bool {
+	parts := strings.Split(s, ".")
+	if len(parts) != 4 {
+		return false
+	}
+	for _, part := range parts {
+		if len(part) == 0 || len(part) > 3 {
+			return false
+		}
+		for _, c := range part {
+			if c < '0' || c > '9' {
+				return false
+			}
+		}
+	}
+	return true
 }

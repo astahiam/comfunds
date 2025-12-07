@@ -64,11 +64,11 @@ services:
       
       # CORS Configuration
       ALLOWED_ORIGINS: http://103.103.20.68,http://localhost:3000
-      CORS_ORIGINS: http://103.103.20.68,http://localhost:3000
+      CORS_ORIGINS: http://103.103.20.68,http://103.103.20.68:3000,http://localhost:3000
       TRUSTED_PROXIES: 103.103.20.68,nginx
       
       # Cookie Configuration
-      COOKIE_DOMAIN: 103.103.20.68
+      COOKIE_DOMAIN: ""
       COOKIE_PATH: /
       COOKIE_SECURE: false
       COOKIE_SAME_SITE: Lax
@@ -126,11 +126,11 @@ services:
       
       # CORS Configuration
       ALLOWED_ORIGINS: http://103.103.20.68,http://localhost:3000
-      CORS_ORIGINS: http://103.103.20.68,http://localhost:3000
+      CORS_ORIGINS: http://103.103.20.68,http://103.103.20.68:3000,http://localhost:3000
       TRUSTED_PROXIES: 103.103.20.68,nginx
       
       # Cookie Configuration
-      COOKIE_DOMAIN: 103.103.20.68
+      COOKIE_DOMAIN: ""
       COOKIE_PATH: /
       COOKIE_SECURE: false
       COOKIE_SAME_SITE: Lax

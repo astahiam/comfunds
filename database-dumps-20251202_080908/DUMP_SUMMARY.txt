@@ -1,0 +1,56 @@
+Database Dump Summary
+====================
+Date: Tue Dec  2 08:09:11 WIB 2025
+Source: Local PostgreSQL
+Host: localhost:5432
+User: postgres
+
+Dumped Databases:
+  - comfunds00: ✅ (184K)
+  - comfunds01: ✅ (184K)
+  - comfunds02: ✅ (180K)
+  - comfunds03: ✅ (180K)
+
+Total Statistics:
+  - Total Tables: 40
+  - Total Rows: ~0
+
+Files Created:
+  - DUMP_SUMMARY.txt (341B)
+  - comfunds00.dump (88K)
+  - comfunds00_complete.sql (183K)
+  - comfunds00_data.sql (138K)
+  - comfunds00_schema.sql (46K)
+  - comfunds01.dump (88K)
+  - comfunds01_complete.sql (181K)
+  - comfunds01_data.sql (136K)
+  - comfunds01_schema.sql (46K)
+  - comfunds02.dump (86K)
+  - comfunds02_complete.sql (177K)
+  - comfunds02_data.sql (132K)
+  - comfunds02_schema.sql (46K)
+  - comfunds03.dump (87K)
+  - comfunds03_complete.sql (178K)
+  - comfunds03_data.sql (134K)
+  - comfunds03_schema.sql (46K)
+
+Import Instructions:
+====================
+
+To import to VPS Docker PostgreSQL:
+
+1. Upload dumps to VPS:
+   scp -i ~/Downloads/ryan-biznet-gio.pem -r ./database-dumps-20251202_080908/* ryankharisma@103.103.20.68:~/sourcecode/db-import/
+
+2. On VPS, import:
+   cd ~/sourcecode/db-import
+   docker-compose exec -T postgres psql -U postgres -d comfunds00 -f comfunds00_complete.sql
+   docker-compose exec -T postgres psql -U postgres -d comfunds01 -f comfunds01_complete.sql
+   docker-compose exec -T postgres psql -U postgres -d comfunds02 -f comfunds02_complete.sql
+   docker-compose exec -T postgres psql -U postgres -d comfunds03 -f comfunds03_complete.sql
+
+Or use custom format:
+   docker-compose exec -T postgres pg_restore -U postgres -d comfunds00 --clean --if-exists comfunds00.dump
+   docker-compose exec -T postgres pg_restore -U postgres -d comfunds01 --clean --if-exists comfunds01.dump
+   docker-compose exec -T postgres pg_restore -U postgres -d comfunds02 --clean --if-exists comfunds02.dump
+   docker-compose exec -T postgres pg_restore -U postgres -d comfunds03 --clean --if-exists comfunds03.dump

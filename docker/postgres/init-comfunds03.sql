@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS users (
     roles JSONB DEFAULT '[]',
     kyc_status VARCHAR(50) DEFAULT 'pending',
     user_profile_image VARCHAR(500),
+    membership_payment_proof VARCHAR(500),
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
