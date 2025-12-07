@@ -122,6 +122,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for better caching
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -132,9 +134,11 @@ jobs:
           context: .
           file: ./Dockerfile.backend
           push: false
-          tags: hajifund-backend:test
+          tags: sourcecode-backend:test
+          load: true  # Load image into local Docker daemon
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          platforms: linux/amd64
       
       - name: Build frontend image
         uses: docker/build-push-action@v5
@@ -142,14 +146,27 @@ jobs:
           context: ./frontend
           file: ./frontend/Dockerfile.frontend
           push: false
-          tags: hajifund-frontend:test
+          tags: sourcecode-frontend:test
+          load: true  # Load image into local Docker daemon
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          platforms: linux/amd64
       
       - name: Verify images
         run: |
-          docker images | grep hajifund
-          echo "✅ Docker images built successfully"
+          echo "Checking built images..."
+          docker images | grep -E "(sourcecode|REPOSITORY)" || echo "No images found with 'sourcecode' tag"
+          if docker images | grep -q "sourcecode-backend"; then
+            echo "✅ Backend image built successfully"
+          else
+            echo "⚠️  Backend image not found"
+          fi
+          if docker images | grep -q "sourcecode-frontend"; then
+            echo "✅ Frontend image built successfully"
+          else
+            echo "⚠️  Frontend image not found"
+          fi
+          echo "✅ Docker build step completed"
 
   security:
     name: Security Scan

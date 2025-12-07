@@ -104,8 +104,8 @@ jobs:
               echo "Building Docker images..."
               docker-compose build || docker compose build || {
                 echo "Building images individually..."
-                docker build -f Dockerfile.backend -t hajifund-backend . || true
-                docker build -f frontend/Dockerfile.frontend -t hajifund-frontend ./frontend || true
+                docker build -f Dockerfile.backend -t sourcecode-backend . || true
+                docker build -f frontend/Dockerfile.frontend -t sourcecode-frontend ./frontend || true
               }
               
               echo "Starting services..."
